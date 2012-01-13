@@ -1,0 +1,16 @@
+Integrity Checker 2.0
+Plugin for FAR 2.0
+---------------------------
+
+This plugin allows creation and
+verification of the hash sum files for
+integrity checking purposes.
+
+Supported algorithms:
+- CRC32 (sfv files)
+- MD5
+- SHA1
+
+(c) 2011, Ariman
+-----------------------------------------
+E-mail for suggestions, bug reports, etc: ariman@inbox.ru
