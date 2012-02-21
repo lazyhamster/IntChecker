@@ -2,6 +2,11 @@
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "IntChecker2", "source\IntChecker2.vcproj", "{575E3215-DAD6-4B44-8231-C7D53D25BE82}"
+	ProjectSection(ProjectDependencies) = postProject
+		{66FEB52E-3624-4806-B018-02DAD5CF59DF} = {66FEB52E-3624-4806-B018-02DAD5CF59DF}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "rhash", "depends\rhash\rhash.vcproj", "{66FEB52E-3624-4806-B018-02DAD5CF59DF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -19,6 +24,14 @@ Global
 		{575E3215-DAD6-4B44-8231-C7D53D25BE82}.Release|Win32.Build.0 = Release|Win32
 		{575E3215-DAD6-4B44-8231-C7D53D25BE82}.Release|x64.ActiveCfg = Release|x64
 		{575E3215-DAD6-4B44-8231-C7D53D25BE82}.Release|x64.Build.0 = Release|x64
+		{66FEB52E-3624-4806-B018-02DAD5CF59DF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{66FEB52E-3624-4806-B018-02DAD5CF59DF}.Debug|Win32.Build.0 = Debug|Win32
+		{66FEB52E-3624-4806-B018-02DAD5CF59DF}.Debug|x64.ActiveCfg = Debug|x64
+		{66FEB52E-3624-4806-B018-02DAD5CF59DF}.Debug|x64.Build.0 = Debug|x64
+		{66FEB52E-3624-4806-B018-02DAD5CF59DF}.Release|Win32.ActiveCfg = Release|Win32
+		{66FEB52E-3624-4806-B018-02DAD5CF59DF}.Release|Win32.Build.0 = Release|Win32
+		{66FEB52E-3624-4806-B018-02DAD5CF59DF}.Release|x64.ActiveCfg = Release|x64
+		{66FEB52E-3624-4806-B018-02DAD5CF59DF}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

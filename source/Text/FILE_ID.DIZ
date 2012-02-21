@@ -10,7 +10,10 @@ Supported algorithms:
 - CRC32 (sfv files)
 - MD5
 - SHA1
+- SHA-256
+- SHA-512
+- Whirlpool
 
-(c) 2011, Ariman
+(c) 2012, Ariman
 -----------------------------------------
 E-mail for suggestions, bug reports, etc: ariman@inbox.ru
