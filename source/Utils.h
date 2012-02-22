@@ -1,6 +1,8 @@
 #ifndef Utils_h__
 #define Utils_h__
 
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
+
 class FarScreenSave
 {
 private:

@@ -58,9 +58,9 @@ bool CheckEsc()
 
 	HANDLE hConsole = GetStdHandle(STD_INPUT_HANDLE);
 	if (GetNumberOfConsoleInputEvents(hConsole, &dwNumEvents))
-		while (PeekConsoleInputA(hConsole, &inRec, 1, &dwNumEvents) && (dwNumEvents > 0))
+		while (PeekConsoleInput(hConsole, &inRec, 1, &dwNumEvents) && (dwNumEvents > 0))
 		{
-			ReadConsoleInputA(hConsole, &inRec, 1, &dwNumEvents);
+			ReadConsoleInput(hConsole, &inRec, 1, &dwNumEvents);
 			if ((inRec.EventType == KEY_EVENT) && (inRec.Event.KeyEvent.bKeyDown) && (inRec.Event.KeyEvent.wVirtualKeyCode == VK_ESCAPE))
 				return true;
 		} //while
