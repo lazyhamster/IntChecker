@@ -4,7 +4,7 @@
 #include "stdafx.h"
 #include "far2/plugin.hpp"
 #include "Utils.h"
-#include "rhash/librhash/rhash.h"
+#include "hashing.h"
 
 PluginStartupInfo FarSInfo;
 static FARSTANDARDFUNCTIONS FSF;
@@ -15,6 +15,32 @@ static int optClearSelectionOnComplete = 1;
 static int optConfirmAbort = 1;
 static int optDefaultAlgo = RHASH_MD5;
 static wchar_t optPrefix[32] = L"check";
+
+static rhash_ids s_SupportedAlgos[] = {RHASH_CRC32, RHASH_MD5, RHASH_SHA1, RHASH_SHA256, RHASH_SHA512, RHASH_WHIRLPOOL};
+
+// --------------------------------------- Service functions -------------------------------------------------
+
+static const wchar_t* GetLocMsg(int MsgID)
+{
+	return FarSInfo.GetMsg(FarSInfo.ModuleNumber, MsgID);
+}
+
+// --------------------------------------- Local functions ---------------------------------------------------
+
+static void RunGenerateHashes()
+{
+	//
+}
+
+static void RunValidateFiles()
+{
+	//
+}
+
+static void RunComparePanels()
+{
+	//
+}
 
 // ------------------------------------- Exported functions --------------------------------------------------
 
@@ -67,6 +93,25 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 	else if (OpenFrom == OPEN_PLUGINSMENU)
 	{
 		// We are from regular plug-ins menu
+
+		FarMenuItem MenuItems[] = {
+			{L"&Generate Hashes", 1, 0, 0},
+			{L"&Validate Files", 0, 0, 0},
+			{L"Compare &Panels", 0, 0, 0}
+		};
+
+		int nMItem = FarSInfo.Menu(FarSInfo.ModuleNumber, -1, -1, 0, 0, L"Integrity Checker", NULL, NULL, NULL, NULL, MenuItems, ARRAY_SIZE(MenuItems));
+
+		switch (nMItem)
+		{
+			case 0:
+				break;
+			case 1:
+				break;
+			case 2:
+				break;
+		}
+
 	} // OpenFrom check
 		
 	return INVALID_HANDLE_VALUE;
