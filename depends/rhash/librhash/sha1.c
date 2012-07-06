@@ -1,7 +1,7 @@
 /* sha1.c - an implementation of Secure Hash Algorithm 1 (SHA1)
  * based on RFC 3174.
  *
- * Copyright: 2008 Alexey Kravchenko <rhash.admin@gmail.com>
+ * Copyright: 2008 Aleksey Kravchenko <rhash.admin@gmail.com>
  *
  * Permission is hereby granted,  free of charge,  to any person  obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -54,7 +54,7 @@ static void rhash_sha1_process_block(unsigned* hash, const unsigned* block)
 
 	/* initialize the rest */
 	for(t = 16; t < 80; t++) {
-		W[t] = ROTL32(W[t-3] ^ W[t-8] ^ W[t-14] ^ W[t-16], 1);
+		W[t] = ROTL32(W[t - 3] ^ W[t - 8] ^ W[t - 14] ^ W[t - 16], 1);
 	}
 
 	A = hash[0];
@@ -64,7 +64,8 @@ static void rhash_sha1_process_block(unsigned* hash, const unsigned* block)
 	E = hash[4];
 
 	for(t = 0; t < 20; t++) {
-		temp =  ROTL32(A, 5) + (((C ^ D) & B) ^ D) /* it's faster than ((B & C) | ((~B) & D)) */
+		/* the following is faster than ((B & C) | ((~B) & D)) */
+		temp =  ROTL32(A, 5) + (((C ^ D) & B) ^ D)
 			+ E + W[t] + 0x5A827999;
 		E = D;
 		D = C;
@@ -166,13 +167,13 @@ void rhash_sha1_final(sha1_ctx *ctx, unsigned char* result)
 
 	/* pad message and run for last block */
 	ctx->message[index++] = 0x80;
-	while( index&3 ) {
+	while((index & 3) != 0) {
 		ctx->message[index++] = 0;
 	}
 	index >>= 2;
 
 	/* if no room left in the message to store 64-bit message length */
-	if(index>14) {
+	if(index > 14) {
 		/* then fill the rest with zeros and process it */
 		while(index < 16) {
 			msg32[index++] = 0;

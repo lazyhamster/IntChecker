@@ -1,7 +1,7 @@
 /* sha256.c - an implementation of SHA-256/224 hash functions
  * based on FIPS 180-3 (Federal Information Processing Standart).
  *
- * Copyright: 2010 Alexey Kravchenko <rhash.admin@gmail.com>
+ * Copyright: 2010 Aleksey Kravchenko <rhash.admin@gmail.com>
  *
  * Permission is hereby granted,  free of charge,  to any person  obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -44,9 +44,9 @@ static const unsigned rhash_k256[64] = {
 #define sigma1(x) (ROTR32((x),17) ^ ROTR32((x), 19) ^ ((x) >> 10))
 
 /* Recalculate element n-th of circular buffer W using formula
- *   W[n] = sigma1(W[n-2]) + W[n-7] + sigma0(W[n-15]) + W[n-16]; */
-#define RECALCULATE_W(W,n) \
-	(W[n] += (sigma1(W[(n-2) & 15]) + W[(n-7) & 15] + sigma0(W[(n-15) & 15])))
+ *   W[n] = sigma1(W[n - 2]) + W[n - 7] + sigma0(W[n - 15]) + W[n - 16]; */
+#define RECALCULATE_W(W,n) (W[n] += \
+	(sigma1(W[(n - 2) & 15]) + W[(n - 7) & 15] + sigma0(W[(n - 15) & 15])))
 
 #define ROUND(a,b,c,d,e,f,g,h,k,data) { \
 	unsigned T1 = h + Sigma1(e) + Ch(e,f,g) + k + (data); \

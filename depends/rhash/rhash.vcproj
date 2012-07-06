@@ -82,12 +82,11 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Release|Win32"
-			OutputDirectory="$(SolutionDir)\obj\$(ConfigurationName)\$(ProjectName)"
-			IntermediateDirectory="$(SolutionDir)\obj\$(ConfigurationName)\$(ProjectName)"
+			Name="Debug|x64"
+			OutputDirectory="$(SolutionDir)\obj\$(ConfigurationName)-$(PlatformName)\$(ProjectName)"
+			IntermediateDirectory="$(SolutionDir)\obj\$(ConfigurationName)-$(PlatformName)\$(ProjectName)"
 			ConfigurationType="4"
 			CharacterSet="1"
-			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -103,15 +102,16 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
+				TargetEnvironment="3"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="2"
-				EnableIntrinsicFunctions="true"
+				Optimization="0"
 				AdditionalIncludeDirectories=".\win32\"
-				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
-				RuntimeLibrary="0"
-				EnableFunctionLevelLinking="true"
+				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
+				MinimalRebuild="true"
+				BasicRuntimeChecks="3"
+				RuntimeLibrary="1"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -145,11 +145,12 @@
 			/>
 		</Configuration>
 		<Configuration
-			Name="Debug|x64"
-			OutputDirectory="$(SolutionDir)\obj\$(ConfigurationName)-$(PlatformName)\$(ProjectName)"
-			IntermediateDirectory="$(SolutionDir)\obj\$(ConfigurationName)-$(PlatformName)\$(ProjectName)"
+			Name="Release|Win32"
+			OutputDirectory="$(SolutionDir)\obj\$(ConfigurationName)\$(ProjectName)"
+			IntermediateDirectory="$(SolutionDir)\obj\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
 			CharacterSet="1"
+			WholeProgramOptimization="1"
 			>
 			<Tool
 				Name="VCPreBuildEventTool"
@@ -165,16 +166,15 @@
 			/>
 			<Tool
 				Name="VCMIDLTool"
-				TargetEnvironment="3"
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				Optimization="0"
+				Optimization="2"
+				EnableIntrinsicFunctions="true"
 				AdditionalIncludeDirectories=".\win32\"
-				PreprocessorDefinitions="WIN32;_DEBUG;_LIB"
-				MinimalRebuild="true"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
+				PreprocessorDefinitions="WIN32;NDEBUG;_LIB"
+				RuntimeLibrary="0"
+				EnableFunctionLevelLinking="true"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				DebugInformationFormat="3"
@@ -281,6 +281,10 @@
 			UniqueIdentifier="{4FC737F1-C7A5-4376-A066-2A32D752A2FF}"
 			>
 			<File
+				RelativePath=".\librhash\aich.c"
+				>
+			</File>
+			<File
 				RelativePath=".\librhash\algorithms.c"
 				>
 			</File>
@@ -293,11 +297,39 @@
 				>
 			</File>
 			<File
+				RelativePath=".\librhash\ed2k.c"
+				>
+			</File>
+			<File
+				RelativePath=".\librhash\edonr.c"
+				>
+			</File>
+			<File
+				RelativePath=".\librhash\gost.c"
+				>
+			</File>
+			<File
+				RelativePath=".\librhash\has160.c"
+				>
+			</File>
+			<File
+				RelativePath=".\librhash\hex.c"
+				>
+			</File>
+			<File
+				RelativePath=".\librhash\md4.c"
+				>
+			</File>
+			<File
 				RelativePath=".\librhash\md5.c"
 				>
 			</File>
 			<File
 				RelativePath=".\librhash\rhash.c"
+				>
+			</File>
+			<File
+				RelativePath=".\librhash\ripemd-160.c"
 				>
 			</File>
 			<File
@@ -313,11 +345,31 @@
 				>
 			</File>
 			<File
+				RelativePath=".\librhash\snefru.c"
+				>
+			</File>
+			<File
+				RelativePath=".\librhash\tiger.c"
+				>
+			</File>
+			<File
+				RelativePath=".\librhash\tiger_sbox.c"
+				>
+			</File>
+			<File
 				RelativePath=".\librhash\torrent.c"
 				>
 			</File>
 			<File
+				RelativePath=".\librhash\tth.c"
+				>
+			</File>
+			<File
 				RelativePath=".\librhash\whirlpool.c"
+				>
+			</File>
+			<File
+				RelativePath=".\librhash\whirlpool_sbox.c"
 				>
 			</File>
 		</Filter>

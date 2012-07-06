@@ -1,6 +1,6 @@
 /* byte_order.c - byte order related platform dependent routines,
  *
- * Copyright: 2008 Alexey Kravchenko <rhash.admin@gmail.com>
+ * Copyright: 2008 Aleksey Kravchenko <rhash.admin@gmail.com>
  *
  * Permission is hereby granted,  free of charge,  to any person  obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -119,7 +119,7 @@ void rhash_u64_swap_copy(void* to, int index, const void* from, size_t length)
 void rhash_u32_memswap(unsigned *arr, int length)
 {
 	unsigned* end = arr + length;
-	for(; arr<end; arr++) {
+	for(; arr < end; arr++) {
 		*arr = bswap_32(*arr);
 	}
 }

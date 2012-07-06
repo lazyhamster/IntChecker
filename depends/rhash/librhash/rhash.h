@@ -47,7 +47,7 @@ enum rhash_ids
 	RHASH_ALL_HASHES = RHASH_CRC32 | RHASH_MD4 | RHASH_MD5 | RHASH_ED2K | RHASH_SHA1 |
 		RHASH_TIGER | RHASH_TTH | RHASH_GOST | RHASH_GOST_CRYPTOPRO |
 		RHASH_BTIH | RHASH_AICH | RHASH_WHIRLPOOL | RHASH_RIPEMD160 |
-		RHASH_HAS160 | RHASH_SNEFRU128 | RHASH_SNEFRU256|
+		RHASH_HAS160 | RHASH_SNEFRU128 | RHASH_SNEFRU256 |
 		RHASH_SHA224 | RHASH_SHA256 | RHASH_SHA384 | RHASH_SHA512 |
 		RHASH_EDONR256 | RHASH_EDONR512,
 	
@@ -112,6 +112,7 @@ typedef struct rhash_info
 	/** size of binary message digest in bytes */
 	size_t digest_size;
 	const char* name;
+	const char* magnet_name;
 } rhash_info;
 
 /* information functions */
@@ -120,9 +121,10 @@ RHASH_API int  rhash_get_digest_size(unsigned hash_id); /* size of binary messag
 RHASH_API int  rhash_get_hash_length(unsigned hash_id); /* length of formated hash string */
 RHASH_API int  rhash_is_base32(unsigned hash_id); /* default digest output format */
 RHASH_API const char* rhash_get_name(unsigned hash_id); /* get hash function name */
+RHASH_API const char* rhash_get_magnet_name(unsigned hash_id); /* get name part of magnet urn */
 
 /* note, that rhash_info_by_id() is not exported to a shared library or DLL */
-rhash_info* rhash_info_by_id(unsigned hash_id); /* get hash sum info by hash id */
+const rhash_info* rhash_info_by_id(unsigned hash_id); /* get hash sum info by hash id */
 
 /**
  * Flags for printing a hash sum
@@ -150,13 +152,23 @@ enum rhash_print_sum_flags
 	 * Reverse hash bytes. Can be used for GOST hash.
 	 */
 	RHPR_REVERSE   = 0x10,
+
+	/** don't print 'magnet:?' prefix in rhash_print_magnet */
+	RHPR_NO_MAGNET  = 0x20,
+	/** print file size in rhash_print_magnet */
+	RHPR_FILESIZE  = 0x40,
 };
 
 /* output hash into given buffer */
 RHASH_API size_t rhash_print_bytes(char* output,
 	const unsigned char* bytes, size_t size, int flags);
+
 RHASH_API size_t rhash_print(char* output, rhash ctx, unsigned hash_id,
 	int flags);
+
+/* output magnet URL into given buffer */
+RHASH_API size_t rhash_print_magnet(char* output, const char* filepath,
+	rhash context, unsigned hash_mask, int flags);
 
 /* macros for message API */
 
@@ -176,7 +188,8 @@ typedef unsigned long rhash_uptr_t;
 #define RHASH_UPTR2PVOID(u) ((void*)((char*)0 + (u)))
 
 /* rhash API to set/get data via messages */
-RHASH_API rhash_uptr_t rhash_transmit(unsigned msg_id, void*dst, rhash_uptr_t ldata, rhash_uptr_t rdata);
+RHASH_API rhash_uptr_t rhash_transmit(
+	unsigned msg_id, void* dst, rhash_uptr_t ldata, rhash_uptr_t rdata);
 
 /* rhash message constants */
 
@@ -194,6 +207,7 @@ RHASH_API rhash_uptr_t rhash_transmit(unsigned msg_id, void*dst, rhash_uptr_t ld
 #define RMSG_BT_SET_PIECE_LENGTH 35
 #define RMSG_BT_SET_PROGRAM_NAME 36
 #define RMSG_BT_GET_TEXT 37
+#define RMSG_BT_SET_BATCH_SIZE 38
 
 /* possible BitTorrent options for the RMSG_BT_SET_OPTIONS message */
 #define RHASH_BT_OPT_PRIVATE 1
