@@ -57,19 +57,21 @@ static void SaveSettings()
 	//
 }
 
-static void RunGenerateHashes()
+// Returns true if file is recognized as hash list
+static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 {
-	//
+	return false;
 }
 
-static void RunValidateFiles()
+static void RunGenerateHashes()
 {
-	//
+	//TODO: implement
 }
 
 static void RunComparePanels()
 {
-	//
+	//TODO: implement
+	DisplayMessage(L"Not implemented", L"Panels Compare", NULL, false, true);
 }
 
 // ------------------------------------- Exported functions --------------------------------------------------
@@ -119,6 +121,8 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 	if (OpenFrom == OPEN_COMMANDLINE)
 	{
 		// We are from prefix
+		if (!RunValidateFiles((wchar_t*) Item, true))
+			DisplayMessage(L"Error", L"File is not a valid hash list", NULL, true, true);
 	}
 	else if (OpenFrom == OPEN_PLUGINSMENU)
 	{
@@ -126,7 +130,6 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 
 		FarMenuItem MenuItems[] = {
 			{L"&Generate Hashes", 1, 0, 0},
-			{L"&Validate Files", 0, 0, 0},
 			{L"Compare &Panels", 0, 0, 0}
 		};
 
@@ -135,10 +138,10 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 		switch (nMItem)
 		{
 			case 0:
+				RunGenerateHashes();
 				break;
 			case 1:
-				break;
-			case 2:
+				RunComparePanels();
 				break;
 		}
 	} // OpenFrom check
@@ -148,5 +151,6 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 
 HANDLE WINAPI OpenFilePluginW(const wchar_t *Name, const unsigned char *Data, int DataSize, int OpMode)
 {
+	RunValidateFiles(Name, true);
 	return INVALID_HANDLE_VALUE;
 }

@@ -387,6 +387,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\RegistrySettings.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\stdafx.cpp"
 				>
 				<FileConfiguration
@@ -438,6 +442,10 @@
 			</File>
 			<File
 				RelativePath=".\Lang.h"
+				>
+			</File>
+			<File
+				RelativePath=".\RegistrySettings.h"
 				>
 			</File>
 			<File
