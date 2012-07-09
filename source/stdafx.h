@@ -13,12 +13,10 @@
 
 
 // TODO: reference additional headers your program requires here
-#include <stdint.h>
-
 #include <string>
 #include <vector>
 #include <list>
 
-typedef std::vector<std::wstring> UStringList;
-
 using namespace std;
+
+#include <stdint.h>

@@ -14,7 +14,6 @@ public:
 };
 
 bool ArePanelsComparable();
-bool ScanDirContent(const wchar_t* dirPath, const wchar_t* relativeBase, UStringList &targetList, __int64 &totalSize);
 bool CheckEsc();
 bool IsAbsPath(const wchar_t* path);
 

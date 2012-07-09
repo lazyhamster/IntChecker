@@ -6,27 +6,28 @@
 struct FileHashInfo
 {
 	std::wstring Filename;
-	uint8_t HashData[32];
-	bool IsHashed;
+	std::string HashStr;
 };
 
-class Hasher
+class HashList
 {
 private:
-	std::wstring m_BasePath;
 	rhash_ids m_HashId;
-	std::list<FileHashInfo> m_HashList;
-
-	std::wstring normalizePath(const wchar_t* input);
+	std::vector<FileHashInfo> m_HashList;
 
 public:
-	Hasher(const wchar_t* basePath, rhash_ids hashId);
-
-	void AddFile(const wchar_t* relativePath);
-	void AddDir(const wchar_t* relativePath);
+	HashList(rhash_ids hashId) : m_HashId(hashId) {}
 
 	bool SaveList(const wchar_t* filepath);
-	int LoadList(const wchar_t* filepath);
+	int LoadList(const wchar_t* filepath, bool replaceExisting = true);
+
+	std::string GetFileHash(const wchar_t* FileName) const;
+	void SetFileHash(const wchar_t* FileName, std::string HashVal);
 };
+
+// Params: context, processed bytes, total bytes
+typedef int (CALLBACK *HashingProgressFunc)(HANDLE, int64_t, int64_t);
+
+bool GenerateHash(const wchar_t* filePath, rhash_ids hashAlgo, char* result, HashingProgressFunc progressFunc, HANDLE progressContext);
 
 #endif // hashing_h__

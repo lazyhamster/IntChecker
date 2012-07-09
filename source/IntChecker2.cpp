@@ -25,7 +25,37 @@ static const wchar_t* GetLocMsg(int MsgID)
 	return FarSInfo.GetMsg(FarSInfo.ModuleNumber, MsgID);
 }
 
+static void DisplayMessage(const wchar_t* headerText, const wchar_t* messageText, const wchar_t* errorItem, bool isError, bool isInteractive)
+{
+	static const wchar_t* MsgLines[3];
+	MsgLines[0] = headerText;
+	MsgLines[1] = messageText;
+	MsgLines[2] = errorItem;
+
+	int linesNum = (errorItem) ? 3 : 2;
+	int flags = 0;
+	if (isError) flags |= FMSG_WARNING;
+	if (isInteractive) flags |= FMSG_MB_OK;
+
+	FarSInfo.Message(FarSInfo.ModuleNumber, flags, NULL, MsgLines, linesNum, 0);
+}
+
+static void DisplayMessage(int headerMsgID, int textMsgID, const wchar_t* errorItem, bool isError, bool isInteractive)
+{
+	DisplayMessage(GetLocMsg(headerMsgID), GetLocMsg(textMsgID), errorItem, isError, isInteractive);
+}
+
 // --------------------------------------- Local functions ---------------------------------------------------
+
+static void LoadSettings()
+{
+	//
+}
+
+static void SaveSettings()
+{
+	//
+}
 
 static void RunGenerateHashes()
 {
@@ -111,8 +141,12 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 			case 2:
 				break;
 		}
-
 	} // OpenFrom check
 		
+	return INVALID_HANDLE_VALUE;
+}
+
+HANDLE WINAPI OpenFilePluginW(const wchar_t *Name, const unsigned char *Data, int DataSize, int OpMode)
+{
 	return INVALID_HANDLE_VALUE;
 }
