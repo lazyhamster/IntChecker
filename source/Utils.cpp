@@ -72,3 +72,30 @@ bool IsAbsPath(const wchar_t* path)
 {
 	return (wcslen(path) > 3) && ((path[1] == L':' && path[2] == L'\\') || (path[0] == L'\\' && path[1] == L'\\'));
 }
+
+void IncludeTrailingPathDelim(wchar_t *pathBuf, size_t bufMaxSize)
+{
+	size_t nPathLen = wcslen(pathBuf);
+	if (pathBuf[nPathLen - 1] != '\\')
+		wcscat_s(pathBuf, bufMaxSize, L"\\");
+}
+
+void IncludeTrailingPathDelim(wstring &pathStr)
+{
+	size_t nStrLen = pathStr.length();
+	if (pathStr[nStrLen - 1] != '\\')
+		pathStr += L"\\";
+}
+
+int64_t GetFileSize_i64(const wchar_t* path)
+{
+	WIN32_FIND_DATA fd = {0};
+	HANDLE hFind = FindFirstFile(path, &fd);
+	if (hFind != INVALID_HANDLE_VALUE)
+	{
+		FindClose(hFind);
+		return ((int64_t)fd.nFileSizeHigh >> 32) + fd.nFileSizeLow;
+	}
+
+	return 0;
+}

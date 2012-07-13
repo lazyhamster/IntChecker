@@ -1,8 +1,6 @@
 #ifndef Utils_h__
 #define Utils_h__
 
-#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
-
 class FarScreenSave
 {
 private:
@@ -16,5 +14,8 @@ public:
 bool ArePanelsComparable();
 bool CheckEsc();
 bool IsAbsPath(const wchar_t* path);
+void IncludeTrailingPathDelim(wchar_t *pathBuf, size_t bufMaxSize);
+void IncludeTrailingPathDelim(wstring &pathStr);
+int64_t GetFileSize_i64(const wchar_t* path);
 
 #endif // Utils_h__

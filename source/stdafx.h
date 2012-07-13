@@ -17,6 +17,12 @@
 #include <vector>
 #include <list>
 
+typedef std::vector<std::wstring> StringList;
+
 using namespace std;
 
 #include <stdint.h>
+
+#define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
+#define SETTINGS_KEY_REGISTRY L"IntChecker"
+#define PATH_BUFFER_SIZE 4096

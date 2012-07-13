@@ -25,9 +25,14 @@ public:
 	void SetFileHash(const wchar_t* FileName, std::string HashVal);
 };
 
-// Params: context, processed bytes, total bytes
-typedef int (CALLBACK *HashingProgressFunc)(HANDLE, int64_t, int64_t);
+// Params: context, processed bytes
+typedef bool (CALLBACK *HashingProgressFunc)(HANDLE, int64_t);
 
-bool GenerateHash(const wchar_t* filePath, rhash_ids hashAlgo, char* result, HashingProgressFunc progressFunc, HANDLE progressContext);
+#define GENERATE_SUCCESS 0
+#define GENERATE_ERROR 1
+#define GENERATE_ABORTED 2
+
+int GenerateHash(const wchar_t* filePath, rhash_ids hashAlgo, char* result, HashingProgressFunc progressFunc, HANDLE progressContext);
+int PrepareFilesList(const wchar_t* basePath, StringList &destList, bool recursive);
 
 #endif // hashing_h__
