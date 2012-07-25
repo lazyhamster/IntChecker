@@ -44,9 +44,10 @@ int GenerateHash( const wchar_t* filePath, rhash_ids hashAlgo, char* result, Has
 	DWORD numReadBytes;
 
 	int retVal = GENERATE_SUCCESS;
+	int64_t totalBytes = GetFileSize_i64(hFile);
 
 	rhash hashCtx = rhash_init(hashAlgo);
-	while (retVal == GENERATE_SUCCESS)
+	while (retVal == GENERATE_SUCCESS && totalBytes > 0)
 	{
 		if (!ReadFile(hFile, readBuf, readBufSize, &numReadBytes, NULL) || !numReadBytes)
 		{
@@ -54,6 +55,7 @@ int GenerateHash( const wchar_t* filePath, rhash_ids hashAlgo, char* result, Has
 			break;
 		}
 
+		totalBytes -= numReadBytes;
 		rhash_update(hashCtx, readBuf, numReadBytes);
 
 		if (progressFunc != NULL)
@@ -117,11 +119,13 @@ static int EnumFiles(const wstring& baseAbsPath, const wstring& pathPrefix, Stri
 	return numFound;
 }
 
-int PrepareFilesList(const wchar_t* basePath, StringList &destList, bool recursive)
+int PrepareFilesList(const wchar_t* basePath, const wchar_t* basePrefix, StringList &destList, bool recursive)
 {
 	wstring strBasePath = GetFullPath(basePath);
-	wstring strStartPrefix(L"");
+	wstring strStartPrefix(basePrefix);
+	
 	IncludeTrailingPathDelim(strBasePath);
+	IncludeTrailingPathDelim(strStartPrefix);
 	
 	return EnumFiles(strBasePath, strStartPrefix, destList, recursive);
 }

@@ -33,6 +33,6 @@ typedef bool (CALLBACK *HashingProgressFunc)(HANDLE, int64_t);
 #define GENERATE_ABORTED 2
 
 int GenerateHash(const wchar_t* filePath, rhash_ids hashAlgo, char* result, HashingProgressFunc progressFunc, HANDLE progressContext);
-int PrepareFilesList(const wchar_t* basePath, StringList &destList, bool recursive);
+int PrepareFilesList(const wchar_t* basePath, const wchar_t* basePrefix, StringList &destList, bool recursive);
 
 #endif // hashing_h__

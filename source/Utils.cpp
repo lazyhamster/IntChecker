@@ -99,3 +99,12 @@ int64_t GetFileSize_i64(const wchar_t* path)
 
 	return 0;
 }
+
+int64_t GetFileSize_i64(HANDLE hFile)
+{
+	LARGE_INTEGER sz;
+	if (GetFileSizeEx(hFile, &sz))
+		return sz.QuadPart;
+
+	return 0;
+}

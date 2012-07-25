@@ -66,6 +66,31 @@ static void DisplayMessage(int headerMsgID, int textMsgID, const wchar_t* errorI
 	DisplayMessage(GetLocMsg(headerMsgID), GetLocMsg(textMsgID), errorItem, isError, isInteractive);
 }
 
+static int DlgHlp_GetSelectionState(HANDLE hDlg, int ctrlIndex)
+{
+	FarDialogItem *dlgItem;
+	int retVal;
+
+	dlgItem = (FarDialogItem*) malloc(FarSInfo.SendDlgMessage(hDlg, DM_GETDLGITEM, ctrlIndex, NULL));
+	FarSInfo.SendDlgMessage(hDlg, DM_GETDLGITEM, ctrlIndex, (LONG_PTR) dlgItem);
+	retVal = dlgItem->Selected;
+	free(dlgItem);
+
+	return retVal;
+}
+
+static void DlgHlp_GetEditBoxText(HANDLE hDlg, int ctrlIndex, wstring &buf)
+{
+	FarDialogItem *dlgItem;
+
+	dlgItem = (FarDialogItem*) malloc(FarSInfo.SendDlgMessage(hDlg, DM_GETDLGITEM, ctrlIndex, NULL));
+	FarSInfo.SendDlgMessage(hDlg, DM_GETDLGITEM, ctrlIndex, (LONG_PTR) dlgItem);
+
+	buf = dlgItem->PtrData;
+
+	free(dlgItem);
+}
+
 // --------------------------------------- Local functions ---------------------------------------------------
 
 static void LoadSettings()
@@ -93,10 +118,10 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 	return false;
 }
 
-static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &clearSelection, bool &recursive, HashOutputTargets &outputTarget, wchar_t* outputFileName)
+static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive, HashOutputTargets &outputTarget, wstring &outputFileName)
 {
 	FarDialogItem DialogItems []={
-		/*0*/{DI_DOUBLEBOX,		3, 1, 41,19, 0, 0, 0, 0, L"Generate"},
+		/*0*/{DI_DOUBLEBOX,		3, 1, 41,18, 0, 0, 0, 0, L"Generate"},
 
 		/*1*/{DI_TEXT,			5, 2,  0, 0, 0, 0, 0, 0, L"Algorithm", 0},
 		/*2*/{DI_RADIOBUTTON,	6, 3,  0, 0, 0, (selectedAlgo==RHASH_CRC32), DIF_GROUP, 0, L"&1. CRC32"},
@@ -111,19 +136,18 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &clearSelec
 		/*10*/{DI_RADIOBUTTON,	6,11,  0, 0, 0, 1, DIF_GROUP, 0, L"&File"},
 		/*11*/{DI_RADIOBUTTON,	6,12,  0, 0, 0, 0, 0, 0, L"&Separate hash files"},
 		/*12*/{DI_RADIOBUTTON,	6,13,  0, 0, 0, 0, 0, 0, L"&Display"},
-		/*13*/{DI_EDIT,			15,11,38, 0, 1, 0, DIF_EDITEXPAND|DIF_EDITPATH,0, L"hashfile", 0},
+		/*13*/{DI_EDIT,			15,11,38, 0, 1, 0, DIF_EDITEXPAND|DIF_EDITPATH,0, L"hashlist", 0},
 		
 		/*14*/{DI_TEXT,			3,14,  0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
 		/*15*/{DI_CHECKBOX,		5,15,  0, 0, 0, recursive, 0, 0, L"Process directories &recursively"},
-		/*16*/{DI_CHECKBOX,		5,16,  0, 0, 0, clearSelection, 0, 0, L"&Clear selection"},
 		
-		/*17*/{DI_TEXT,			3,17,  0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
-		/*18*/{DI_BUTTON,		0,18,  0,13, 0, 0, DIF_CENTERGROUP, 1, L"Run", 0},
-		/*19*/{DI_BUTTON,		0,18,  0,13, 0, 0, DIF_CENTERGROUP, 0, L"Cancel", 0},
+		/*16*/{DI_TEXT,			3,16,  0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
+		/*17*/{DI_BUTTON,		0,17,  0,13, 0, 0, DIF_CENTERGROUP, 1, L"Run", 0},
+		/*18*/{DI_BUTTON,		0,17,  0,13, 0, 0, DIF_CENTERGROUP, 0, L"Cancel", 0},
 	};
 	size_t numDialogItems = sizeof(DialogItems) / sizeof(DialogItems[0]);
 
-	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 45, 21, L"GenerateParams", DialogItems, numDialogItems, 0, 0, FarSInfo.DefDlgProc, 0);
+	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 45, 20, L"GenerateParams", DialogItems, numDialogItems, 0, 0, FarSInfo.DefDlgProc, 0);
 
 	bool retVal = false;
 	if (hDlg != INVALID_HANDLE_VALUE)
@@ -131,6 +155,20 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &clearSelec
 		int ExitCode = FarSInfo.DialogRun(hDlg);
 		if (ExitCode == numDialogItems - 2) // OK was pressed
 		{
+			recursive = DlgHlp_GetSelectionState(hDlg, 15) != 0;
+			DlgHlp_GetEditBoxText(hDlg, 13, outputFileName);
+
+			if (DlgHlp_GetSelectionState(hDlg, 2)) selectedAlgo = RHASH_CRC32;
+			else if (DlgHlp_GetSelectionState(hDlg, 3)) selectedAlgo = RHASH_MD5;
+			else if (DlgHlp_GetSelectionState(hDlg, 4)) selectedAlgo = RHASH_SHA1;
+			else if (DlgHlp_GetSelectionState(hDlg, 5)) selectedAlgo = RHASH_SHA256;
+			else if (DlgHlp_GetSelectionState(hDlg, 6)) selectedAlgo = RHASH_SHA512;
+			else if (DlgHlp_GetSelectionState(hDlg, 7)) selectedAlgo = RHASH_WHIRLPOOL;
+
+			if (DlgHlp_GetSelectionState(hDlg, 10)) outputTarget = OT_SINGLEFILE;
+			else if (DlgHlp_GetSelectionState(hDlg, 11)) outputTarget = OT_SEPARATEFILES;
+			else if (DlgHlp_GetSelectionState(hDlg, 12)) outputTarget = OT_DISPLAY;
+			
 			retVal = true;
 		}
 		FarSInfo.DialogFree(hDlg);
@@ -155,7 +193,7 @@ static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 		prCtx->FileProgress = nFileProgress;
 
 		static wchar_t szFileProgressLine[100] = {0};
-		swprintf_s(szFileProgressLine, ARRAY_SIZE(szFileProgressLine), L"File: %d/%d. Progress: %2d%%", prCtx->FileIndex, prCtx->TotalFilesCount, nFileProgress);
+		swprintf_s(szFileProgressLine, ARRAY_SIZE(szFileProgressLine), L"File: %d/%d. Progress: %2d%%", prCtx->FileIndex + 1, prCtx->TotalFilesCount, nFileProgress);
 
 		static const wchar_t* InfoLines[4];
 		InfoLines[0] = L"Processing";
@@ -182,30 +220,30 @@ static void RunGenerateHashes()
 {
 	// Generation params
 	rhash_ids genAlgo = (rhash_ids) optDefaultAlgo;
-	bool clearSelectionDone = optClearSelectionOnComplete;
 	bool recursive = true;
 	HashOutputTargets outputTarget = OT_SINGLEFILE;
-	wchar_t outputFile[MAX_PATH] = {0};
+	wstring outputFile;
 
-	if (!AskForHashGenerationParams(genAlgo, clearSelectionDone, recursive, outputTarget, outputFile))
+	if (!AskForHashGenerationParams(genAlgo, recursive, outputTarget, outputFile))
 		return;
 
 	StringList filesToProcess;
 	HashList hashes(genAlgo);
 	wstring strPanelDir;
 
+	// Check panel for compatibility
+	PanelInfo pi = {0};
+	if (!FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, (LONG_PTR)&pi)
+		|| (pi.SelectedItemsNumber <= 0) || (pi.PanelType != PTYPE_FILEPANEL))
+	{
+		DisplayMessage(L"Error", L"Can not work with this panel", NULL, true, true);
+		return;
+	}
+
 	// Prepare files list
 	{
 		FarScreenSave screen;
 		DisplayMessage(L"Processing", L"Preparing file list", NULL, false, false);
-
-		PanelInfo pi = {0};
-		if (!FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, (LONG_PTR)&pi)
-			|| (pi.SelectedItemsNumber <= 0) || (pi.PanelType != PTYPE_FILEPANEL))
-		{
-			DisplayMessage(L"Error", L"Can not work with this panel", NULL, true, true);
-			return;
-		}
 
 		{
 			wchar_t szNameBuffer[PATH_BUFFER_SIZE];
@@ -217,8 +255,6 @@ static void RunGenerateHashes()
 		for (int i = 0; i < pi.SelectedItemsNumber; i++)
 		{
 			size_t requiredBytes = FarSInfo.Control(PANEL_ACTIVE, FCTL_GETSELECTEDPANELITEM, i, NULL);
-			if (requiredBytes == 0) continue; //TODO: check and debug
-
 			PluginPanelItem *PPI = (PluginPanelItem*)malloc(requiredBytes);
 			if (PPI)
 			{
@@ -230,13 +266,10 @@ static void RunGenerateHashes()
 				else
 				{
 					wstring strSelectedDir = strPanelDir + PPI->FindData.lpwszFileName;
-					PrepareFilesList(strSelectedDir.c_str(), filesToProcess, recursive);
+					PrepareFilesList(strSelectedDir.c_str(), PPI->FindData.lpwszFileName, filesToProcess, recursive);
 				}
 				free(PPI);
 			}
-
-			if (clearSelectionDone)
-				FarSInfo.Control(PANEL_ACTIVE, FCTL_CLEARSELECTION, i, NULL);
 		}
 	}
 
@@ -290,6 +323,13 @@ static void RunGenerateHashes()
 	if (!continueSave) return;
 
 	// Display/save hash list
+
+	// Clear selection if requested
+	if (optClearSelectionOnComplete)
+	{
+		for (int i = pi.SelectedItemsNumber - 1; i >=0; i--)
+			FarSInfo.Control(PANEL_ACTIVE, FCTL_CLEARSELECTION, i, NULL);
+	}
 }
 
 static void RunComparePanels()
