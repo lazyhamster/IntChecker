@@ -2,16 +2,6 @@
 #include "hashing.h"
 #include "Utils.h"
 
-bool HashList::SaveList( const wchar_t* filepath )
-{
-	return false;
-}
-
-int HashList::LoadList( const wchar_t* filepath, bool replaceExisting /*= true*/ )
-{
-	return 0;
-}
-
 std::string HashList::GetFileHash( const wchar_t* FileName ) const
 {
 	/*
@@ -30,6 +20,26 @@ std::string HashList::GetFileHash( const wchar_t* FileName ) const
 void HashList::SetFileHash( const wchar_t* FileName, std::string HashVal )
 {
 	//
+}
+
+bool HashList::SaveList( const wchar_t* filepath )
+{
+	return false;
+}
+
+int HashList::LoadList( const wchar_t* filepath, bool replaceExisting /*= true*/ )
+{
+	return 0;
+}
+
+bool HashList::SaveListSeparate( const wchar_t* baseDir )
+{
+	return false;
+}
+
+std::wstring HashList::GetAsString()
+{
+	return L"DATA";
 }
 
 //////////////////////////////////////////////////////////////////////////

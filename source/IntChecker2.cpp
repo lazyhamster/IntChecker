@@ -240,6 +240,9 @@ static void RunGenerateHashes()
 		return;
 	}
 
+	// Win7 only feature
+	FarSInfo.AdvControl(FarSInfo.ModuleNumber, ACTL_SETPROGRESSSTATE, (void*) PS_INDETERMINATE);
+
 	// Prepare files list
 	{
 		FarScreenSave screen;
@@ -281,9 +284,6 @@ static void RunGenerateHashes()
 	progressCtx.TotalFilesCount = filesToProcess.size();
 	progressCtx.FileIndex = -1;
 
-	// Win7 only feature
-	FarSInfo.AdvControl(FarSInfo.ModuleNumber, ACTL_SETPROGRESSSTATE, (void*) PS_INDETERMINATE);
-
 	bool continueSave = true;
 	for (StringList::const_iterator cit = filesToProcess.begin(); cit != filesToProcess.end(); cit++)
 	{
@@ -323,9 +323,24 @@ static void RunGenerateHashes()
 	if (!continueSave) return;
 
 	// Display/save hash list
+	bool saveSuccess = false;
+	if (outputTarget == OT_SINGLEFILE)
+	{
+		saveSuccess = hashes.SaveList(outputFile.c_str());
+	}
+	else if (outputTarget == OT_SEPARATEFILES)
+	{
+		saveSuccess = hashes.SaveListSeparate(strPanelDir.c_str());
+	}
+	else
+	{
+		saveSuccess = true;
+		wstring strHashList = hashes.GetAsString();
+		DisplayMessage(L"Hashing complete", strHashList.c_str(), NULL, false, true);
+	}
 
 	// Clear selection if requested
-	if (optClearSelectionOnComplete)
+	if (saveSuccess && optClearSelectionOnComplete)
 	{
 		for (int i = pi.SelectedItemsNumber - 1; i >=0; i--)
 			FarSInfo.Control(PANEL_ACTIVE, FCTL_CLEARSELECTION, i, NULL);

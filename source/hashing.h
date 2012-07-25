@@ -19,6 +19,8 @@ public:
 	HashList(rhash_ids hashId) : m_HashId(hashId) {}
 
 	bool SaveList(const wchar_t* filepath);
+	bool SaveListSeparate(const wchar_t* baseDir);
+	wstring GetAsString();
 	int LoadList(const wchar_t* filepath, bool replaceExisting = true);
 
 	std::string GetFileHash(const wchar_t* FileName) const;
