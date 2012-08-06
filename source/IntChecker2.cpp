@@ -227,6 +227,8 @@ static void RunGenerateHashes()
 	if (!AskForHashGenerationParams(genAlgo, recursive, outputTarget, outputFile))
 		return;
 
+	//TODO: check for existing hash file and ask for overwrite
+
 	StringList filesToProcess;
 	HashList hashes(genAlgo);
 	wstring strPanelDir;
@@ -276,8 +278,6 @@ static void RunGenerateHashes()
 		}
 	}
 
-	FarSInfo.Control(PANEL_ACTIVE, FCTL_REDRAWPANEL, 0, NULL);
-
 	// Perform hashing
 	char hashValueBuf[150] = {0};
 	ProgressContext progressCtx;
@@ -308,6 +308,7 @@ static void RunGenerateHashes()
 			}
 			else if (genRetVal == GENERATE_ERROR)
 			{
+				//TODO: offer retry
 				DisplayMessage(L"Error", L"Error during hash generation", strNextFile.c_str(), true, true);
 				continueSave = false;
 				break;
@@ -335,8 +336,7 @@ static void RunGenerateHashes()
 	else
 	{
 		saveSuccess = true;
-		wstring strHashList = hashes.GetAsString();
-		DisplayMessage(L"Hashing complete", strHashList.c_str(), NULL, false, true);
+		DisplayMessage(L"Hashing complete", L"Stub", NULL, false, true);
 	}
 
 	// Clear selection if requested
@@ -345,6 +345,8 @@ static void RunGenerateHashes()
 		for (int i = pi.SelectedItemsNumber - 1; i >=0; i--)
 			FarSInfo.Control(PANEL_ACTIVE, FCTL_CLEARSELECTION, i, NULL);
 	}
+
+	FarSInfo.Control(PANEL_ACTIVE, FCTL_REDRAWPANEL, 0, NULL);
 }
 
 static void RunComparePanels()

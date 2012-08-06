@@ -9,18 +9,21 @@ struct FileHashInfo
 	std::string HashStr;
 };
 
+typedef std::map<std::wstring, std::string> StringMap;
+
 class HashList
 {
 private:
 	rhash_ids m_HashId;
-	std::vector<FileHashInfo> m_HashList;
+	StringMap m_HashList;
+	int m_Codepage;
 
 public:
-	HashList(rhash_ids hashId) : m_HashId(hashId) {}
+	HashList(rhash_ids hashId, int codePage) : m_HashId(hashId), m_Codepage(codePage) {}
+	HashList(rhash_ids hashId) : m_HashId(hashId), m_Codepage(CP_UTF8) {}
 
 	bool SaveList(const wchar_t* filepath);
 	bool SaveListSeparate(const wchar_t* baseDir);
-	wstring GetAsString();
 	int LoadList(const wchar_t* filepath, bool replaceExisting = true);
 
 	std::string GetFileHash(const wchar_t* FileName) const;
