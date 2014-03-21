@@ -45,6 +45,7 @@ public:
 
 	size_t GetCount() const { return m_HashList.size(); }
 	FileHashInfo GetFileInfo(int index) { return m_HashList.at(index); }
+	rhash_ids GetHashAlgo() const { return m_HashId; }
 };
 
 // Params: context, processed bytes

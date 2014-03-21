@@ -179,6 +179,66 @@ static void SaveSettings()
 	}
 }
 
+static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
+{
+	if (CheckEsc())
+	{
+		if (optConfirmAbort && ConfirmMessage(L"Confirm", L"Abort calculations?", true))
+			return false;
+	}
+
+	if (context == NULL) return true;
+
+	ProgressContext* prCtx = (ProgressContext*) context;
+	prCtx->CurrentFileProcessedBytes += bytesProcessed;
+	prCtx->TotalProcessedBytes += bytesProcessed;
+
+	int nFileProgress = (prCtx->CurrentFileSize > 0) ? (int) ((prCtx->CurrentFileProcessedBytes * 100) / prCtx->CurrentFileSize) : 0;
+	int nTotalProgress = (prCtx->TotalFilesSize > 0) ? (int) ((prCtx->TotalProcessedBytes * 100) / prCtx->TotalFilesSize) : 0;
+
+	if (nFileProgress != prCtx->FileProgress || nTotalProgress != prCtx->TotalProgress)
+	{
+		prCtx->FileProgress = nFileProgress;
+		prCtx->TotalProgress = nTotalProgress;
+
+		static wchar_t szFileProgressLine[100] = {0};
+		swprintf_s(szFileProgressLine, ARRAY_SIZE(szFileProgressLine), L"File: %d / %d. Progress: %2d%% / %2d%%", prCtx->CurrentFileIndex + 1, prCtx->TotalFilesCount, nFileProgress, nTotalProgress);
+
+		static const wchar_t* InfoLines[4];
+		InfoLines[0] = L"Processing";
+		InfoLines[1] = L"Generating hash";
+		InfoLines[2] = szFileProgressLine;
+		InfoLines[3] = prCtx->FileName.c_str();
+
+		FarSInfo.Message(FarSInfo.ModuleNumber, 0, NULL, InfoLines, ARRAY_SIZE(InfoLines), 0);
+
+		// Win7 only feature
+		if (prCtx->TotalFilesSize > 0)
+		{
+			PROGRESSVALUE pv;
+			pv.Completed = prCtx->TotalProcessedBytes;
+			pv.Total = prCtx->TotalFilesSize;
+			FarSInfo.AdvControl(FarSInfo.ModuleNumber, ACTL_SETPROGRESSVALUE, &pv);
+		}
+	}
+
+	return true;
+}
+
+static void DisplayValidationResults(int numMismatch, int numMissing, int numSkipped)
+{
+	//TODO: finish
+	
+	int nValidationLinesNum = 2;
+	static const wchar_t* ValidationResults[3];
+	ValidationResults[0] = L"Validation results";
+	ValidationResults[1] = L"";
+	ValidationResults[2] = L"";
+	ValidationResults[3] = L"";
+
+	FarSInfo.Message(FarSInfo.ModuleNumber, 0, NULL, ValidationResults, nValidationLinesNum, 0);
+}
+
 // Returns true if file is recognized as hash list
 static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 {
@@ -191,7 +251,10 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 	}
 
 	wstring workDir;
-	int nFilesValid = 0, nFilesMismatch = 0, nFilesMissing = 0;
+	int nFilesMismatch = 0, nFilesMissing = 0, nFilesSkipped = 0;
+	vector<int> existingFiles;
+	int64_t totalFilesSize = 0;
+	char hashValueBuf[150];
 
 	if (!GetPanelDir(PANEL_ACTIVE, workDir))
 		return false;
@@ -199,13 +262,72 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 	// Win7 only feature
 	FarSInfo.AdvControl(FarSInfo.ModuleNumber, ACTL_SETPROGRESSSTATE, (void*) PS_INDETERMINATE);
 
-	ProgressContext progressCtx;
-	progressCtx.TotalFilesCount = hashes.GetCount();
-	progressCtx.TotalFilesSize = 0; //Probably should find out
-
-	for (size_t i = 0; i < hashes.GetCount(); i++)
+	// Prepare files list
 	{
 		FarScreenSave screen;
+		DisplayMessage(L"Processing", L"Preparing file list", NULL, false, false);
+
+		for (size_t i = 0; i < hashes.GetCount(); i++)
+		{
+			FileHashInfo fileInfo = hashes.GetFileInfo(i);
+
+			wstring strFullFilePath = workDir + fileInfo.Filename;
+			if (IsFile(strFullFilePath.c_str()))
+			{
+				existingFiles.push_back(i);
+				totalFilesSize += GetFileSize_i64(strFullFilePath.c_str());
+			}
+			else
+			{
+				nFilesMissing++;
+			}
+		}
+	}
+
+	if (existingFiles.size() > 0)
+	{
+		ProgressContext progressCtx;
+		progressCtx.TotalFilesCount = existingFiles.size();
+		progressCtx.TotalFilesSize = totalFilesSize;
+		progressCtx.CurrentFileIndex = -1;
+
+		for (size_t i = 0; i < existingFiles.size(); i++)
+		{
+			FileHashInfo fileInfo = hashes.GetFileInfo(existingFiles[i]);
+			wstring strFullFilePath = workDir + fileInfo.Filename;
+
+			progressCtx.FileName = fileInfo.Filename;
+			progressCtx.CurrentFileIndex++;
+			progressCtx.CurrentFileProcessedBytes = 0;
+			progressCtx.CurrentFileSize = GetFileSize_i64(strFullFilePath.c_str());
+			progressCtx.FileProgress = 0;
+
+			{
+				FarScreenSave screen;
+				int genRetVal = GenerateHash(strFullFilePath.c_str(), hashes.GetHashAlgo(), hashValueBuf, FileHashingProgress, &progressCtx);
+
+				if (genRetVal == GENERATE_ABORTED)
+				{
+					// Exit silently
+					break;
+				}
+				else if (genRetVal == GENERATE_ERROR)
+				{
+					//TODO: offer retry
+					DisplayMessage(L"Error", L"Error during hash generation", fileInfo.Filename.c_str(), true, true);
+					break;
+				}
+
+				if (_stricmp(fileInfo.HashStr.c_str(), hashValueBuf) != 0)
+					nFilesMismatch++;
+			}
+		}
+
+		DisplayValidationResults(nFilesMismatch, nFilesMissing, nFilesSkipped);
+	}
+	else
+	{
+		DisplayMessage(L"No files", L"No files from hash list exists", NULL, true, true);
 	}
 
 	FarSInfo.AdvControl(FarSInfo.ModuleNumber, ACTL_SETPROGRESSSTATE, (void*) PS_NOPROGRESS);
@@ -271,52 +393,6 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 		FarSInfo.DialogFree(hDlg);
 	}
 	return retVal;
-}
-
-static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
-{
-	if (CheckEsc())
-	{
-		if (optConfirmAbort && ConfirmMessage(L"Confirm", L"Abort calculations?", true))
-			return false;
-	}
-
-	if (context == NULL) return true;
-
-	ProgressContext* prCtx = (ProgressContext*) context;
-	prCtx->CurrentFileProcessedBytes += bytesProcessed;
-	prCtx->TotalProcessedBytes += bytesProcessed;
-
-	int nFileProgress = (prCtx->CurrentFileSize > 0) ? (int) ((prCtx->CurrentFileProcessedBytes * 100) / prCtx->CurrentFileSize) : 0;
-	int nTotalProgress = (prCtx->TotalFilesSize > 0) ? (int) ((prCtx->TotalProcessedBytes * 100) / prCtx->TotalFilesSize) : 0;
-
-	if (nFileProgress != prCtx->FileProgress || nTotalProgress != prCtx->TotalProgress)
-	{
-		prCtx->FileProgress = nFileProgress;
-		prCtx->TotalProgress = nTotalProgress;
-
-		static wchar_t szFileProgressLine[100] = {0};
-		swprintf_s(szFileProgressLine, ARRAY_SIZE(szFileProgressLine), L"File: %d / %d. Progress: %2d%% / %2d%%", prCtx->CurrentFileIndex + 1, prCtx->TotalFilesCount, nFileProgress, nTotalProgress);
-
-		static const wchar_t* InfoLines[4];
-		InfoLines[0] = L"Processing";
-		InfoLines[1] = L"Generating hash";
-		InfoLines[2] = szFileProgressLine;
-		InfoLines[3] = prCtx->FileName.c_str();
-
-		FarSInfo.Message(FarSInfo.ModuleNumber, 0, NULL, InfoLines, ARRAY_SIZE(InfoLines), 0);
-
-		// Win7 only feature
-		if (prCtx->TotalFilesSize > 0)
-		{
-			PROGRESSVALUE pv;
-			pv.Completed = prCtx->TotalProcessedBytes;
-			pv.Total = prCtx->TotalFilesSize;
-			FarSInfo.AdvControl(FarSInfo.ModuleNumber, ACTL_SETPROGRESSVALUE, &pv);
-		}
-	}
-	
-	return true;
 }
 
 static void RunGenerateHashes()
