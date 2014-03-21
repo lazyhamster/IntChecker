@@ -28,15 +28,25 @@ enum HashOutputTargets
 
 struct ProgressContext
 {
-	wstring FileName;
+	ProgressContext()
+		: TotalFilesSize(0), TotalFilesCount(0), CurrentFileSize(0), CurrentFileIndex(-1),
+		TotalProcessedBytes(0), CurrentFileProcessedBytes(0), FileProgress(0), TotalProgress(0)
+	{}
 	
-	int64_t TotalFileSize;
-	int64_t ProcessedBytes;
+	wstring FileName;
 
+	int64_t TotalFilesSize;
 	int TotalFilesCount;
-	int FileIndex;
 
+	int64_t CurrentFileSize;
+	int CurrentFileIndex;
+
+	int64_t TotalProcessedBytes;	
+	int64_t CurrentFileProcessedBytes;
+	
+	// This is percentage cache to prevent screen flicker
 	int FileProgress;
+	int TotalProgress;
 };
 
 // --------------------------------------- Service functions -------------------------------------------------
@@ -109,6 +119,20 @@ static void DlgHlp_GetEditBoxText(HANDLE hDlg, int ctrlIndex, wstring &buf)
 	free(dlgItem);
 }
 
+static bool GetPanelDir(HANDLE hPanel, wstring& dirStr)
+{
+	wchar_t szNameBuffer[PATH_BUFFER_SIZE] = {0};
+
+	if (FarSInfo.Control(hPanel, FCTL_GETPANELDIR, ARRAY_SIZE(szNameBuffer), (LONG_PTR) szNameBuffer))
+	{
+		IncludeTrailingPathDelim(szNameBuffer, ARRAY_SIZE(szNameBuffer));
+		dirStr = szNameBuffer;
+		return true;
+	}
+
+	return false;
+}
+
 static bool GetSelectedPanelFilePath(wstring& nameStr)
 {
 	nameStr.clear();
@@ -117,9 +141,8 @@ static bool GetSelectedPanelFilePath(wstring& nameStr)
 	if (FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, (LONG_PTR)&pi))
 		if ((pi.SelectedItemsNumber == 1) && (pi.PanelType == PTYPE_FILEPANEL))
 		{
-			wchar_t szNameBuffer[PATH_BUFFER_SIZE] = {0};
-			FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELDIR, ARRAY_SIZE(szNameBuffer), (LONG_PTR) szNameBuffer);
-			IncludeTrailingPathDelim(szNameBuffer, ARRAY_SIZE(szNameBuffer));
+			wstring panelDir;
+			GetPanelDir(PANEL_ACTIVE, panelDir);
 
 			PluginPanelItem *PPI = (PluginPanelItem*)malloc(FarSInfo.Control(PANEL_ACTIVE, FCTL_GETCURRENTPANELITEM, 0, NULL));
 			if (PPI)
@@ -127,8 +150,7 @@ static bool GetSelectedPanelFilePath(wstring& nameStr)
 				FarSInfo.Control(PANEL_ACTIVE, FCTL_GETCURRENTPANELITEM, 0, (LONG_PTR)PPI);
 				if ((PPI->FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
 				{
-					wcscat_s(szNameBuffer, ARRAY_SIZE(szNameBuffer), PPI->FindData.lpwszFileName);
-					nameStr = szNameBuffer;
+					nameStr = panelDir + PPI->FindData.lpwszFileName;
 				}
 				free(PPI);
 			}
@@ -168,13 +190,29 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 		return false;
 	}
 
+	wstring workDir;
+	int nFilesValid = 0, nFilesMismatch = 0, nFilesMissing = 0;
+
+	if (!GetPanelDir(PANEL_ACTIVE, workDir))
+		return false;
+
+	// Win7 only feature
+	FarSInfo.AdvControl(FarSInfo.ModuleNumber, ACTL_SETPROGRESSSTATE, (void*) PS_INDETERMINATE);
+
+	ProgressContext progressCtx;
+	progressCtx.TotalFilesCount = hashes.GetCount();
+	progressCtx.TotalFilesSize = 0; //Probably should find out
+
 	for (size_t i = 0; i < hashes.GetCount(); i++)
 	{
 		FarScreenSave screen;
 	}
+
+	FarSInfo.AdvControl(FarSInfo.ModuleNumber, ACTL_SETPROGRESSSTATE, (void*) PS_NOPROGRESS);
+	FarSInfo.AdvControl(FarSInfo.ModuleNumber, ACTL_PROGRESSNOTIFY, 0);
 	
 	//TODO: implement
-	return false;
+	return true;
 }
 
 static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive, HashOutputTargets &outputTarget, wstring &outputFileName)
@@ -246,16 +284,19 @@ static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 	if (context == NULL) return true;
 
 	ProgressContext* prCtx = (ProgressContext*) context;
-	prCtx->ProcessedBytes += bytesProcessed;
+	prCtx->CurrentFileProcessedBytes += bytesProcessed;
+	prCtx->TotalProcessedBytes += bytesProcessed;
 
-	int nFileProgress = (prCtx->TotalFileSize > 0) ? (int) ((prCtx->ProcessedBytes * 100) / prCtx->TotalFileSize) : 0;
+	int nFileProgress = (prCtx->CurrentFileSize > 0) ? (int) ((prCtx->CurrentFileProcessedBytes * 100) / prCtx->CurrentFileSize) : 0;
+	int nTotalProgress = (prCtx->TotalFilesSize > 0) ? (int) ((prCtx->TotalProcessedBytes * 100) / prCtx->TotalFilesSize) : 0;
 
-	if (nFileProgress != prCtx->FileProgress)
+	if (nFileProgress != prCtx->FileProgress || nTotalProgress != prCtx->TotalProgress)
 	{
 		prCtx->FileProgress = nFileProgress;
+		prCtx->TotalProgress = nTotalProgress;
 
 		static wchar_t szFileProgressLine[100] = {0};
-		swprintf_s(szFileProgressLine, ARRAY_SIZE(szFileProgressLine), L"File: %d/%d. Progress: %2d%%", prCtx->FileIndex + 1, prCtx->TotalFilesCount, nFileProgress);
+		swprintf_s(szFileProgressLine, ARRAY_SIZE(szFileProgressLine), L"File: %d / %d. Progress: %2d%% / %2d%%", prCtx->CurrentFileIndex + 1, prCtx->TotalFilesCount, nFileProgress, nTotalProgress);
 
 		static const wchar_t* InfoLines[4];
 		InfoLines[0] = L"Processing";
@@ -266,11 +307,11 @@ static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 		FarSInfo.Message(FarSInfo.ModuleNumber, 0, NULL, InfoLines, ARRAY_SIZE(InfoLines), 0);
 
 		// Win7 only feature
-		if (prCtx->TotalFileSize > 0)
+		if (prCtx->TotalFilesSize > 0)
 		{
 			PROGRESSVALUE pv;
-			pv.Completed = prCtx->ProcessedBytes;
-			pv.Total = prCtx->TotalFileSize;
+			pv.Completed = prCtx->TotalProcessedBytes;
+			pv.Total = prCtx->TotalFilesSize;
 			FarSInfo.AdvControl(FarSInfo.ModuleNumber, ACTL_SETPROGRESSVALUE, &pv);
 		}
 	}
@@ -301,6 +342,7 @@ static void RunGenerateHashes()
 	//TODO: check for existing hash file and ask for overwrite
 
 	StringList filesToProcess;
+	int64_t totalFilesSize = 0;
 	HashList hashes(genAlgo);
 	wstring strPanelDir;
 
@@ -312,12 +354,7 @@ static void RunGenerateHashes()
 		FarScreenSave screen;
 		DisplayMessage(L"Processing", L"Preparing file list", NULL, false, false);
 
-		{
-			wchar_t szNameBuffer[PATH_BUFFER_SIZE];
-			FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELDIR, ARRAY_SIZE(szNameBuffer), (LONG_PTR) szNameBuffer);
-			IncludeTrailingPathDelim(szNameBuffer, ARRAY_SIZE(szNameBuffer));
-			strPanelDir = szNameBuffer;
-		}
+		GetPanelDir(PANEL_ACTIVE, strPanelDir);
 
 		for (int i = 0; i < pi.SelectedItemsNumber; i++)
 		{
@@ -329,11 +366,12 @@ static void RunGenerateHashes()
 				if ((PPI->FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
 				{
 					filesToProcess.push_back(PPI->FindData.lpwszFileName);
+					totalFilesSize += PPI->FindData.nFileSize;
 				}
 				else
 				{
 					wstring strSelectedDir = strPanelDir + PPI->FindData.lpwszFileName;
-					PrepareFilesList(strSelectedDir.c_str(), PPI->FindData.lpwszFileName, filesToProcess, recursive);
+					PrepareFilesList(strSelectedDir.c_str(), PPI->FindData.lpwszFileName, filesToProcess, totalFilesSize, recursive);
 				}
 				free(PPI);
 			}
@@ -344,7 +382,9 @@ static void RunGenerateHashes()
 	char hashValueBuf[150] = {0};
 	ProgressContext progressCtx;
 	progressCtx.TotalFilesCount = filesToProcess.size();
-	progressCtx.FileIndex = -1;
+	progressCtx.TotalFilesSize = totalFilesSize;
+	progressCtx.TotalProcessedBytes = 0;
+	progressCtx.CurrentFileIndex = -1;
 
 	bool continueSave = true;
 	for (StringList::const_iterator cit = filesToProcess.begin(); cit != filesToProcess.end(); cit++)
@@ -353,9 +393,9 @@ static void RunGenerateHashes()
 		wstring strFullPath = strPanelDir + strNextFile;
 
 		progressCtx.FileName = strNextFile;
-		progressCtx.FileIndex++;
-		progressCtx.ProcessedBytes = 0;
-		progressCtx.TotalFileSize = GetFileSize_i64(strFullPath.c_str());
+		progressCtx.CurrentFileIndex++;
+		progressCtx.CurrentFileProcessedBytes = 0;
+		progressCtx.CurrentFileSize = GetFileSize_i64(strFullPath.c_str());
 		progressCtx.FileProgress = 0;
 
 		{
