@@ -396,6 +396,7 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
 int WINAPI ConfigureW(int ItemNumber)
 {
 	//TODO: implement
+	DisplayMessage(L"Configure", L"Not implemented", NULL, true, true);
 	return FALSE;
 }
 
