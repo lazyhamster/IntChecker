@@ -66,6 +66,24 @@ static void DisplayMessage(int headerMsgID, int textMsgID, const wchar_t* errorI
 	DisplayMessage(GetLocMsg(headerMsgID), GetLocMsg(textMsgID), errorItem, isError, isInteractive);
 }
 
+static bool ConfirmMessage(const wchar_t* headerText, const wchar_t* messageText, bool isWarning)
+{
+	static const wchar_t* MsgLines[2];
+	MsgLines[0] = headerText;
+	MsgLines[1] = messageText;
+
+	int flags = FMSG_MB_YESNO;
+	if (isWarning) flags |= FMSG_WARNING;
+
+	int resp = FarSInfo.Message(FarSInfo.ModuleNumber, flags, NULL, MsgLines, 2, 0);
+	return (resp == 0);
+}
+
+static bool ConfirmMessage(int headerMsgID, int textMsgID, bool isWarning)
+{
+	return ConfirmMessage(GetLocMsg(headerMsgID), GetLocMsg(textMsgID), isWarning);
+}
+
 static int DlgHlp_GetSelectionState(HANDLE hDlg, int ctrlIndex)
 {
 	FarDialogItem *dlgItem;
@@ -143,8 +161,17 @@ static void SaveSettings()
 static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 {
 	HashList hashes;
-	if (!hashes.LoadList(hashListPath))
+	if (!hashes.LoadList(hashListPath) || (hashes.GetCount() == 0))
+	{
+		if (!silent)
+			DisplayMessage(L"Invalid Source", L"This is not a valid hash list file", NULL, true, true);
 		return false;
+	}
+
+	for (size_t i = 0; i < hashes.GetCount(); i++)
+	{
+		FarScreenSave screen;
+	}
 	
 	//TODO: implement
 	return false;
@@ -211,7 +238,10 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 {
 	if (CheckEsc())
-		return false;
+	{
+		if (optConfirmAbort && ConfirmMessage(L"Confirm", L"Abort calculations?", true))
+			return false;
+	}
 
 	if (context == NULL) return true;
 
@@ -459,7 +489,7 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 		wstring selectedFilePath;
 		int nNumMenuItems = 2;
 		
-		if (pi.SelectedItemsNumber == 1 && GetSelectedPanelFilePath(selectedFilePath))
+		if (optDetectHashFiles && (pi.SelectedItemsNumber == 1) && GetSelectedPanelFilePath(selectedFilePath))
 		{
 			nNumMenuItems = IsFile(selectedFilePath.c_str()) ? 3 : 2;
 		}
