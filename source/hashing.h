@@ -29,14 +29,16 @@ private:
 	int GetFileRecordIndex(const wchar_t* fileName) const;
 	bool DumpStringToFile(const char* data, DWORD dataSize, const wchar_t* filePath);
 	void SerializeFileHash(const FileHashInfo& data, stringstream& dest);
+	HashAlgoInfo* DetectHashAlgo(const char* testStr);
 
 public:
 	HashList(rhash_ids hashId, int codePage) : m_HashId(hashId), m_Codepage(codePage) {}
 	HashList(rhash_ids hashId) : m_HashId(hashId), m_Codepage(CP_UTF8) {}
+	HashList() : m_HashId(RHASH_HASH_COUNT), m_Codepage(CP_UTF8) {}
 
 	bool SaveList(const wchar_t* filepath);
 	bool SaveListSeparate(const wchar_t* baseDir);
-	int LoadList(const wchar_t* filepath, bool replaceExisting = true);
+	bool LoadList(const wchar_t* filepath);
 
 	std::string GetFileHash(const wchar_t* FileName) const;
 	void SetFileHash(const wchar_t* FileName, std::string HashVal);

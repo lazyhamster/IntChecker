@@ -11,12 +11,36 @@ HashAlgoInfo SupportedHashes[] = {
 	{RHASH_WHIRLPOOL, 128, true, 2, L".wrpl", L"Whirlpool"}
 };
 
-static bool CanBeHash(char* msg, int msgSize)
+static bool CanBeHash(const char* msg, int msgSize)
 {
 	for (int i = 0; i < msgSize; i++)
 	{
-		if (!isalnum(msg[i]))
+		if (!msg[i] || !isxdigit(msg[i]))
 			return false;
+	}
+	return true;
+}
+
+static bool CanBePath(const char* msg, int msgSize)
+{
+	const char* IllegalPathChars = "<>:\"/\\|?*";
+	for (int i = 0; i < msgSize; i++)
+	{
+		if (!msg[i]) break;
+		if ((msg[i] <= 31) || (strchr(IllegalPathChars, msg[i]) != NULL))
+			return false;
+	}
+	return true;
+}
+
+static bool IsComment(char* line)
+{
+	char* strPtr = line;
+	while (strPtr && *strPtr)
+	{
+		if (*strPtr != ';' && !isspace(*strPtr) && *strPtr != '\t')
+			return false;
+		strPtr++;
 	}
 	return true;
 }
@@ -96,10 +120,82 @@ bool HashList::SaveListSeparate( const wchar_t* baseDir )
 	return true;
 }
 
-int HashList::LoadList( const wchar_t* filepath, bool replaceExisting /*= true*/ )
+bool HashList::LoadList( const wchar_t* filepath )
 {
-	//TODO: implement
-	return 0;
+	char readBuf[1024];
+	FILE* inputFile;
+
+	m_HashList.clear();
+
+	// Do not accept files larger then 128kb
+	int64_t fileSize = GetFileSize_i64(filepath);
+	if (fileSize > 128 * 1024) return false;
+	
+	if (_wfopen_s(&inputFile, filepath, L"r") != 0)
+		return false;
+
+	bool fres = true;
+	HashAlgoInfo* listAlgo = NULL;
+	vector<FileHashInfo> parsedList;
+	wchar_t wpathBuf[PATH_BUFFER_SIZE];
+
+	while (fgets(readBuf, sizeof(readBuf), inputFile))
+	{
+		// Just skipping comment lines
+		if (IsComment(readBuf)) continue;
+
+		if (listAlgo == NULL)
+		{
+			listAlgo = DetectHashAlgo(readBuf);
+			if (listAlgo == NULL)
+			{
+				fres = false;
+				break;
+			}
+			m_HashId = listAlgo->AlgoId;
+		}
+
+		size_t strSize = strlen(readBuf);
+		char *possibleHash, *possiblePath;
+
+		// First check if line is too short
+		if ((int)strSize < listAlgo->HashStrSize + listAlgo->NumDelimSpaces + 1)
+		{
+			fres = false;
+			break;
+		}
+
+		if (listAlgo->HashBeforePath)
+		{
+			possibleHash = readBuf;
+			possiblePath = readBuf + (listAlgo->HashStrSize + listAlgo->NumDelimSpaces);
+		}
+		else
+		{
+			possiblePath = readBuf;
+			possibleHash = readBuf + (strSize - listAlgo->HashStrSize);
+		}
+
+		int possiblePathSize = (int) (strSize - listAlgo->HashStrSize - listAlgo->NumDelimSpaces);
+		if (CanBeHash(possibleHash, listAlgo->HashStrSize) && CanBePath(possiblePath, possiblePathSize))
+		{
+			int numChars = MultiByteToWideChar(m_Codepage, 0, possiblePath, possiblePathSize, wpathBuf, ARRAY_SIZE(wpathBuf));
+			wpathBuf[numChars] = '\0';
+			
+			FileHashInfo fileInfo;
+			fileInfo.Filename = wpathBuf;
+			fileInfo.HashStr = possibleHash;
+			parsedList.push_back(fileInfo);
+		}
+	}
+	fclose(inputFile);
+
+	if (fres)
+	{
+		m_HashList.insert(m_HashList.end(), parsedList.begin(), parsedList.end());
+	}
+
+	return fres;
 }
 
 int HashList::GetFileRecordIndex( const wchar_t* fileName ) const
@@ -135,6 +231,37 @@ void HashList::SerializeFileHash( const FileHashInfo& data, stringstream& dest )
 		dest << szFilenameBuf << " " << data.HashStr << endl;
 	else
 		dest << data.HashStr << " *" << szFilenameBuf << endl;
+}
+
+HashAlgoInfo* HashList::DetectHashAlgo( const char* testStr )
+{
+	int strLen = (int) strlen(testStr);
+	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
+	{
+		HashAlgoInfo& hash = SupportedHashes[i];
+		
+		// Check if line is too short for hash + at least 1 character for name
+		if (strLen < hash.HashStrSize + hash.NumDelimSpaces + 1)
+			continue;
+
+		if (SupportedHashes[i].HashBeforePath)
+		{
+			const char* possiblePath = testStr + hash.HashStrSize + hash.NumDelimSpaces;
+			if (CanBeHash(testStr, hash.HashStrSize) && isspace(testStr[hash.HashStrSize]) && CanBePath(possiblePath, strLen - hash.HashStrSize - hash.NumDelimSpaces))
+			{
+				return &hash;
+			}
+		}
+		else
+		{
+			const char* possibleHash = testStr + (strLen - hash.HashStrSize);
+			if (CanBeHash(possibleHash, hash.HashStrSize) && isspace(*(possibleHash - 1)) && CanBePath(testStr, strLen - hash.HashStrSize - hash.NumDelimSpaces))
+			{
+				return &hash;
+			}
+		}
+	}
+	return NULL;
 }
 
 //////////////////////////////////////////////////////////////////////////
