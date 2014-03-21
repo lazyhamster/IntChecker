@@ -91,6 +91,34 @@ static void DlgHlp_GetEditBoxText(HANDLE hDlg, int ctrlIndex, wstring &buf)
 	free(dlgItem);
 }
 
+static bool GetSelectedPanelFilePath(wstring& nameStr)
+{
+	nameStr.clear();
+
+	PanelInfo pi = {0};
+	if (FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, (LONG_PTR)&pi))
+		if ((pi.SelectedItemsNumber == 1) && (pi.PanelType == PTYPE_FILEPANEL))
+		{
+			wchar_t szNameBuffer[PATH_BUFFER_SIZE] = {0};
+			FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELDIR, ARRAY_SIZE(szNameBuffer), (LONG_PTR) szNameBuffer);
+			IncludeTrailingPathDelim(szNameBuffer, ARRAY_SIZE(szNameBuffer));
+
+			PluginPanelItem *PPI = (PluginPanelItem*)malloc(FarSInfo.Control(PANEL_ACTIVE, FCTL_GETCURRENTPANELITEM, 0, NULL));
+			if (PPI)
+			{
+				FarSInfo.Control(PANEL_ACTIVE, FCTL_GETCURRENTPANELITEM, 0, (LONG_PTR)PPI);
+				if ((PPI->FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+				{
+					wcscat_s(szNameBuffer, ARRAY_SIZE(szNameBuffer), PPI->FindData.lpwszFileName);
+					nameStr = szNameBuffer;
+				}
+				free(PPI);
+			}
+		}
+
+		return (nameStr.size() > 0);
+}
+
 // --------------------------------------- Local functions ---------------------------------------------------
 
 static void LoadSettings()
@@ -98,7 +126,7 @@ static void LoadSettings()
 	RegistrySettings regOpts(FarSInfo.RootKey);
 	if (regOpts.Open())
 	{
-		//
+		//TODO: implement
 	}
 }
 
@@ -107,13 +135,17 @@ static void SaveSettings()
 	RegistrySettings regOpts(FarSInfo.RootKey);
 	if (regOpts.Open(true))
 	{
-		//
+		//TODO: implement
 	}
 }
 
 // Returns true if file is recognized as hash list
 static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 {
+	HashList hashes;
+	if (!hashes.LoadList(hashListPath))
+		return false;
+	
 	//TODO: implement
 	return false;
 }
@@ -218,6 +250,15 @@ static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 
 static void RunGenerateHashes()
 {
+	// Check panel for compatibility
+	PanelInfo pi = {0};
+	if (!FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, (LONG_PTR)&pi)
+		|| (pi.SelectedItemsNumber <= 0) || (pi.PanelType != PTYPE_FILEPANEL))
+	{
+		DisplayMessage(L"Error", L"Can not work with this panel", NULL, true, true);
+		return;
+	}
+	
 	// Generation params
 	rhash_ids genAlgo = (rhash_ids) optDefaultAlgo;
 	bool recursive = true;
@@ -232,15 +273,6 @@ static void RunGenerateHashes()
 	StringList filesToProcess;
 	HashList hashes(genAlgo);
 	wstring strPanelDir;
-
-	// Check panel for compatibility
-	PanelInfo pi = {0};
-	if (!FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, (LONG_PTR)&pi)
-		|| (pi.SelectedItemsNumber <= 0) || (pi.PanelType != PTYPE_FILEPANEL))
-	{
-		DisplayMessage(L"Error", L"Can not work with this panel", NULL, true, true);
-		return;
-	}
 
 	// Win7 only feature
 	FarSInfo.AdvControl(FarSInfo.ModuleNumber, ACTL_SETPROGRESSSTATE, (void*) PS_INDETERMINATE);
@@ -412,13 +444,28 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 	{
 		// We are from regular plug-ins menu
 
+		PanelInfo pi = {0};
+		if (!FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, (LONG_PTR)&pi) || (pi.PanelType != PTYPE_FILEPANEL))
+		{
+			return INVALID_HANDLE_VALUE;
+		}
+
 		FarMenuItem MenuItems[] = {
 			{L"&Generate Hashes", 1, 0, 0},
-			{L"Compare &Panels", 0, 0, 0}
+			{L"Compare &Panels", 0, 0, 0},
+			{L"&Validate Files", 0, 0, 0}
 		};
 
-		int nMItem = FarSInfo.Menu(FarSInfo.ModuleNumber, -1, -1, 0, 0, L"Integrity Checker", NULL, NULL, NULL, NULL, MenuItems, ARRAY_SIZE(MenuItems));
+		wstring selectedFilePath;
+		int nNumMenuItems = 2;
+		
+		if (pi.SelectedItemsNumber == 1 && GetSelectedPanelFilePath(selectedFilePath))
+		{
+			nNumMenuItems = IsFile(selectedFilePath.c_str()) ? 3 : 2;
+		}
 
+		int nMItem = FarSInfo.Menu(FarSInfo.ModuleNumber, -1, -1, 0, 0, L"Integrity Checker", NULL, NULL, NULL, NULL, MenuItems, nNumMenuItems);
+		
 		switch (nMItem)
 		{
 			case 0:
@@ -426,6 +473,9 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 				break;
 			case 1:
 				RunComparePanels();
+				break;
+			case 2:
+				RunValidateFiles(selectedFilePath.c_str(), false);
 				break;
 		}
 	} // OpenFrom check
@@ -435,6 +485,5 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 
 HANDLE WINAPI OpenFilePluginW(const wchar_t *Name, const unsigned char *Data, int DataSize, int OpMode)
 {
-	RunValidateFiles(Name, true);
 	return INVALID_HANDLE_VALUE;
 }

@@ -108,3 +108,16 @@ int64_t GetFileSize_i64(HANDLE hFile)
 
 	return 0;
 }
+
+bool IsFile( const wchar_t* path )
+{
+	WIN32_FIND_DATA fd = {0};
+	HANDLE hFind = FindFirstFile(path, &fd);
+	if (hFind != INVALID_HANDLE_VALUE)
+	{
+		FindClose(hFind);
+		return (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0;
+	}
+
+	return false;
+}

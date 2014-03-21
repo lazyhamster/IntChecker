@@ -18,5 +18,6 @@ void IncludeTrailingPathDelim(wchar_t *pathBuf, size_t bufMaxSize);
 void IncludeTrailingPathDelim(wstring &pathStr);
 int64_t GetFileSize_i64(const wchar_t* path);
 int64_t GetFileSize_i64(HANDLE hFile);
+bool IsFile(const wchar_t* path);
 
 #endif // Utils_h__
