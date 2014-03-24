@@ -15,6 +15,7 @@ static bool optDetectHashFiles = true;
 static bool optClearSelectionOnComplete = true;
 static bool optConfirmAbort = true;
 static int optDefaultAlgo = RHASH_MD5;
+static bool optUsePrefix = true;
 static wchar_t optPrefix[32] = L"check";
 
 static rhash_ids s_SupportedAlgos[] = {RHASH_CRC32, RHASH_MD5, RHASH_SHA1, RHASH_SHA256, RHASH_SHA512, RHASH_WHIRLPOOL};
@@ -94,7 +95,7 @@ static bool ConfirmMessage(int headerMsgID, int textMsgID, bool isWarning)
 	return ConfirmMessage(GetLocMsg(headerMsgID), GetLocMsg(textMsgID), isWarning);
 }
 
-static int DlgHlp_GetSelectionState(HANDLE hDlg, int ctrlIndex)
+static bool DlgHlp_GetSelectionState(HANDLE hDlg, int ctrlIndex)
 {
 	FarDialogItem *dlgItem;
 	int retVal;
@@ -104,7 +105,7 @@ static int DlgHlp_GetSelectionState(HANDLE hDlg, int ctrlIndex)
 	retVal = dlgItem->Selected;
 	free(dlgItem);
 
-	return retVal;
+	return retVal != 0;
 }
 
 static void DlgHlp_GetEditBoxText(HANDLE hDlg, int ctrlIndex, wstring &buf)
@@ -117,6 +118,20 @@ static void DlgHlp_GetEditBoxText(HANDLE hDlg, int ctrlIndex, wstring &buf)
 	buf = dlgItem->PtrData;
 
 	free(dlgItem);
+}
+
+static bool DlgHlp_GetEditBoxText(HANDLE hDlg, int ctrlIndex, wchar_t* buf, size_t bufSize)
+{
+	wstring tmpStr;
+	DlgHlp_GetEditBoxText(hDlg, ctrlIndex, tmpStr);
+
+	if (tmpStr.size() < bufSize)
+	{
+		wcscpy_s(buf, bufSize, tmpStr.c_str());
+		return true;
+	}
+
+	return false;
 }
 
 static bool GetPanelDir(HANDLE hPanel, wstring& dirStr)
@@ -171,6 +186,7 @@ static void LoadSettings()
 		regOpts.GetValue(L"ConfirmAbort", optConfirmAbort);
 		regOpts.GetValue(L"DefaultHash", optDefaultAlgo);
 		regOpts.GetValue(L"Prefix", optPrefix, ARRAY_SIZE(optPrefix));
+		regOpts.GetValue(L"UsePrefix", optUsePrefix);
 	}
 }
 
@@ -184,6 +200,7 @@ static void SaveSettings()
 		regOpts.SetValue(L"ConfirmAbort", optConfirmAbort);
 		regOpts.SetValue(L"DefaultHash", optDefaultAlgo);
 		regOpts.SetValue(L"Prefix", optPrefix);
+		regOpts.SetValue(L"UsePrefix", optUsePrefix);
 	}
 }
 
@@ -605,8 +622,55 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
 
 int WINAPI ConfigureW(int ItemNumber)
 {
-	//TODO: implement
-	DisplayMessage(L"Configure", L"Not implemented", NULL, true, true);
+	FarListItem algoListItems[NUMBER_OF_SUPPORTED_HASHES] = {0};
+	FarList algoDlgList = {NUMBER_OF_SUPPORTED_HASHES, algoListItems};
+
+	FarDialogItem DialogItems []={
+		/*00*/ {DI_DOUBLEBOX, 3, 1,40,11, 0, 0, 0,0, L"Configuration", 0},
+		/*01*/ {DI_TEXT,	  5, 2, 0, 0, 0, 0, 0, 0, L"Default algorithm", 0},
+		/*02*/ {DI_COMBOBOX,  5, 3,20, 0, 0, (DWORD_PTR)&algoDlgList, DIF_DROPDOWNLIST, 0, NULL, 0},
+		/*03*/ {DI_TEXT,	  3, 4, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
+		/*04*/ {DI_CHECKBOX,  5, 5, 0, 0, 0, optUsePrefix, 0,0, L"Use prefix", 0},
+		/*05*/ {DI_EDIT,	  8, 6,24, 0, 0, 0, 0,0, optPrefix, 0},
+		/*06*/ {DI_CHECKBOX,  5, 7, 0, 0, 0, optConfirmAbort, 0,0, L"Confirm abort", 0},
+		/*07*/ {DI_CHECKBOX,  5, 8, 0, 0, 0, optClearSelectionOnComplete, 0,0, L"Clear selection on complete", 0},
+		/*08*/ {DI_TEXT,	  3, 9, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
+		/*09*/ {DI_BUTTON,	  0,10, 0, 0, 0, 0, DIF_CENTERGROUP, 1, L"OK", 0},
+		/*0A*/ {DI_BUTTON,    0,10, 0, 0, 1, 0, DIF_CENTERGROUP, 0, L"Cancel", 0},
+	};
+
+	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
+	{
+		algoListItems[i].Text = SupportedHashes[i].AlgoName.c_str();
+		if (SupportedHashes[i].AlgoId == optDefaultAlgo)
+			algoListItems[i].Flags = LIF_SELECTED;
+	}
+
+	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 44, 13, L"ObserverConfig",
+		DialogItems, sizeof(DialogItems) / sizeof(DialogItems[0]), 0, 0, FarSInfo.DefDlgProc, 0);
+
+	int nOkID = ARRAY_SIZE(DialogItems) - 2;
+
+	if (hDlg != INVALID_HANDLE_VALUE)
+	{
+		int ExitCode = FarSInfo.DialogRun(hDlg);
+		if (ExitCode == nOkID) // OK was pressed
+		{
+			optUsePrefix = DlgHlp_GetSelectionState(hDlg, 4);
+			DlgHlp_GetEditBoxText(hDlg, 5, optPrefix, ARRAY_SIZE(optPrefix));
+			optConfirmAbort = DlgHlp_GetSelectionState(hDlg, 6);
+			optClearSelectionOnComplete = DlgHlp_GetSelectionState(hDlg, 7);
+			
+			int selectedAlgo = DlgList_GetCurPos(FarSInfo, hDlg, 2);
+			optDefaultAlgo = SupportedHashes[selectedAlgo].AlgoId;
+
+			SaveSettings();
+		}
+		FarSInfo.DialogFree(hDlg);
+
+		if (ExitCode == nOkID) return TRUE;
+	}
+
 	return FALSE;
 }
 
@@ -614,9 +678,12 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 {
 	if (OpenFrom == OPEN_COMMANDLINE)
 	{
-		// We are from prefix
-		if (!RunValidateFiles((wchar_t*) Item, true))
-			DisplayMessage(L"Error", L"File is not a valid hash list", NULL, true, true);
+		if (optUsePrefix)
+		{
+			// We are from prefix
+			if (!RunValidateFiles((wchar_t*) Item, true))
+				DisplayMessage(L"Error", L"File is not a valid hash list", NULL, true, true);
+		}
 	}
 	else if (OpenFrom == OPEN_PLUGINSMENU)
 	{
