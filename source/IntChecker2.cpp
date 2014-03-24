@@ -350,7 +350,6 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 	FarSInfo.AdvControl(FarSInfo.ModuleNumber, ACTL_SETPROGRESSSTATE, (void*) PS_NOPROGRESS);
 	FarSInfo.AdvControl(FarSInfo.ModuleNumber, ACTL_PROGRESSNOTIFY, 0);
 	
-	//TODO: implement
 	return true;
 }
 
@@ -431,10 +430,23 @@ static void RunGenerateHashes()
 	HashOutputTargets outputTarget = OT_SINGLEFILE;
 	wstring outputFile;
 
-	if (!AskForHashGenerationParams(genAlgo, recursive, outputTarget, outputFile))
-		return;
+	while(true)
+	{
+		if (!AskForHashGenerationParams(genAlgo, recursive, outputTarget, outputFile))
+			return;
 
-	//TODO: check for existing hash file and ask for overwrite
+		// Check if hash file already exists
+		if ((outputTarget == OT_SINGLEFILE) && IsFile(outputFile.c_str()))
+		{
+			wchar_t wszMsgText[100];
+			swprintf_s(wszMsgText, ARRAY_SIZE(wszMsgText), L"File %s already exists. Overwrite?", outputFile.c_str());
+
+			if (!ConfirmMessage(L"Overwrite file", wszMsgText, true))
+				continue;
+		}
+
+		break;
+	}
 
 	StringList filesToProcess;
 	int64_t totalFilesSize = 0;
@@ -532,6 +544,7 @@ static void RunGenerateHashes()
 	}
 	else
 	{
+		//TODO: implement result on screen
 		saveSuccess = true;
 		DisplayMessage(L"Hashing complete", L"Stub", NULL, false, true);
 	}
