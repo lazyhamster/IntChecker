@@ -38,8 +38,14 @@ static bool IsComment(char* line)
 	char* strPtr = line;
 	while (strPtr && *strPtr)
 	{
-		if (*strPtr != ';' && !isspace(*strPtr) && *strPtr != '\t')
+		// Comments start with semicolon
+		if (*strPtr == ';')
+			return true;
+		
+		// Spaces are allowed before semicolon
+		if (!isspace(*strPtr) && *strPtr != '\t')
 			return false;
+
 		strPtr++;
 	}
 	return true;
