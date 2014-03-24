@@ -1,13 +1,17 @@
-Language=English,English
+.Language=English,English
+
+"Integrity Checker"
+"IntChecker"
+
+"&Generate Hashes"
+"Compare &Panels"
+"&Validate Files"
 
 "Configuration"
-
-"Work Mode"
-"Compare Against Another &Panel"
-"Create Hash List &File"
-"&Ignore Missing Files"
-"&Separate Hash Files"
-"Algorithm"
+"Use &prefix"
+"Default algorithm"
+"Confirm &abort"
+"Clear &selection on complete"
 
 "OK"
 "Cancel"

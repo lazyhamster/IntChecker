@@ -6,6 +6,7 @@
 #include "Utils.h"
 #include "RegistrySettings.h"
 #include "hashing.h"
+#include "Lang.h"
 
 PluginStartupInfo FarSInfo;
 static FARSTANDARDFUNCTIONS FSF;
@@ -631,17 +632,17 @@ int WINAPI ConfigureW(int ItemNumber)
 	FarList algoDlgList = {NUMBER_OF_SUPPORTED_HASHES, algoListItems};
 
 	FarDialogItem DialogItems []={
-		/*00*/ {DI_DOUBLEBOX, 3, 1,40,11, 0, 0, 0,0, L"Configuration", 0},
-		/*01*/ {DI_TEXT,	  5, 2, 0, 0, 0, 0, 0, 0, L"Default algorithm", 0},
+		/*00*/ {DI_DOUBLEBOX, 3, 1,40,11, 0, 0, 0,0, GetLocMsg(MSG_CONFIG_TITLE), 0},
+		/*01*/ {DI_TEXT,	  5, 2, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_CONFIG_DEFAULT_ALGO), 0},
 		/*02*/ {DI_COMBOBOX,  5, 3,20, 0, 0, (DWORD_PTR)&algoDlgList, DIF_DROPDOWNLIST, 0, NULL, 0},
 		/*03*/ {DI_TEXT,	  3, 4, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
-		/*04*/ {DI_CHECKBOX,  5, 5, 0, 0, 0, optUsePrefix, 0,0, L"Use prefix", 0},
+		/*04*/ {DI_CHECKBOX,  5, 5, 0, 0, 0, optUsePrefix, 0,0, GetLocMsg(MSG_CONFIG_PREFIX), 0},
 		/*05*/ {DI_EDIT,	  8, 6,24, 0, 0, 0, 0,0, optPrefix, 0},
-		/*06*/ {DI_CHECKBOX,  5, 7, 0, 0, 0, optConfirmAbort, 0,0, L"Confirm abort", 0},
-		/*07*/ {DI_CHECKBOX,  5, 8, 0, 0, 0, optClearSelectionOnComplete, 0,0, L"Clear selection on complete", 0},
+		/*06*/ {DI_CHECKBOX,  5, 7, 0, 0, 0, optConfirmAbort, 0,0, GetLocMsg(MSG_CONFIG_CONFIRM_ABORT), 0},
+		/*07*/ {DI_CHECKBOX,  5, 8, 0, 0, 0, optClearSelectionOnComplete, 0,0, GetLocMsg(MSG_CONFIG_CLEAR_SELECTION), 0},
 		/*08*/ {DI_TEXT,	  3, 9, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
-		/*09*/ {DI_BUTTON,	  0,10, 0, 0, 0, 0, DIF_CENTERGROUP, 1, L"OK", 0},
-		/*0A*/ {DI_BUTTON,    0,10, 0, 0, 1, 0, DIF_CENTERGROUP, 0, L"Cancel", 0},
+		/*09*/ {DI_BUTTON,	  0,10, 0, 0, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_OK), 0},
+		/*0A*/ {DI_BUTTON,    0,10, 0, 0, 1, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
 	};
 
 	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
@@ -701,9 +702,9 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 		}
 
 		FarMenuItem MenuItems[] = {
-			{L"&Generate Hashes", 1, 0, 0},
-			{L"Compare &Panels", 0, 0, 0},
-			{L"&Validate Files", 0, 0, 0}
+			{GetLocMsg(MSG_MENU_GENERATE), 1, 0, 0},
+			{GetLocMsg(MSG_MENU_COMPARE),  0, 0, 0},
+			{GetLocMsg(MSG_MENU_VALIDATE), 0, 0, 0}
 		};
 
 		wstring selectedFilePath;
@@ -714,7 +715,7 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 			nNumMenuItems = IsFile(selectedFilePath.c_str()) ? 3 : 2;
 		}
 
-		int nMItem = FarSInfo.Menu(FarSInfo.ModuleNumber, -1, -1, 0, 0, L"Integrity Checker", NULL, NULL, NULL, NULL, MenuItems, nNumMenuItems);
+		int nMItem = FarSInfo.Menu(FarSInfo.ModuleNumber, -1, -1, 0, 0, GetLocMsg(MSG_PLUGIN_NAME), NULL, NULL, NULL, NULL, MenuItems, nNumMenuItems);
 		
 		switch (nMItem)
 		{

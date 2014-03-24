@@ -3,17 +3,24 @@
 
 enum
 {
-	MConfig,
+	MSG_PLUGIN_NAME,
+	MSG_PLUGIN_CONFIG_NAME,
 
-	MSelectAction,
-	MComparePanels,
-	MCreateList,
-	MExistingOnly,
-	MSeparateFiles,
-	MAlgorithm,
+	// Action menu
+	MSG_MENU_GENERATE,
+	MSG_MENU_COMPARE,
+	MSG_MENU_VALIDATE,
+	
+	// Configuration
+	MSG_CONFIG_TITLE,
+	MSG_CONFIG_PREFIX,
+	MSG_CONFIG_DEFAULT_ALGO,
+	MSG_CONFIG_CONFIRM_ABORT,
+	MSG_CONFIG_CLEAR_SELECTION,
 
-	MOk,
-	MCancel
+	// Buttons
+	MSG_BTN_OK,
+	MSG_BTN_CANCEL,
 };
 
 #endif // Lang_h__
