@@ -227,16 +227,25 @@ static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 
 static void DisplayValidationResults(int numMismatch, int numMissing, int numSkipped)
 {
-	//TODO: finish
+	static wchar_t wszMismatchedMessage[50];
+	static wchar_t wszMissingMessage[50];
+	static wchar_t wszSkippedMessage[50];
+
+	swprintf_s(wszMismatchedMessage, ARRAY_SIZE(wszMismatchedMessage), L"%d mismatch(es) found", numMismatch);
+	swprintf_s(wszMissingMessage, ARRAY_SIZE(wszMissingMessage), L"%d file(s) missing", numMissing);
+	swprintf_s(wszSkippedMessage, ARRAY_SIZE(wszSkippedMessage), L"%d files(s) skipped", numSkipped);
 	
 	int nValidationLinesNum = 2;
 	static const wchar_t* ValidationResults[3];
-	ValidationResults[0] = L"Validation results";
-	ValidationResults[1] = L"";
-	ValidationResults[2] = L"";
-	ValidationResults[3] = L"";
+	ValidationResults[0] = L"Validation finished";
+	ValidationResults[1] = wszMismatchedMessage;
+	ValidationResults[2] = (numMissing > 0) ? wszMissingMessage : wszSkippedMessage;
+	ValidationResults[3] = (numSkipped > 0) ? wszSkippedMessage : L"";
 
-	FarSInfo.Message(FarSInfo.ModuleNumber, 0, NULL, ValidationResults, nValidationLinesNum, 0);
+	if (numMissing > 0) nValidationLinesNum++;
+	if (numSkipped > 0) nValidationLinesNum++;
+
+	FarSInfo.Message(FarSInfo.ModuleNumber, FMSG_MB_OK, NULL, ValidationResults, nValidationLinesNum, 0);
 }
 
 // Returns true if file is recognized as hash list

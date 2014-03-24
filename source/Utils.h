@@ -19,5 +19,6 @@ void IncludeTrailingPathDelim(wstring &pathStr);
 int64_t GetFileSize_i64(const wchar_t* path);
 int64_t GetFileSize_i64(HANDLE hFile);
 bool IsFile(const wchar_t* path);
+void TrimRight(char* str);
 
 #endif // Utils_h__

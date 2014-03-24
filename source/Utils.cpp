@@ -121,3 +121,20 @@ bool IsFile( const wchar_t* path )
 
 	return false;
 }
+
+void TrimRight( char* str )
+{
+	size_t strLen = strlen(str);
+	while (strLen > 0)
+	{
+		char lastChar = str[strLen - 1];
+		if (isspace(lastChar) || (lastChar == '\n') || (lastChar == '\r'))
+		{
+			str[strLen - 1] = 0;
+			strLen--;
+			continue;
+		}
+
+		break;
+	}
+}

@@ -147,9 +147,11 @@ bool HashList::LoadList( const wchar_t* filepath )
 
 	while (fgets(readBuf, sizeof(readBuf), inputFile))
 	{
+		TrimRight(readBuf);
+
 		// Just skipping comment lines
 		if (IsComment(readBuf)) continue;
-
+		
 		if (listAlgo == NULL)
 		{
 			listAlgo = DetectHashAlgo(readBuf);
@@ -190,7 +192,7 @@ bool HashList::LoadList( const wchar_t* filepath )
 			
 			FileHashInfo fileInfo;
 			fileInfo.Filename = wpathBuf;
-			fileInfo.HashStr = possibleHash;
+			fileInfo.HashStr.append(possibleHash, listAlgo->HashStrSize);
 			parsedList.push_back(fileInfo);
 		}
 	}
