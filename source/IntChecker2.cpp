@@ -209,7 +209,7 @@ static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 {
 	if (CheckEsc())
 	{
-		if (optConfirmAbort && ConfirmMessage(L"Confirm", L"Abort calculations?", true))
+		if (optConfirmAbort && ConfirmMessage(GetLocMsg(MSG_DLG_CONFIRM), GetLocMsg(MSG_DLG_ASK_ABORT), true))
 			return false;
 	}
 
@@ -231,8 +231,8 @@ static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 		swprintf_s(szFileProgressLine, ARRAY_SIZE(szFileProgressLine), L"File: %d / %d. Progress: %2d%% / %2d%%", prCtx->CurrentFileIndex + 1, prCtx->TotalFilesCount, nFileProgress, nTotalProgress);
 
 		static const wchar_t* InfoLines[4];
-		InfoLines[0] = L"Processing";
-		InfoLines[1] = L"Generating hash";
+		InfoLines[0] = GetLocMsg(MSG_DLG_PROCESSING);
+		InfoLines[1] = GetLocMsg(MSG_DLG_GENERATING);
 		InfoLines[2] = szFileProgressLine;
 		InfoLines[3] = prCtx->FileName.c_str();
 
@@ -263,7 +263,7 @@ static void DisplayValidationResults(int numMismatch, int numMissing, int numSki
 	
 	int nValidationLinesNum = 2;
 	static const wchar_t* ValidationResults[3];
-	ValidationResults[0] = L"Validation finished";
+	ValidationResults[0] = GetLocMsg(MSG_DLG_VALIDATION_COMPLETE);
 	ValidationResults[1] = wszMismatchedMessage;
 	ValidationResults[2] = (numMissing > 0) ? wszMissingMessage : wszSkippedMessage;
 	ValidationResults[3] = (numSkipped > 0) ? wszSkippedMessage : L"";
@@ -281,7 +281,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 	if (!hashes.LoadList(hashListPath) || (hashes.GetCount() == 0))
 	{
 		if (!silent)
-			DisplayMessage(L"Invalid Source", L"This is not a valid hash list file", NULL, true, true);
+			DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_NOTVALIDLIST), NULL, true, true);
 		return false;
 	}
 
@@ -300,7 +300,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 	// Prepare files list
 	{
 		FarScreenSave screen;
-		DisplayMessage(L"Processing", L"Preparing file list", NULL, false, false);
+		DisplayMessage(GetLocMsg(MSG_DLG_PROCESSING), GetLocMsg(MSG_DLG_PREPARE_LIST), NULL, false, false);
 
 		for (size_t i = 0; i < hashes.GetCount(); i++)
 		{
@@ -362,7 +362,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 	}
 	else
 	{
-		DisplayMessage(L"No files", L"No files from hash list exists", NULL, true, true);
+		DisplayMessage(GetLocMsg(MSG_DLG_NOFILES_TITLE), GetLocMsg(MSG_DLG_NOFILES_TEXT), NULL, true, true);
 	}
 
 	FarSInfo.AdvControl(FarSInfo.ModuleNumber, ACTL_SETPROGRESSSTATE, (void*) PS_NOPROGRESS);
@@ -374,9 +374,9 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive, HashOutputTargets &outputTarget, wstring &outputFileName)
 {
 	FarDialogItem DialogItems []={
-		/*0*/{DI_DOUBLEBOX,		3, 1, 41,18, 0, 0, 0, 0, L"Generate"},
+		/*0*/{DI_DOUBLEBOX,		3, 1, 41,18, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TITLE)},
 
-		/*1*/{DI_TEXT,			5, 2,  0, 0, 0, 0, 0, 0, L"Algorithm", 0},
+		/*1*/{DI_TEXT,			5, 2,  0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_ALGO), 0},
 		/*2*/{DI_RADIOBUTTON,	6, 3,  0, 0, 0, (selectedAlgo==RHASH_CRC32), DIF_GROUP, 0, L"&1. CRC32"},
 		/*3*/{DI_RADIOBUTTON,	6, 4,  0, 0, 0, (selectedAlgo==RHASH_MD5), 0, 0, L"&2. MD5"},
 		/*4*/{DI_RADIOBUTTON,	6, 5,  0, 0, 0, (selectedAlgo==RHASH_SHA1), 0, 0, L"&3. SHA1"},
@@ -385,18 +385,18 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 		/*7*/{DI_RADIOBUTTON,	6, 8,  0, 0, 0, (selectedAlgo==RHASH_WHIRLPOOL), 0, 0, L"&6. Whirlpool"},
 		
 		/*8*/{DI_TEXT,			3, 9,  0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
-		/*9*/{DI_TEXT,			5,10,  0, 0, 0, 0, 0, 0, L"Output to", 0},
-		/*10*/{DI_RADIOBUTTON,	6,11,  0, 0, 0, 1, DIF_GROUP, 0, L"&File"},
-		/*11*/{DI_RADIOBUTTON,	6,12,  0, 0, 0, 0, 0, 0, L"&Separate hash files"},
-		/*12*/{DI_RADIOBUTTON,	6,13,  0, 0, 0, 0, 0, 0, L"&Display"},
+		/*9*/{DI_TEXT,			5,10,  0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TARGET), 0},
+		/*10*/{DI_RADIOBUTTON,	6,11,  0, 0, 0, 1, DIF_GROUP, 0, GetLocMsg(MSG_GEN_TO_FILE)},
+		/*11*/{DI_RADIOBUTTON,	6,12,  0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TO_SEPARATE)},
+		/*12*/{DI_RADIOBUTTON,	6,13,  0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TO_SCREEN)},
 		/*13*/{DI_EDIT,			15,11,38, 0, 1, 0, DIF_EDITEXPAND|DIF_EDITPATH,0, L"hashlist", 0},
 		
 		/*14*/{DI_TEXT,			3,14,  0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
-		/*15*/{DI_CHECKBOX,		5,15,  0, 0, 0, recursive, 0, 0, L"Process directories &recursively"},
+		/*15*/{DI_CHECKBOX,		5,15,  0, 0, 0, recursive, 0, 0, GetLocMsg(MSG_GEN_RECURSE)},
 		
 		/*16*/{DI_TEXT,			3,16,  0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
-		/*17*/{DI_BUTTON,		0,17,  0,13, 0, 0, DIF_CENTERGROUP, 1, L"Run", 0},
-		/*18*/{DI_BUTTON,		0,17,  0,13, 0, 0, DIF_CENTERGROUP, 0, L"Cancel", 0},
+		/*17*/{DI_BUTTON,		0,17,  0,13, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_RUN), 0},
+		/*18*/{DI_BUTTON,		0,17,  0,13, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
 	};
 	size_t numDialogItems = sizeof(DialogItems) / sizeof(DialogItems[0]);
 
@@ -444,7 +444,7 @@ static void RunGenerateHashes()
 	if (!FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, (LONG_PTR)&pi)
 		|| (pi.SelectedItemsNumber <= 0) || (pi.PanelType != PTYPE_FILEPANEL))
 	{
-		DisplayMessage(L"Error", L"Can not work with this panel", NULL, true, true);
+		DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_INVALID_PANEL), NULL, true, true);
 		return;
 	}
 	
@@ -463,9 +463,9 @@ static void RunGenerateHashes()
 		if ((outputTarget == OT_SINGLEFILE) && IsFile(outputFile.c_str()))
 		{
 			wchar_t wszMsgText[100];
-			swprintf_s(wszMsgText, ARRAY_SIZE(wszMsgText), L"File %s already exists. Overwrite?", outputFile.c_str());
+			swprintf_s(wszMsgText, ARRAY_SIZE(wszMsgText), GetLocMsg(MSG_DLG_OVERWRITE_FILE_TEXT), outputFile.c_str());
 
-			if (!ConfirmMessage(L"Overwrite file", wszMsgText, true))
+			if (!ConfirmMessage(GetLocMsg(MSG_DLG_OVERWRITE_FILE), wszMsgText, true))
 				continue;
 		}
 
@@ -483,7 +483,7 @@ static void RunGenerateHashes()
 	// Prepare files list
 	{
 		FarScreenSave screen;
-		DisplayMessage(L"Processing", L"Preparing file list", NULL, false, false);
+		DisplayMessage(GetLocMsg(MSG_DLG_PROCESSING), GetLocMsg(MSG_DLG_PREPARE_LIST), NULL, false, false);
 
 		GetPanelDir(PANEL_ACTIVE, strPanelDir);
 
@@ -542,7 +542,7 @@ static void RunGenerateHashes()
 			else if (genRetVal == GENERATE_ERROR)
 			{
 				//TODO: offer retry
-				DisplayMessage(L"Error", L"Error during hash generation", strNextFile.c_str(), true, true);
+				DisplayMessage(GetLocMsg(MSG_DLG_ERROR), L"Error during hash generation", strNextFile.c_str(), true, true);
 				continueSave = false;
 				break;
 			}
@@ -652,7 +652,7 @@ int WINAPI ConfigureW(int ItemNumber)
 			algoListItems[i].Flags = LIF_SELECTED;
 	}
 
-	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 44, 13, L"ObserverConfig",
+	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 44, 13, L"IntCheckerConfig",
 		DialogItems, sizeof(DialogItems) / sizeof(DialogItems[0]), 0, 0, FarSInfo.DefDlgProc, 0);
 
 	int nOkID = ARRAY_SIZE(DialogItems) - 2;
@@ -688,7 +688,7 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 		{
 			// We are from prefix
 			if (!RunValidateFiles((wchar_t*) Item, true))
-				DisplayMessage(L"Error", L"File is not a valid hash list", NULL, true, true);
+				DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_NOTVALIDLIST), NULL, true, true);
 		}
 	}
 	else if (OpenFrom == OPEN_PLUGINSMENU)

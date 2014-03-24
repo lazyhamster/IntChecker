@@ -1,7 +1,7 @@
 .Language=English,English
 
 "Integrity Checker"
-"IntChecker"
+"Integrity Checker"
 
 "&Generate Hashes"
 "Compare &Panels"
@@ -15,3 +15,26 @@
 
 "OK"
 "Cancel"
+"Run"
+
+"Error"
+"Confirm"
+"File is not a valid hash list"
+"Processing"
+"Preparing file list"
+"Overwrite file"
+"File %s already exists. Overwrite?"
+"Can not work with this panel"
+"No files"
+"No files from hash list exists"
+"Generating hash"
+"Abort calculations?"
+"Validation complete"
+
+"Generate"
+"Algorithm"
+"Process directories &recursively"
+"Output to"
+"&File"
+"&Separate hash files"
+"&Display"
