@@ -430,6 +430,12 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 	return retVal;
 }
 
+static void DisplayHashListOnScreen(HashList &list)
+{
+	//TODO: implement result on screen
+	DisplayMessage(L"Hashing complete", L"Stub", NULL, false, true);
+}
+
 static void RunGenerateHashes()
 {
 	// Check panel for compatibility
@@ -561,9 +567,8 @@ static void RunGenerateHashes()
 	}
 	else
 	{
-		//TODO: implement result on screen
 		saveSuccess = true;
-		DisplayMessage(L"Hashing complete", L"Stub", NULL, false, true);
+		DisplayHashListOnScreen(hashes);
 	}
 
 	// Clear selection if requested
