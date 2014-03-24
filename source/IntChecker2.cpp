@@ -166,7 +166,11 @@ static void LoadSettings()
 	RegistrySettings regOpts(FarSInfo.RootKey);
 	if (regOpts.Open())
 	{
-		//TODO: implement
+		regOpts.GetValue(L"DetectHashFiles", optDetectHashFiles);
+		regOpts.GetValue(L"ClearSelection", optClearSelectionOnComplete);
+		regOpts.GetValue(L"ConfirmAbort", optConfirmAbort);
+		regOpts.GetValue(L"DefaultHash", optDefaultAlgo);
+		regOpts.GetValue(L"Prefix", optPrefix, ARRAY_SIZE(optPrefix));
 	}
 }
 
@@ -175,7 +179,11 @@ static void SaveSettings()
 	RegistrySettings regOpts(FarSInfo.RootKey);
 	if (regOpts.Open(true))
 	{
-		//TODO: implement
+		regOpts.SetValue(L"DetectHashFiles", optDetectHashFiles);
+		regOpts.SetValue(L"ClearSelection", optClearSelectionOnComplete);
+		regOpts.SetValue(L"ConfirmAbort", optConfirmAbort);
+		regOpts.SetValue(L"DefaultHash", optDefaultAlgo);
+		regOpts.SetValue(L"Prefix", optPrefix);
 	}
 }
 
@@ -376,6 +384,8 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 	size_t numDialogItems = sizeof(DialogItems) / sizeof(DialogItems[0]);
 
 	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 45, 20, L"GenerateParams", DialogItems, numDialogItems, 0, 0, FarSInfo.DefDlgProc, 0);
+
+	//TODO: append appropriate extension to file name
 
 	bool retVal = false;
 	if (hDlg != INVALID_HANDLE_VALUE)

@@ -12,10 +12,9 @@
 #include <windows.h>
 
 
-// TODO: reference additional headers your program requires here
+// Additional headers
 #include <string>
 #include <vector>
-#include <map>
 #include <sstream>
 
 typedef std::vector<std::wstring> StringList;

@@ -20,10 +20,12 @@ public:
 	bool Open(int CanWrite = false);
 
 	bool GetValue(const wchar_t* ValueName, int &Output);
+	bool GetValue(const wchar_t* ValueName, bool &Output);
 	bool GetValue(const wchar_t* ValueName, wchar_t *Output, size_t OutputMaxSize);
 	bool GetValue(const char* ValueName, char *Output, size_t OutputMaxSize);
 
 	bool SetValue(const wchar_t* ValueName, int Value);
+	bool SetValue(const wchar_t* ValueName, bool Value);
 	bool SetValue(const wchar_t* ValueName, const wchar_t *Value);
 	bool SetValue(const char* ValueName, const char *Value);
 };
