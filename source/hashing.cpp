@@ -23,7 +23,7 @@ static bool CanBeHash(const char* msg, int msgSize)
 
 static bool CanBePath(const char* msg, int msgSize)
 {
-	const char* IllegalPathChars = "<>:\"/\\|?*";
+	const char* IllegalPathChars = "<>:\"|?*";
 	for (int i = 0; i < msgSize; i++)
 	{
 		if (!msg[i]) break;
