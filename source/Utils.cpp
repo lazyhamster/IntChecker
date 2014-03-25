@@ -162,14 +162,17 @@ static int EnumFiles(const wstring& baseAbsPath, const wstring& pathPrefix, Stri
 		if (wcscmp(fd.cFileName, L".") == 0 || wcscmp(fd.cFileName, L"..") == 0)
 			continue;
 
-		if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0 && recursive)
+		if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) != 0)
 		{
-			wstring strNexBasePath = baseAbsPath + fd.cFileName;
-			strNexBasePath += L"\\";
-			wstring strNextPrefix = pathPrefix + fd.cFileName;
-			strNextPrefix += L"\\";
+			if (recursive)
+			{
+				wstring strNexBasePath = baseAbsPath + fd.cFileName;
+				strNexBasePath += L"\\";
+				wstring strNextPrefix = pathPrefix + fd.cFileName;
+				strNextPrefix += L"\\";
 
-			numFound += EnumFiles(strNexBasePath, strNextPrefix, destList, totalSize, recursive);
+				numFound += EnumFiles(strNexBasePath, strNextPrefix, destList, totalSize, recursive);
+			}
 		}
 		else
 		{
