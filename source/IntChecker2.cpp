@@ -254,13 +254,36 @@ static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 	return true;
 }
 
-static void DisplayValidationResults(int numMismatch, int numMissing, int numSkipped)
+static void SelectFilesOnPanel(HANDLE hPanel, vector<wstring> &fileNames, bool isSelected)
+{
+	PanelInfo pi = {0};
+	FarSInfo.Control(hPanel, FCTL_GETPANELINFO, 0, (LONG_PTR)&pi);
+
+	FarSInfo.Control(hPanel, FCTL_BEGINSELECTION, 0, NULL);
+	for (int i = 0; i < pi.ItemsNumber; i++)
+	{
+		PluginPanelItem *PPI = (PluginPanelItem*) malloc(FarSInfo.Control(hPanel, FCTL_GETPANELITEM, i, NULL));
+		if (PPI)
+		{
+			FarSInfo.Control(hPanel, FCTL_GETPANELITEM, i, (LONG_PTR)PPI);
+			if (std::find(fileNames.begin(), fileNames.end(), PPI->FindData.lpwszFileName) != fileNames.end())
+			{
+				FarSInfo.Control(hPanel, FCTL_SETSELECTION, i, isSelected ? TRUE : FALSE);
+			}
+			free(PPI);
+		}
+	}
+	FarSInfo.Control(hPanel, FCTL_ENDSELECTION, 0, NULL);
+	FarSInfo.Control(hPanel, FCTL_REDRAWPANEL, 0, NULL);
+}
+
+static void DisplayValidationResults(vector<wstring> &vMismatchList, int numMissing, int numSkipped)
 {
 	static wchar_t wszMismatchedMessage[50];
 	static wchar_t wszMissingMessage[50];
 	static wchar_t wszSkippedMessage[50];
 
-	swprintf_s(wszMismatchedMessage, ARRAY_SIZE(wszMismatchedMessage), L"%d mismatch(es) found", numMismatch);
+	swprintf_s(wszMismatchedMessage, ARRAY_SIZE(wszMismatchedMessage), L"%d mismatch(es) found", vMismatchList.size());
 	swprintf_s(wszMissingMessage, ARRAY_SIZE(wszMissingMessage), L"%d file(s) missing", numMissing);
 	swprintf_s(wszSkippedMessage, ARRAY_SIZE(wszSkippedMessage), L"%d files(s) skipped", numSkipped);
 	
@@ -275,6 +298,9 @@ static void DisplayValidationResults(int numMismatch, int numMissing, int numSki
 	if (numSkipped > 0) nValidationLinesNum++;
 
 	FarSInfo.Message(FarSInfo.ModuleNumber, FMSG_MB_OK, NULL, ValidationResults, nValidationLinesNum, 0);
+
+	// Let's select mismatched files in the current directory
+	SelectFilesOnPanel(PANEL_ACTIVE, vMismatchList, true);
 }
 
 // Returns true if file is recognized as hash list
@@ -289,7 +315,8 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 	}
 
 	wstring workDir;
-	int nFilesMismatch = 0, nFilesMissing = 0, nFilesSkipped = 0;
+	int nFilesMissing = 0, nFilesSkipped = 0;
+	vector<wstring> vMismatches;
 	vector<int> existingFiles;
 	int64_t totalFilesSize = 0;
 	char hashValueBuf[150];
@@ -357,11 +384,11 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 				}
 
 				if (_stricmp(fileInfo.HashStr.c_str(), hashValueBuf) != 0)
-					nFilesMismatch++;
+					vMismatches.push_back(fileInfo.Filename);
 			}
 		}
 
-		DisplayValidationResults(nFilesMismatch, nFilesMissing, nFilesSkipped);
+		DisplayValidationResults(vMismatches, nFilesMissing, nFilesSkipped);
 	}
 	else
 	{
