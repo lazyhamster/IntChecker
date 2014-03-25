@@ -15,6 +15,7 @@ static FARSTANDARDFUNCTIONS FSF;
 static bool optDetectHashFiles = true;
 static bool optClearSelectionOnComplete = true;
 static bool optConfirmAbort = true;
+static bool optAutoExtension = true;
 static int optDefaultAlgo = RHASH_MD5;
 static bool optUsePrefix = true;
 static wchar_t optPrefix[32] = L"check";
@@ -188,6 +189,7 @@ static void LoadSettings()
 		regOpts.GetValue(L"DefaultHash", optDefaultAlgo);
 		regOpts.GetValue(L"Prefix", optPrefix, ARRAY_SIZE(optPrefix));
 		regOpts.GetValue(L"UsePrefix", optUsePrefix);
+		regOpts.GetValue(L"AutoExtension", optAutoExtension);
 	}
 }
 
@@ -202,6 +204,7 @@ static void SaveSettings()
 		regOpts.SetValue(L"DefaultHash", optDefaultAlgo);
 		regOpts.SetValue(L"Prefix", optPrefix);
 		regOpts.SetValue(L"UsePrefix", optUsePrefix);
+		regOpts.SetValue(L"AutoExtension", optAutoExtension);
 	}
 }
 
@@ -371,8 +374,46 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 	return true;
 }
 
+static LONG_PTR WINAPI HashParamsDlgProc(HANDLE hDlg, int Msg, int Param1, LONG_PTR Param2)
+{
+	if (Msg == DN_BTNCLICK && optAutoExtension)
+	{
+		if (Param2 && (Param1 >= 2) && (Param1 <= 2 + NUMBER_OF_SUPPORTED_HASHES))
+		{
+			int selectedHashIndex = Param1 - 2;
+			wchar_t wszHashFileName[MAX_PATH];
+
+			DlgHlp_GetEditBoxText(hDlg, 13, wszHashFileName, ARRAY_SIZE(wszHashFileName));
+			
+			// We should only replace extensions if it exists and is one of auto-extensions
+			// this way custom names will not be touched when user switch algorithms
+			wchar_t* extPtr = wcsrchr(wszHashFileName, '.');
+			if (extPtr && *extPtr)
+			{
+				for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
+				{
+					if ((i != selectedHashIndex) && (SupportedHashes[i].DefaultExt == extPtr))
+					{
+						wcscpy_s(extPtr, MAX_PATH - (extPtr - wszHashFileName), SupportedHashes[selectedHashIndex].DefaultExt.c_str());
+						FarSInfo.SendDlgMessage(hDlg, DM_SETTEXTPTR, 13, (LONG_PTR) wszHashFileName);
+						break;
+					}
+				}
+			}
+
+			return TRUE;
+		}
+	}
+
+	return FarSInfo.DefDlgProc(hDlg, Msg, Param1, Param2);
+}
+
 static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive, HashOutputTargets &outputTarget, wstring &outputFileName)
 {
+	HashAlgoInfo *selectedHashInfo = GetAlgoInfo(selectedAlgo);
+	wstring defaultName(L"hashlist");
+	if (optAutoExtension) defaultName += selectedHashInfo->DefaultExt;
+	
 	FarDialogItem DialogItems []={
 		/*0*/{DI_DOUBLEBOX,		3, 1, 41,18, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TITLE)},
 
@@ -389,7 +430,7 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 		/*10*/{DI_RADIOBUTTON,	6,11,  0, 0, 0, 1, DIF_GROUP, 0, GetLocMsg(MSG_GEN_TO_FILE)},
 		/*11*/{DI_RADIOBUTTON,	6,12,  0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TO_SEPARATE)},
 		/*12*/{DI_RADIOBUTTON,	6,13,  0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TO_SCREEN)},
-		/*13*/{DI_EDIT,			15,11,38, 0, 1, 0, DIF_EDITEXPAND|DIF_EDITPATH,0, L"hashlist", 0},
+		/*13*/{DI_EDIT,			15,11,38, 0, 1, 0, DIF_EDITEXPAND|DIF_EDITPATH,0, defaultName.c_str(), 0},
 		
 		/*14*/{DI_TEXT,			3,14,  0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
 		/*15*/{DI_CHECKBOX,		5,15,  0, 0, 0, recursive, 0, 0, GetLocMsg(MSG_GEN_RECURSE)},
@@ -400,9 +441,7 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 	};
 	size_t numDialogItems = sizeof(DialogItems) / sizeof(DialogItems[0]);
 
-	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 45, 20, L"GenerateParams", DialogItems, numDialogItems, 0, 0, FarSInfo.DefDlgProc, 0);
-
-	//TODO: append appropriate extension to file name
+	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 45, 20, L"GenerateParams", DialogItems, numDialogItems, 0, 0, HashParamsDlgProc, 0);
 
 	bool retVal = false;
 	if (hDlg != INVALID_HANDLE_VALUE)
@@ -413,12 +452,12 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 			recursive = DlgHlp_GetSelectionState(hDlg, 15) != 0;
 			DlgHlp_GetEditBoxText(hDlg, 13, outputFileName);
 
-			if (DlgHlp_GetSelectionState(hDlg, 2)) selectedAlgo = RHASH_CRC32;
-			else if (DlgHlp_GetSelectionState(hDlg, 3)) selectedAlgo = RHASH_MD5;
-			else if (DlgHlp_GetSelectionState(hDlg, 4)) selectedAlgo = RHASH_SHA1;
-			else if (DlgHlp_GetSelectionState(hDlg, 5)) selectedAlgo = RHASH_SHA256;
-			else if (DlgHlp_GetSelectionState(hDlg, 6)) selectedAlgo = RHASH_SHA512;
-			else if (DlgHlp_GetSelectionState(hDlg, 7)) selectedAlgo = RHASH_WHIRLPOOL;
+			for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
+			{
+				// Selection radios start from index = 2
+				if (DlgHlp_GetSelectionState(hDlg, 2 + i))
+					selectedAlgo = SupportedHashes[i].AlgoId;
+			}
 
 			if (DlgHlp_GetSelectionState(hDlg, 10)) outputTarget = OT_SINGLEFILE;
 			else if (DlgHlp_GetSelectionState(hDlg, 11)) outputTarget = OT_SEPARATEFILES;
@@ -632,7 +671,7 @@ int WINAPI ConfigureW(int ItemNumber)
 	FarList algoDlgList = {NUMBER_OF_SUPPORTED_HASHES, algoListItems};
 
 	FarDialogItem DialogItems []={
-		/*00*/ {DI_DOUBLEBOX, 3, 1,40,11, 0, 0, 0,0, GetLocMsg(MSG_CONFIG_TITLE), 0},
+		/*00*/ {DI_DOUBLEBOX, 3, 1,40,12, 0, 0, 0,0, GetLocMsg(MSG_CONFIG_TITLE), 0},
 		/*01*/ {DI_TEXT,	  5, 2, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_CONFIG_DEFAULT_ALGO), 0},
 		/*02*/ {DI_COMBOBOX,  5, 3,20, 0, 0, (DWORD_PTR)&algoDlgList, DIF_DROPDOWNLIST, 0, NULL, 0},
 		/*03*/ {DI_TEXT,	  3, 4, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
@@ -640,9 +679,10 @@ int WINAPI ConfigureW(int ItemNumber)
 		/*05*/ {DI_EDIT,	  8, 6,24, 0, 0, 0, 0,0, optPrefix, 0},
 		/*06*/ {DI_CHECKBOX,  5, 7, 0, 0, 0, optConfirmAbort, 0,0, GetLocMsg(MSG_CONFIG_CONFIRM_ABORT), 0},
 		/*07*/ {DI_CHECKBOX,  5, 8, 0, 0, 0, optClearSelectionOnComplete, 0,0, GetLocMsg(MSG_CONFIG_CLEAR_SELECTION), 0},
-		/*08*/ {DI_TEXT,	  3, 9, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
-		/*09*/ {DI_BUTTON,	  0,10, 0, 0, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_OK), 0},
-		/*0A*/ {DI_BUTTON,    0,10, 0, 0, 1, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
+		/*08*/ {DI_CHECKBOX,  5, 9, 0, 0, 0, optAutoExtension, 0,0, GetLocMsg(MSG_CONFIG_AUTOEXT), 0},
+		/*09*/ {DI_TEXT,	  3,10, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
+		/*0A*/ {DI_BUTTON,	  0,11, 0, 0, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_OK), 0},
+		/*0B*/ {DI_BUTTON,    0,11, 0, 0, 1, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
 	};
 
 	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
@@ -652,7 +692,7 @@ int WINAPI ConfigureW(int ItemNumber)
 			algoListItems[i].Flags = LIF_SELECTED;
 	}
 
-	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 44, 13, L"IntCheckerConfig",
+	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 44, 14, L"IntCheckerConfig",
 		DialogItems, sizeof(DialogItems) / sizeof(DialogItems[0]), 0, 0, FarSInfo.DefDlgProc, 0);
 
 	int nOkID = ARRAY_SIZE(DialogItems) - 2;
@@ -666,6 +706,7 @@ int WINAPI ConfigureW(int ItemNumber)
 			DlgHlp_GetEditBoxText(hDlg, 5, optPrefix, ARRAY_SIZE(optPrefix));
 			optConfirmAbort = DlgHlp_GetSelectionState(hDlg, 6);
 			optClearSelectionOnComplete = DlgHlp_GetSelectionState(hDlg, 7);
+			optAutoExtension = DlgHlp_GetSelectionState(hDlg, 8);
 			
 			int selectedAlgo = DlgList_GetCurPos(FarSInfo, hDlg, 2);
 			optDefaultAlgo = SupportedHashes[selectedAlgo].AlgoId;

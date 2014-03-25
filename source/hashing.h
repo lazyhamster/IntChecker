@@ -56,6 +56,7 @@ typedef bool (CALLBACK *HashingProgressFunc)(HANDLE, int64_t);
 #define GENERATE_ABORTED 2
 
 int GenerateHash(const wchar_t* filePath, rhash_ids hashAlgo, char* result, HashingProgressFunc progressFunc, HANDLE progressContext);
+HashAlgoInfo* GetAlgoInfo(rhash_ids algoId);
 
 #define NUMBER_OF_SUPPORTED_HASHES 6
 extern HashAlgoInfo SupportedHashes[NUMBER_OF_SUPPORTED_HASHES];

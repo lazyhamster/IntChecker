@@ -51,7 +51,7 @@ static bool IsComment(char* line)
 	return true;
 }
 
-static HashAlgoInfo* GetAlgoInfo(rhash_ids algoId)
+HashAlgoInfo* GetAlgoInfo(rhash_ids algoId)
 {
 	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
 	{
