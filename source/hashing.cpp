@@ -274,6 +274,25 @@ HashAlgoInfo* HashList::DetectHashAlgo( const char* testStr )
 	return NULL;
 }
 
+std::wstring HashList::FileInfoToString( int index )
+{
+	if (index < 0 || index >= (int) m_HashList.size())
+		return L"";
+
+	FileHashInfo& fileInfo = m_HashList[index];
+
+	wchar_t hashStrBuf[100] = {0};
+	MultiByteToWideChar(m_Codepage, 0, fileInfo.HashStr.c_str(), -1, hashStrBuf, ARRAY_SIZE(hashStrBuf));
+	
+	wstringstream wsstr;
+	if (m_HashId == RHASH_CRC32)
+		wsstr << fileInfo.Filename << " " << hashStrBuf;
+	else
+		wsstr << hashStrBuf << " *" << fileInfo.Filename;
+
+	return wsstr.str();
+}
+
 //////////////////////////////////////////////////////////////////////////
 
 int GenerateHash( const wchar_t* filePath, rhash_ids hashAlgo, char* result, HashingProgressFunc progressFunc, HANDLE progressContext )

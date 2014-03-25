@@ -193,3 +193,35 @@ int PrepareFilesList(const wchar_t* basePath, const wchar_t* basePrefix, StringL
 
 	return EnumFiles(strBasePath, strStartPrefix, destList, totalSize, recursive);
 }
+
+bool CopyTextToClipboard( std::wstring &data )
+{
+	if (!OpenClipboard(GetConsoleWindow())) return false;
+	EmptyClipboard();
+
+	size_t dataLen = (data.size() + 1) * sizeof(wchar_t);
+	bool ret = false;
+	
+	HANDLE hMem = GlobalAlloc(GMEM_MOVEABLE, dataLen);
+	if (hMem != NULL)
+	{
+		wchar_t* pMemPtr = (wchar_t*) GlobalLock(hMem);
+		wcscpy_s(pMemPtr, data.size() + 1, data.c_str());
+		GlobalUnlock(hMem);
+
+		ret = SetClipboardData(CF_UNICODETEXT, hMem) != NULL;
+	}
+
+	CloseClipboard();
+	return ret;
+}
+
+bool CopyTextToClipboard( std::vector<std::wstring> &data )
+{
+	std::wstringstream sstr;
+	for (size_t i = 0; i < data.size(); i++)
+	{
+		sstr << data[i] << '\r' << '\n';
+	}
+	return CopyTextToClipboard(sstr.str());
+}

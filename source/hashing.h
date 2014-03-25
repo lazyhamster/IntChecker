@@ -42,10 +42,11 @@ public:
 
 	std::string GetFileHash(const wchar_t* FileName) const;
 	void SetFileHash(const wchar_t* FileName, std::string HashVal);
-
+	
 	size_t GetCount() const { return m_HashList.size(); }
 	FileHashInfo GetFileInfo(int index) { return m_HashList.at(index); }
 	rhash_ids GetHashAlgo() const { return m_HashId; }
+	std::wstring FileInfoToString(int index);
 };
 
 // Params: context, processed bytes

@@ -17,6 +17,8 @@
 "OK"
 "Cancel"
 "Run"
+"Close"
+"To Clipboard"
 
 "Error"
 "Confirm"
@@ -31,6 +33,7 @@
 "Generating hash"
 "Abort calculations?"
 "Validation complete"
+"Calculation complete"
 
 "Generate"
 "Algorithm"

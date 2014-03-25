@@ -472,8 +472,40 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 
 static void DisplayHashListOnScreen(HashList &list)
 {
-	//TODO: implement result on screen
-	DisplayMessage(L"Hashing complete", L"Stub", NULL, false, true);
+	size_t numListItems = list.GetCount();
+	FarListItem* hashListItems = new FarListItem[numListItems];
+	FarList hashDump = {numListItems, hashListItems};
+
+	FarDialogItem DialogItems []={
+		/*00*/ {DI_DOUBLEBOX, 3, 1,50,13, 0, 0, 0,0, GetLocMsg(MSG_DLG_CALC_COMPLETE), 0},
+		/*01*/ {DI_LISTBOX,   5, 2,48,10, 0, (DWORD_PTR)&hashDump, DIF_LISTNOCLOSE | DIF_LISTNOBOX, 0, NULL, 0},
+		/*02*/ {DI_TEXT,	  3,11, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
+		/*03*/ {DI_BUTTON,	  0,12, 0, 0, 1, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_CLOSE), 0},
+		/*04*/ {DI_BUTTON,    0,12, 0, 0, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CLIPBOARD), 0},
+	};
+
+	vector<wstring> listStrDump;
+	for (size_t i = 0; i < list.GetCount(); i++)
+	{
+		listStrDump.push_back(list.FileInfoToString(i));
+
+		wstring &line = listStrDump[i];
+		memset(&hashListItems[i], 0, sizeof(FarListItem));
+		hashListItems[i].Text = line.c_str();
+	}
+
+	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 54, 15, NULL,
+		DialogItems, sizeof(DialogItems) / sizeof(DialogItems[0]), 0, 0, FarSInfo.DefDlgProc, 0);
+
+	if (hDlg != INVALID_HANDLE_VALUE)
+	{
+		int ExitCode = FarSInfo.DialogRun(hDlg);
+		if (ExitCode == 4) // clipboard
+		{
+			CopyTextToClipboard(listStrDump);
+		}
+		FarSInfo.DialogFree(hDlg);
+	}
 }
 
 static void RunGenerateHashes()
