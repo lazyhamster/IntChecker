@@ -277,7 +277,7 @@ static void SelectFilesOnPanel(HANDLE hPanel, vector<wstring> &fileNames, bool i
 	FarSInfo.Control(hPanel, FCTL_REDRAWPANEL, 0, NULL);
 }
 
-static void DisplayValidationResults(vector<wstring> &vMismatchList, int numMissing, int numSkipped)
+static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, int numMissing, int numSkipped)
 {
 	static wchar_t wszMismatchedMessage[50];
 	static wchar_t wszMissingMessage[50];
@@ -442,33 +442,33 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 	if (optAutoExtension) defaultName += selectedHashInfo->DefaultExt;
 	
 	FarDialogItem DialogItems []={
-		/*0*/{DI_DOUBLEBOX,		3, 1, 41,18, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TITLE)},
+		/*0*/{DI_DOUBLEBOX,		3, 1, 41,19, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TITLE)},
 
-		/*1*/{DI_TEXT,			5, 2,  0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_ALGO), 0},
-		/*2*/{DI_RADIOBUTTON,	6, 3,  0, 0, 0, (selectedAlgo==RHASH_CRC32), DIF_GROUP, 0, L"&1. CRC32"},
-		/*3*/{DI_RADIOBUTTON,	6, 4,  0, 0, 0, (selectedAlgo==RHASH_MD5), 0, 0, L"&2. MD5"},
-		/*4*/{DI_RADIOBUTTON,	6, 5,  0, 0, 0, (selectedAlgo==RHASH_SHA1), 0, 0, L"&3. SHA1"},
-		/*5*/{DI_RADIOBUTTON,	6, 6,  0, 0, 0, (selectedAlgo==RHASH_SHA256), 0, 0, L"&4. SHA256"},
-		/*6*/{DI_RADIOBUTTON,	6, 7,  0, 0, 0, (selectedAlgo==RHASH_SHA512), 0, 0, L"&5. SHA512"},
-		/*7*/{DI_RADIOBUTTON,	6, 8,  0, 0, 0, (selectedAlgo==RHASH_WHIRLPOOL), 0, 0, L"&6. Whirlpool"},
+		/*1*/{DI_TEXT,			5, 2, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_ALGO), 0},
+		/*2*/{DI_RADIOBUTTON,	6, 3, 0, 0, 0, (selectedAlgo==RHASH_CRC32), DIF_GROUP, 0, L"&1. CRC32"},
+		/*3*/{DI_RADIOBUTTON,	6, 4, 0, 0, 0, (selectedAlgo==RHASH_MD5), 0, 0, L"&2. MD5"},
+		/*4*/{DI_RADIOBUTTON,	6, 5, 0, 0, 0, (selectedAlgo==RHASH_SHA1), 0, 0, L"&3. SHA1"},
+		/*5*/{DI_RADIOBUTTON,	6, 6, 0, 0, 0, (selectedAlgo==RHASH_SHA256), 0, 0, L"&4. SHA256"},
+		/*6*/{DI_RADIOBUTTON,	6, 7, 0, 0, 0, (selectedAlgo==RHASH_SHA512), 0, 0, L"&5. SHA512"},
+		/*7*/{DI_RADIOBUTTON,	6, 8, 0, 0, 0, (selectedAlgo==RHASH_WHIRLPOOL), 0, 0, L"&6. Whirlpool"},
 		
-		/*8*/{DI_TEXT,			3, 9,  0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
-		/*9*/{DI_TEXT,			5,10,  0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TARGET), 0},
-		/*10*/{DI_RADIOBUTTON,	6,11,  0, 0, 0, 1, DIF_GROUP, 0, GetLocMsg(MSG_GEN_TO_FILE)},
-		/*11*/{DI_RADIOBUTTON,	6,12,  0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TO_SEPARATE)},
-		/*12*/{DI_RADIOBUTTON,	6,13,  0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TO_SCREEN)},
-		/*13*/{DI_EDIT,			15,11,38, 0, 1, 0, DIF_EDITEXPAND|DIF_EDITPATH,0, defaultName.c_str(), 0},
+		/*8*/{DI_TEXT,			3, 9, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
+		/*9*/{DI_TEXT,			5,10, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TARGET), 0},
+		/*10*/{DI_RADIOBUTTON,	6,11, 0, 0, 0, 1, DIF_GROUP, 0, GetLocMsg(MSG_GEN_TO_FILE)},
+		/*11*/{DI_RADIOBUTTON,	6,13, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TO_SEPARATE)},
+		/*12*/{DI_RADIOBUTTON,	6,14, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TO_SCREEN)},
+		/*13*/{DI_EDIT,		   10,12,38, 0, 1, 0, DIF_EDITEXPAND|DIF_EDITPATH,0, defaultName.c_str(), 0},
 		
-		/*14*/{DI_TEXT,			3,14,  0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
-		/*15*/{DI_CHECKBOX,		5,15,  0, 0, 0, recursive, 0, 0, GetLocMsg(MSG_GEN_RECURSE)},
+		/*14*/{DI_TEXT,			3,15, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
+		/*15*/{DI_CHECKBOX,		5,16, 0, 0, 0, recursive, 0, 0, GetLocMsg(MSG_GEN_RECURSE)},
 		
-		/*16*/{DI_TEXT,			3,16,  0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
-		/*17*/{DI_BUTTON,		0,17,  0,13, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_RUN), 0},
-		/*18*/{DI_BUTTON,		0,17,  0,13, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
+		/*16*/{DI_TEXT,			3,17, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
+		/*17*/{DI_BUTTON,		0,18, 0,13, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_RUN), 0},
+		/*18*/{DI_BUTTON,		0,18, 0,13, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
 	};
 	size_t numDialogItems = sizeof(DialogItems) / sizeof(DialogItems[0]);
 
-	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 45, 20, L"GenerateParams", DialogItems, numDialogItems, 0, 0, HashParamsDlgProc, 0);
+	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 45, 21, L"GenerateParams", DialogItems, numDialogItems, 0, 0, HashParamsDlgProc, 0);
 
 	bool retVal = false;
 	if (hDlg != INVALID_HANDLE_VALUE)
