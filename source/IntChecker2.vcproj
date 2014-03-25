@@ -484,6 +484,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\Text\IntCheckerRus.lng"
+				>
+			</File>
+			<File
 				RelativePath=".\Text\readme_ru.txt"
 				DeploymentContent="true"
 				>
