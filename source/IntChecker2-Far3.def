@@ -1,0 +1,9 @@
+LIBRARY	"IntChecker2"
+
+EXPORTS
+	GetGlobalInfoW
+	SetStartupInfoW
+	GetPluginInfoW
+	ConfigureW
+	OpenW
+	ExitFARW

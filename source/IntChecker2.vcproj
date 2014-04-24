@@ -379,6 +379,22 @@
 				>
 			</File>
 			<File
+				RelativePath=".\IntChecker2-Far3.cpp"
+				>
+				<FileConfiguration
+					Name="Debug|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\IntChecker2-Far3.def"
+				>
+			</File>
+			<File
 				RelativePath=".\IntChecker2.cpp"
 				>
 			</File>
