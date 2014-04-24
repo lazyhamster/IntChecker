@@ -121,7 +121,7 @@
 			Name="Debug-Far3|Win32"
 			>
 			<DebugSettings
-				Command=""
+				Command="C:\Tools\Far3DBG\Far.exe"
 				WorkingDirectory=""
 				CommandArguments=""
 				Attach="false"
@@ -134,7 +134,7 @@
 				SQLDebugging=""
 				Environment=""
 				EnvironmentMerge="true"
-				DebuggerFlavor=""
+				DebuggerFlavor="0"
 				MPIRunCommand=""
 				MPIRunArguments=""
 				MPIRunWorkingDirectory=""

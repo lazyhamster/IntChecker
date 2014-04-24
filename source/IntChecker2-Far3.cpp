@@ -1,7 +1,18 @@
 #include "stdafx.h"
 #include "far3/plugin.hpp"
-#include "Far3Guids.h"
 #include "version.h"
+
+#include <InitGuid.h>
+#include "Far3Guids.h"
+
+#include "FarCommon.h"
+
+// --------------------------------------- Service functions -------------------------------------------------
+
+static const wchar_t* GetLocMsg(int MsgID)
+{
+	return FarSInfo.GetMsg(&GUID_PLUGIN_MAIN, MsgID);
+}
 
 // --------------------------------------- Local functions ---------------------------------------------------
 
@@ -65,6 +76,7 @@ void WINAPI ExitFARW(const ExitInfo* Info)
 intptr_t WINAPI ConfigureW(const ConfigureInfo* Info)
 {
 	//TODO: implement
+	return FALSE;
 }
 
 HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)

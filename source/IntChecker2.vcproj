@@ -858,6 +858,14 @@
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
 			<File
+				RelativePath=".\Far3Guids.h"
+				>
+			</File>
+			<File
+				RelativePath=".\FarCommon.h"
+				>
+			</File>
+			<File
 				RelativePath=".\hashing.h"
 				>
 			</File>
@@ -879,6 +887,10 @@
 			</File>
 			<File
 				RelativePath=".\Utils.h"
+				>
+			</File>
+			<File
+				RelativePath=".\version.h"
 				>
 			</File>
 		</Filter>
