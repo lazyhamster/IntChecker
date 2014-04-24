@@ -732,8 +732,15 @@
 					/>
 				</FileConfiguration>
 				<FileConfiguration
-					Name="Debug-Far3|Win32"
+					Name="Release-Far2|Win32"
 					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug-Far3|Win32"
 					>
 					<Tool
 						Name="VCCLCompilerTool"
@@ -747,6 +754,22 @@
 			<File
 				RelativePath=".\IntChecker2.cpp"
 				>
+				<FileConfiguration
+					Name="Debug-Far3|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release-Far3|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\IntChecker2.def"

@@ -273,8 +273,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug-Far3|Win32"
-			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
-			IntermediateDirectory="$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)\obj\$(ConfigurationName)\$(ProjectName)"
+			IntermediateDirectory="$(SolutionDir)\obj\$(ConfigurationName)\$(ProjectName)"
 			ConfigurationType="4"
 			CharacterSet="1"
 			>
@@ -335,8 +335,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug-Far3|x64"
-			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)\obj\$(ConfigurationName)-$(PlatformName)\$(ProjectName)"
+			IntermediateDirectory="$(SolutionDir)\obj\$(ConfigurationName)-$(PlatformName)\$(ProjectName)"
 			ConfigurationType="4"
 			CharacterSet="1"
 			>
@@ -461,8 +461,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release-Far3|x64"
-			OutputDirectory="$(SolutionDir)$(PlatformName)\$(ConfigurationName)"
-			IntermediateDirectory="$(PlatformName)\$(ConfigurationName)"
+			OutputDirectory="$(SolutionDir)\obj\$(ConfigurationName)-$(PlatformName)\$(ProjectName)"
+			IntermediateDirectory="$(SolutionDir)\obj\$(ConfigurationName)-$(PlatformName)\$(ProjectName)"
 			ConfigurationType="4"
 			CharacterSet="1"
 			WholeProgramOptimization="1"
