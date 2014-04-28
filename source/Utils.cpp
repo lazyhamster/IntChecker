@@ -1,22 +1,5 @@
 #include "StdAfx.h"
-#include "far2/plugin.hpp"
 #include "Utils.h"
-
-extern PluginStartupInfo FarSInfo;
-
-///////////////////////////////////////////////////////////////////////////////
-//							 FarScreenSave									 //
-///////////////////////////////////////////////////////////////////////////////
-
-FarScreenSave::FarScreenSave()
-{
-	hScreen = FarSInfo.SaveScreen(0, 0, -1, -1);
-}
-
-FarScreenSave::~FarScreenSave()
-{
-	FarSInfo.RestoreScreen(hScreen);
-}
 
 ///////////////////////////////////////////////////////////////////////////////
 //							 Various routines								 //

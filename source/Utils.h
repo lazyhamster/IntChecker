@@ -1,16 +1,6 @@
 #ifndef Utils_h__
 #define Utils_h__
 
-class FarScreenSave
-{
-private:
-	HANDLE hScreen;
-
-public:
-	FarScreenSave();
-	~FarScreenSave();
-};
-
 bool CheckEsc();
 
 bool IsAbsPath(const wchar_t* path);

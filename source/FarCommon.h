@@ -48,4 +48,21 @@ struct ProgressContext
 	int TotalProgress;
 };
 
+class FarScreenSave
+{
+private:
+	HANDLE hScreen;
+
+public:
+	FarScreenSave()
+	{
+		hScreen = FarSInfo.SaveScreen(0, 0, -1, -1);
+	}
+
+	~FarScreenSave()
+	{
+		FarSInfo.RestoreScreen(hScreen);
+	}
+};
+
 #endif // FarCommon_h__
