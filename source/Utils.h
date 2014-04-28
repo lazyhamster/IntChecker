@@ -11,7 +11,6 @@ public:
 	~FarScreenSave();
 };
 
-bool ArePanelsComparable();
 bool CheckEsc();
 
 bool IsAbsPath(const wchar_t* path);

@@ -636,10 +636,45 @@ static void RunGenerateHashes()
 	FarSInfo.Control(PANEL_ACTIVE, FCTL_REDRAWPANEL, 0, NULL);
 }
 
+static bool ArePanelsComparable()
+{
+	PanelInfo PnlAct, PnlPas;
+	if (!FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, (LONG_PTR) &PnlAct)
+		|| !FarSInfo.Control(PANEL_PASSIVE, FCTL_GETPANELINFO, 0, (LONG_PTR) &PnlPas))
+		return false;
+
+	if (PnlAct.PanelType != PTYPE_FILEPANEL || PnlAct.PanelType != PnlPas.PanelType || PnlAct.Plugin || PnlPas.Plugin)
+		return false;
+
+	wchar_t *wszActivePanelDir, *wszPassivePanelDir;
+	int nBufSize;
+
+	nBufSize = FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELDIR, 0, NULL);
+	wszActivePanelDir = (wchar_t*) malloc((nBufSize+1) * sizeof(wchar_t));
+	FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELDIR, 0, (LONG_PTR) wszActivePanelDir);
+
+	nBufSize = FarSInfo.Control(PANEL_PASSIVE, FCTL_GETPANELDIR, 0, NULL);
+	wszPassivePanelDir = (wchar_t*) malloc((nBufSize+1) * sizeof(wchar_t));
+	FarSInfo.Control(PANEL_PASSIVE, FCTL_GETPANELDIR, 0, (LONG_PTR) wszPassivePanelDir);
+
+	bool fSameDir = wcscmp(wszActivePanelDir, wszPassivePanelDir) != 0;
+
+	free(wszActivePanelDir);
+	free(wszPassivePanelDir);
+
+	return !fSameDir;
+}
+
 static void RunComparePanels()
 {
 	//TODO: implement
 	DisplayMessage(L"Not implemented", L"Panels Compare", NULL, false, true);
+
+	// Prepare files list
+	{
+		FarScreenSave screen;
+		DisplayMessage(GetLocMsg(MSG_DLG_PROCESSING), GetLocMsg(MSG_DLG_PREPARE_LIST), NULL, false, false);
+	}
 }
 
 // ------------------------------------- Exported functions --------------------------------------------------
