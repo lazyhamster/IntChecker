@@ -94,16 +94,21 @@ static bool DlgHlp_GetEditBoxText(HANDLE hDlg, int ctrlIndex, wchar_t* buf, size
 
 static bool GetPanelDir(HANDLE hPanel, wstring& dirStr)
 {
-	wchar_t szNameBuffer[PATH_BUFFER_SIZE] = {0};
+	wchar_t *wszPanelDir;
+	int nBufSize;
+	bool ret = false;
 
-	if (FarSInfo.Control(hPanel, FCTL_GETPANELDIR, ARRAY_SIZE(szNameBuffer), (LONG_PTR) szNameBuffer))
+	nBufSize = FarSInfo.Control(hPanel, FCTL_GETPANELDIR, 0, NULL);
+	wszPanelDir = (wchar_t*) malloc((nBufSize+1) * sizeof(wchar_t));
+	if (FarSInfo.Control(hPanel, FCTL_GETPANELDIR, nBufSize + 1, (LONG_PTR) wszPanelDir))
 	{
-		IncludeTrailingPathDelim(szNameBuffer, ARRAY_SIZE(szNameBuffer));
-		dirStr = szNameBuffer;
-		return true;
+		dirStr.assign(wszPanelDir);
+		IncludeTrailingPathDelim(dirStr);
+		ret = true;
 	}
 
-	return false;
+	free(wszPanelDir);
+	return ret;
 }
 
 static bool GetSelectedPanelFilePath(wstring& nameStr)
@@ -130,6 +135,33 @@ static bool GetSelectedPanelFilePath(wstring& nameStr)
 		}
 
 		return (nameStr.size() > 0);
+}
+
+static void GetSelectedPanelFiles(PanelInfo &pi, wstring &panelDir, StringList &vDest, int64_t &totalSize, bool recursive)
+{
+	for (int i = 0; i < pi.SelectedItemsNumber; i++)
+	{
+		size_t requiredBytes = FarSInfo.Control(PANEL_ACTIVE, FCTL_GETSELECTEDPANELITEM, i, NULL);
+		PluginPanelItem *PPI = (PluginPanelItem*)malloc(requiredBytes);
+		if (PPI)
+		{
+			FarSInfo.Control(PANEL_ACTIVE, FCTL_GETSELECTEDPANELITEM, i, (LONG_PTR)PPI);
+			if (wcscmp(PPI->FindData.lpwszFileName, L"..") && wcscmp(PPI->FindData.lpwszFileName, L"."))
+			{
+				if ((PPI->FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+				{
+					vDest.push_back(PPI->FindData.lpwszFileName);
+					totalSize += PPI->FindData.nFileSize;
+				}
+				else
+				{
+					wstring strSelectedDir = panelDir + PPI->FindData.lpwszFileName;
+					PrepareFilesList(strSelectedDir.c_str(), PPI->FindData.lpwszFileName, vDest, totalSize, recursive);
+				}
+			}
+			free(PPI);
+		}
+	}
 }
 
 // --------------------------------------- Local functions ---------------------------------------------------
@@ -636,45 +668,112 @@ static void RunGenerateHashes()
 	FarSInfo.Control(PANEL_ACTIVE, FCTL_REDRAWPANEL, 0, NULL);
 }
 
-static bool ArePanelsComparable()
+static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive)
 {
-	PanelInfo PnlAct, PnlPas;
-	if (!FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, (LONG_PTR) &PnlAct)
-		|| !FarSInfo.Control(PANEL_PASSIVE, FCTL_GETPANELINFO, 0, (LONG_PTR) &PnlPas))
-		return false;
+	FarDialogItem DialogItems []={
+		/*0*/{DI_DOUBLEBOX,		3, 1, 41,13, 0, 0, 0, 0, L"Compare"},
 
-	if (PnlAct.PanelType != PTYPE_FILEPANEL || PnlAct.PanelType != PnlPas.PanelType || PnlAct.Plugin || PnlPas.Plugin)
-		return false;
+		/*1*/{DI_TEXT,			5, 2, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_ALGO), 0},
+		/*2*/{DI_RADIOBUTTON,	6, 3, 0, 0, 0, (selectedAlgo==RHASH_CRC32), DIF_GROUP, 0, L"&1. CRC32"},
+		/*3*/{DI_RADIOBUTTON,	6, 4, 0, 0, 0, (selectedAlgo==RHASH_MD5), 0, 0, L"&2. MD5"},
+		/*4*/{DI_RADIOBUTTON,	6, 5, 0, 0, 0, (selectedAlgo==RHASH_SHA1), 0, 0, L"&3. SHA1"},
+		/*5*/{DI_RADIOBUTTON,	6, 6, 0, 0, 0, (selectedAlgo==RHASH_SHA256), 0, 0, L"&4. SHA256"},
+		/*6*/{DI_RADIOBUTTON,	6, 7, 0, 0, 0, (selectedAlgo==RHASH_SHA512), 0, 0, L"&5. SHA512"},
+		/*7*/{DI_RADIOBUTTON,	6, 8, 0, 0, 0, (selectedAlgo==RHASH_WHIRLPOOL), 0, 0, L"&6. Whirlpool"},
 
-	wchar_t *wszActivePanelDir, *wszPassivePanelDir;
-	int nBufSize;
+		/*8*/{DI_TEXT,			3, 9, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
+		/*9*/{DI_CHECKBOX,		5,10, 0, 0, 0, recursive, 0, 0, GetLocMsg(MSG_GEN_RECURSE)},
 
-	nBufSize = FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELDIR, 0, NULL);
-	wszActivePanelDir = (wchar_t*) malloc((nBufSize+1) * sizeof(wchar_t));
-	FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELDIR, 0, (LONG_PTR) wszActivePanelDir);
+		/*10*/{DI_TEXT,			3,11, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
+		/*11*/{DI_BUTTON,		0,12, 0,13, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_RUN), 0},
+		/*12*/{DI_BUTTON,		0,12, 0,13, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
+	};
+	size_t numDialogItems = sizeof(DialogItems) / sizeof(DialogItems[0]);
 
-	nBufSize = FarSInfo.Control(PANEL_PASSIVE, FCTL_GETPANELDIR, 0, NULL);
-	wszPassivePanelDir = (wchar_t*) malloc((nBufSize+1) * sizeof(wchar_t));
-	FarSInfo.Control(PANEL_PASSIVE, FCTL_GETPANELDIR, 0, (LONG_PTR) wszPassivePanelDir);
+	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 45, 15, L"CompareParams", DialogItems, numDialogItems, 0, 0, FarSInfo.DefDlgProc, 0);
 
-	bool fSameDir = wcscmp(wszActivePanelDir, wszPassivePanelDir) != 0;
+	bool retVal = false;
+	if (hDlg != INVALID_HANDLE_VALUE)
+	{
+		int ExitCode = FarSInfo.DialogRun(hDlg);
+		if (ExitCode == numDialogItems - 2) // OK was pressed
+		{
+			recursive = DlgHlp_GetSelectionState(hDlg, 15) != 0;
 
-	free(wszActivePanelDir);
-	free(wszPassivePanelDir);
+			for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
+			{
+				// Selection radios start from index = 2
+				if (DlgHlp_GetSelectionState(hDlg, 2 + i))
+					selectedAlgo = SupportedHashes[i].AlgoId;
+			}
 
-	return !fSameDir;
+			retVal = true;
+		}
+		FarSInfo.DialogFree(hDlg);
+	}
+	return retVal;
 }
 
 static void RunComparePanels()
 {
-	//TODO: implement
-	DisplayMessage(L"Not implemented", L"Panels Compare", NULL, false, true);
+	PanelInfo piActv, piPasv;
+	if (!FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, (LONG_PTR) &piActv)
+		|| !FarSInfo.Control(PANEL_PASSIVE, FCTL_GETPANELINFO, 0, (LONG_PTR) &piPasv))
+		return;
+	
+	if (piActv.PanelType != PTYPE_FILEPANEL || piPasv.PanelType != PTYPE_FILEPANEL || piActv.Plugin || piPasv.Plugin)
+	{
+		DisplayMessage(L"Error", L"Only file panels are supported", NULL, true, true);
+		return;
+	}
 
+	// Nothing selected on the panel
+	if (piActv.SelectedItemsNumber == 0) return;
+
+	wstring strActivePanelDir, strPassivePanelDir;
+	StringList vSelectedFiles;
+	int64_t totalFilesSize;
+
+	rhash_ids cmpAlgo = (rhash_ids) optDefaultAlgo;
+	bool recursive = true;
+
+	GetPanelDir(PANEL_ACTIVE, strActivePanelDir);
+	GetPanelDir(PANEL_PASSIVE, strPassivePanelDir);
+
+	if (strActivePanelDir == strPassivePanelDir)
+	{
+		DisplayMessage(L"Error", L"Can not compare panel to itself", NULL, true, true);
+		return;
+	}
+
+	if (!AskForCompareParams(cmpAlgo, recursive))
+		return;
+		
 	// Prepare files list
 	{
 		FarScreenSave screen;
 		DisplayMessage(GetLocMsg(MSG_DLG_PROCESSING), GetLocMsg(MSG_DLG_PREPARE_LIST), NULL, false, false);
+
+		GetSelectedPanelFiles(piActv, strActivePanelDir, vSelectedFiles, totalFilesSize, true);
 	}
+
+	// No suitable items selected for comparison
+	if (vSelectedFiles.size() == 0) return;
+
+	for (StringList::const_iterator cit = vSelectedFiles.begin(); cit != vSelectedFiles.end(); cit++)
+	{
+		wstring strNextFile = *cit;
+
+		wstring strActvPath = strActivePanelDir + strNextFile;
+		wstring strPasvPath = strPassivePanelDir + strNextFile;
+
+		// Basic check first: does opposite file exists and it is the same size
+		
+		// Next is hash calculation for both files
+	}
+
+	//TODO: implement
+	DisplayMessage(L"Not implemented", L"Panels Compare", NULL, false, true);
 }
 
 // ------------------------------------- Exported functions --------------------------------------------------
