@@ -491,12 +491,15 @@ static void DisplayHashListOnScreen(HashList &list)
 	FarListItem* hashListItems = new FarListItem[numListItems];
 	FarList hashDump = {numListItems, hashListItems};
 
+	int nDlgWidth = 68;
+	int nDlgHeight = 21;
+
 	FarDialogItem DialogItems []={
-		/*00*/ {DI_DOUBLEBOX, 3, 1,50,13, 0, 0, 0,0, GetLocMsg(MSG_DLG_CALC_COMPLETE), 0},
-		/*01*/ {DI_LISTBOX,   5, 2,48,10, 0, (DWORD_PTR)&hashDump, DIF_LISTNOCLOSE | DIF_LISTNOBOX, 0, NULL, 0},
-		/*02*/ {DI_TEXT,	  3,11, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
-		/*03*/ {DI_BUTTON,	  0,12, 0, 0, 1, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_CLOSE), 0},
-		/*04*/ {DI_BUTTON,    0,12, 0, 0, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CLIPBOARD), 0},
+		/*00*/ {DI_DOUBLEBOX, 3, 1,nDlgWidth-4,nDlgHeight-2, 0, 0, 0,0, GetLocMsg(MSG_DLG_CALC_COMPLETE), 0},
+		/*01*/ {DI_LISTBOX,   5, 2,nDlgWidth-6,nDlgHeight-5, 0, (DWORD_PTR)&hashDump, DIF_LISTNOCLOSE | DIF_LISTNOBOX, 0, NULL, 0},
+		/*02*/ {DI_TEXT,	  3,nDlgHeight-4, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
+		/*03*/ {DI_BUTTON,	  0,nDlgHeight-3, 0, 0, 1, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_CLOSE), 0},
+		/*04*/ {DI_BUTTON,    0,nDlgHeight-3, 0, 0, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CLIPBOARD), 0},
 	};
 
 	vector<wstring> listStrDump;
@@ -509,7 +512,7 @@ static void DisplayHashListOnScreen(HashList &list)
 		hashListItems[i].Text = line.c_str();
 	}
 
-	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 54, 15, NULL,
+	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, nDlgWidth, nDlgHeight, NULL,
 		DialogItems, sizeof(DialogItems) / sizeof(DialogItems[0]), 0, 0, FarSInfo.DefDlgProc, 0);
 
 	if (hDlg != INVALID_HANDLE_VALUE)
@@ -572,27 +575,7 @@ static void RunGenerateHashes()
 		DisplayMessage(GetLocMsg(MSG_DLG_PROCESSING), GetLocMsg(MSG_DLG_PREPARE_LIST), NULL, false, false);
 
 		GetPanelDir(PANEL_ACTIVE, strPanelDir);
-
-		for (int i = 0; i < pi.SelectedItemsNumber; i++)
-		{
-			size_t requiredBytes = FarSInfo.Control(PANEL_ACTIVE, FCTL_GETSELECTEDPANELITEM, i, NULL);
-			PluginPanelItem *PPI = (PluginPanelItem*)malloc(requiredBytes);
-			if (PPI)
-			{
-				FarSInfo.Control(PANEL_ACTIVE, FCTL_GETSELECTEDPANELITEM, i, (LONG_PTR)PPI);
-				if ((PPI->FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
-				{
-					filesToProcess.push_back(PPI->FindData.lpwszFileName);
-					totalFilesSize += PPI->FindData.nFileSize;
-				}
-				else
-				{
-					wstring strSelectedDir = strPanelDir + PPI->FindData.lpwszFileName;
-					PrepareFilesList(strSelectedDir.c_str(), PPI->FindData.lpwszFileName, filesToProcess, totalFilesSize, recursive);
-				}
-				free(PPI);
-			}
-		}
+		GetSelectedPanelFiles(pi, strPanelDir, filesToProcess, totalFilesSize, recursive);
 	}
 
 	// Perform hashing
