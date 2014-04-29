@@ -281,8 +281,8 @@ std::wstring HashList::FileInfoToString( int index )
 
 	FileHashInfo& fileInfo = m_HashList[index];
 
-	wchar_t hashStrBuf[100] = {0};
-	MultiByteToWideChar(m_Codepage, 0, fileInfo.HashStr.c_str(), -1, hashStrBuf, ARRAY_SIZE(hashStrBuf));
+	wchar_t hashStrBuf[256] = {0};
+	MultiByteToWideChar(m_Codepage, 0, fileInfo.HashStr.c_str(), fileInfo.HashStr.size(), hashStrBuf, ARRAY_SIZE(hashStrBuf));
 	
 	wstringstream wsstr;
 	if (m_HashId == RHASH_CRC32)
