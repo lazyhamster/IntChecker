@@ -244,6 +244,8 @@ static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 
 static void SelectFilesOnPanel(HANDLE hPanel, vector<wstring> &fileNames, bool isSelected)
 {
+	if (fileNames.size() == 0) return;
+	
 	PanelInfo pi = {0};
 	FarSInfo.Control(hPanel, FCTL_GETPANELINFO, 0, (LONG_PTR)&pi);
 
@@ -265,30 +267,77 @@ static void SelectFilesOnPanel(HANDLE hPanel, vector<wstring> &fileNames, bool i
 	FarSInfo.Control(hPanel, FCTL_REDRAWPANEL, 0, NULL);
 }
 
-static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, int numMissing, int numSkipped)
+static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, std::vector<std::wstring> &vMissingList, int numSkipped)
 {
-	static wchar_t wszMismatchedMessage[50];
-	static wchar_t wszMissingMessage[50];
-	static wchar_t wszSkippedMessage[50];
+	if (vMismatchList.size() == 0 && vMissingList.size() == 0)
+	{
+		// If everything is fine then just display simple message
+		static wchar_t wszGoodMessage[256];
+		if (numSkipped == 0)
+			wcscpy_s(wszGoodMessage, ARRAY_SIZE(wszGoodMessage), L"No mismatches found");
+		else
+			swprintf_s(wszGoodMessage, ARRAY_SIZE(wszGoodMessage), L"No mismatches found (%d file(s) were skipped)", numSkipped);
 
-	swprintf_s(wszMismatchedMessage, ARRAY_SIZE(wszMismatchedMessage), L"%d mismatch(es) found", vMismatchList.size());
-	swprintf_s(wszMissingMessage, ARRAY_SIZE(wszMissingMessage), L"%d file(s) missing", numMissing);
-	swprintf_s(wszSkippedMessage, ARRAY_SIZE(wszSkippedMessage), L"%d files(s) skipped", numSkipped);
-	
-	int nValidationLinesNum = 2;
-	static const wchar_t* ValidationResults[3];
-	ValidationResults[0] = GetLocMsg(MSG_DLG_VALIDATION_COMPLETE);
-	ValidationResults[1] = wszMismatchedMessage;
-	ValidationResults[2] = (numMissing > 0) ? wszMissingMessage : wszSkippedMessage;
-	ValidationResults[3] = (numSkipped > 0) ? wszSkippedMessage : L"";
+		DisplayMessage(GetLocMsg(MSG_DLG_VALIDATION_COMPLETE), wszGoodMessage, NULL, false, true);
+	}
+	else
+	{
+		// Otherwise display proper list of invalid/missing files
+		
+		size_t nNumListItems = (vMismatchList.size() > 0 ? vMismatchList.size() + 1 : 0)
+			+ (vMissingList.size() > 0 ? vMissingList.size() + 1 : 0);
+		FarListItem* mmListItems = (FarListItem*) malloc(nNumListItems * sizeof(FarListItem));
+		FarList mmList = {nNumListItems, mmListItems};
+		memset(mmListItems, 0, nNumListItems * sizeof(FarListItem));
 
-	if (numMissing > 0) nValidationLinesNum++;
-	if (numSkipped > 0) nValidationLinesNum++;
+		vector<wstring> vSameFolderFiles;
+		for (size_t i = 0; i < vMismatchList.size(); i++)
+		{
+			wstring &nextFile = vMismatchList[i];
+			if (nextFile.find_first_of(L"\\/") == wstring::npos)
+				vSameFolderFiles.push_back(nextFile);
+		}
 
-	FarSInfo.Message(FarSInfo.ModuleNumber, FMSG_MB_OK, NULL, ValidationResults, nValidationLinesNum, 0);
+		int nDlgWidth = 68;
+		int nDlgHeight = 21;
 
-	// Let's select mismatched files in the current directory
-	SelectFilesOnPanel(PANEL_ACTIVE, vMismatchList, true);
+		FarDialogItem DialogItems []={
+			/*00*/ {DI_DOUBLEBOX, 3, 1,nDlgWidth-4,nDlgHeight-2, 0, 0, 0,0, GetLocMsg(MSG_DLG_VALIDATION_COMPLETE), 0},
+			/*01*/ {DI_LISTBOX,   5, 2,nDlgWidth-6,nDlgHeight-5, 0, (DWORD_PTR) &mmList, DIF_LISTNOCLOSE | DIF_LISTNOBOX, 0, NULL, 0},
+			/*02*/ {DI_TEXT,	  3,nDlgHeight-4, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
+			/*03*/ {DI_BUTTON,	  0,nDlgHeight-3, 0, 0, 1, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_CLOSE), 0},
+		};
+
+		HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, nDlgWidth, nDlgHeight, NULL,
+			DialogItems, sizeof(DialogItems) / sizeof(DialogItems[0]), 0, 0, FarSInfo.DefDlgProc, 0);
+
+		size_t nListIndex = 0;
+		if (vMismatchList.size() > 0)
+		{
+			mmListItems[nListIndex++].Text = L"Mismatched files";
+			for (size_t i = 0; i < vMismatchList.size(); i++)
+			{
+				wstring &nextFile = vMismatchList[i];
+				nextFile.insert(0, L"\t\t");
+				mmListItems[nListIndex++].Text = nextFile.c_str();
+			}
+		}
+		if (vMissingList.size() > 0)
+		{
+			mmListItems[nListIndex++].Text = L"Missing files";
+			for (size_t i = 0; i < vMissingList.size(); i++)
+			{
+				wstring &nextFile = vMissingList[i];
+				nextFile.insert(0, L"\t\t");
+				mmListItems[nListIndex++].Text = nextFile.c_str();
+			}
+		}
+		
+		FarSInfo.DialogRun(hDlg);
+		FarSInfo.DialogFree(hDlg);
+
+		SelectFilesOnPanel(PANEL_ACTIVE, vSameFolderFiles, true);
+	}
 }
 
 // Returns true if file is recognized as hash list
@@ -303,8 +352,8 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 	}
 
 	wstring workDir;
-	int nFilesMissing = 0, nFilesSkipped = 0;
-	vector<wstring> vMismatches;
+	int nFilesSkipped = 0;
+	vector<wstring> vMismatches, vMissing;
 	vector<int> existingFiles;
 	int64_t totalFilesSize = 0;
 	char hashValueBuf[150];
@@ -332,7 +381,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 			}
 			else
 			{
-				nFilesMissing++;
+				vMissing.push_back(fileInfo.Filename);
 			}
 		}
 	}
@@ -376,7 +425,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 			}
 		}
 
-		DisplayValidationResults(vMismatches, nFilesMissing, nFilesSkipped);
+		DisplayValidationResults(vMismatches, vMissing, nFilesSkipped);
 	}
 	else
 	{
@@ -524,6 +573,8 @@ static void DisplayHashListOnScreen(HashList &list)
 		}
 		FarSInfo.DialogFree(hDlg);
 	}
+
+	delete [] hashListItems;
 }
 
 static int DisplayHashGenerateError(wstring& fileName)
