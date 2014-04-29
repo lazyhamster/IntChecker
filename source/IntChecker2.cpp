@@ -526,6 +526,19 @@ static void DisplayHashListOnScreen(HashList &list)
 	}
 }
 
+static int DisplayHashGenerateError(wstring& fileName)
+{
+	static const wchar_t* DlgLines[6];
+	DlgLines[0] = GetLocMsg(MSG_DLG_ERROR);
+	DlgLines[1] = L"Can not calculate hash for";
+	DlgLines[2] = fileName.c_str();
+	DlgLines[3] = L"Skip";
+	DlgLines[4] = L"Retry";
+	DlgLines[5] = GetLocMsg(MSG_BTN_CANCEL);
+
+	return FarSInfo.Message(FarSInfo.ModuleNumber, FMSG_WARNING, NULL, DlgLines, ARRAY_SIZE(DlgLines), 3);
+}
+
 static void RunGenerateHashes()
 {
 	// Check panel for compatibility
@@ -591,33 +604,54 @@ static void RunGenerateHashes()
 	{
 		wstring strNextFile = *cit;
 		wstring strFullPath = strPanelDir + strNextFile;
+		bool fSaveHash = true;
 
 		progressCtx.FileName = strNextFile;
 		progressCtx.CurrentFileIndex++;
-		progressCtx.CurrentFileProcessedBytes = 0;
 		progressCtx.CurrentFileSize = GetFileSize_i64(strFullPath.c_str());
-		progressCtx.FileProgress = 0;
+
+		int nOldTotalProgress = progressCtx.TotalProgress;
+		int64_t nOldTotalBytes = progressCtx.TotalProcessedBytes;
 
 		{
 			FarScreenSave screen;
-			int genRetVal = GenerateHash(strFullPath.c_str(), genAlgo, hashValueBuf, FileHashingProgress, &progressCtx);
+			
+			while(true)
+			{
+				progressCtx.FileProgress = 0;
+				progressCtx.CurrentFileProcessedBytes = 0;
+				progressCtx.TotalProgress = nOldTotalProgress;
+				progressCtx.TotalProcessedBytes = nOldTotalBytes;
+				
+				fSaveHash = true;
 
-			if (genRetVal == GENERATE_ABORTED)
-			{
-				// Exit silently
-				continueSave = false;
-				break;
-			}
-			else if (genRetVal == GENERATE_ERROR)
-			{
-				//TODO: offer retry
-				DisplayMessage(GetLocMsg(MSG_DLG_ERROR), L"Error during hash generation", strNextFile.c_str(), true, true);
-				continueSave = false;
+				int genRetVal = GenerateHash(strFullPath.c_str(), genAlgo, hashValueBuf, FileHashingProgress, &progressCtx);
+
+				if (genRetVal == GENERATE_ABORTED)
+				{
+					// Exit silently
+					continueSave = false;
+				}
+				else if (genRetVal == GENERATE_ERROR)
+				{
+					int resp = DisplayHashGenerateError(strNextFile);
+					if (resp == EDR_RETRY)
+						continue;
+					else if (resp == EDR_SKIP)
+						fSaveHash = false;
+					else
+						continueSave = false;
+				}
+
+				// Always break if not said otherwise
 				break;
 			}
 		}
 
-		hashes.SetFileHash(strNextFile.c_str(), hashValueBuf);
+		if (!continueSave) break;
+
+		if (fSaveHash)
+			hashes.SetFileHash(strNextFile.c_str(), hashValueBuf);
 	}
 
 	FarSInfo.AdvControl(FarSInfo.ModuleNumber, ACTL_SETPROGRESSSTATE, (void*) PS_NOPROGRESS);

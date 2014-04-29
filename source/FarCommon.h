@@ -25,6 +25,10 @@ enum HashOutputTargets
 	OT_DISPLAY
 };
 
+#define EDR_SKIP 0
+#define EDR_RETRY 1
+#define EDR_ABORT 2
+
 struct ProgressContext
 {
 	ProgressContext()
