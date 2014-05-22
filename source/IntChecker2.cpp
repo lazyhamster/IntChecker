@@ -577,7 +577,7 @@ static void DisplayHashListOnScreen(HashList &list)
 	delete [] hashListItems;
 }
 
-static int DisplayHashGenerateError(wstring& fileName)
+static int DisplayHashGenerateError(const wstring& fileName)
 {
 	static const wchar_t* DlgLines[6];
 	DlgLines[0] = GetLocMsg(MSG_DLG_ERROR);
@@ -782,6 +782,52 @@ static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive)
 	return retVal;
 }
 
+static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, ProgressContext& progressCtx, char* hashStrBuffer, bool &shouldAbort)
+{
+	FarScreenSave screen;
+
+	progressCtx.FileName = filePath;
+	progressCtx.CurrentFileIndex++;
+	progressCtx.CurrentFileSize = GetFileSize_i64(filePath.c_str());
+
+	int nOldTotalProgress = progressCtx.TotalProgress;
+	int64_t nOldTotalBytes = progressCtx.TotalProcessedBytes;
+
+	shouldAbort = false;
+
+	while (true)
+	{
+		progressCtx.FileProgress = 0;
+		progressCtx.CurrentFileProcessedBytes = 0;
+		progressCtx.TotalProgress = nOldTotalProgress;
+		progressCtx.TotalProcessedBytes = nOldTotalBytes;
+
+		// Next is hash calculation for both files
+		int genRetVal = GenerateHash(filePath.c_str(), hashAlgo, hashStrBuffer, FileHashingProgress, &progressCtx);
+
+		if (genRetVal == GENERATE_ABORTED)
+		{
+			// Exit silently
+			shouldAbort = true;
+			return false;
+		}
+		else if (genRetVal == GENERATE_ERROR)
+		{
+			int errResp = DisplayHashGenerateError(filePath);
+			if (errResp == EDR_RETRY)
+				continue;
+			else
+				shouldAbort = (errResp == EDR_ABORT);
+
+			return false;
+		}
+		
+		break;
+	}
+
+	return true;
+}
+
 static void RunComparePanels()
 {
 	PanelInfo piActv, piPasv;
@@ -834,7 +880,6 @@ static void RunComparePanels()
 	int nFilesSkipped = 0;
 	char szHashValueActive[128] = {0};
 	char szHashValuePassive[128] = {0};
-	int genRetVal;
 	bool fAborted = false;
 
 	ProgressContext progressCtx;
@@ -870,56 +915,18 @@ static void RunComparePanels()
 			continue;
 		}
 
+		if (RunGeneration(strActvPath, cmpAlgo, progressCtx, szHashValueActive, fAborted)
+			&& RunGeneration(strPasvPath, cmpAlgo, progressCtx, szHashValuePassive, fAborted))
 		{
-			FarScreenSave screen;
-
-			progressCtx.FileName = strActvPath;
-			progressCtx.CurrentFileIndex++;
-			progressCtx.CurrentFileSize = GetFileSize_i64(strActvPath.c_str());
-			progressCtx.FileProgress = 0;
-			progressCtx.CurrentFileProcessedBytes = 0;
-			
-			// Next is hash calculation for both files
-			genRetVal = GenerateHash(strActvPath.c_str(), cmpAlgo, szHashValueActive, FileHashingProgress, &progressCtx);
+			if (strcmp(szHashValueActive, szHashValuePassive) != 0)
+				vMismatches.push_back(strNextFile);
 		}
-
-		if (genRetVal == GENERATE_ABORTED)
+		else
 		{
-			// Exit silently
-			fAborted = true;
-			break;
-		}
-		else if (genRetVal == GENERATE_ERROR)
-		{
-			//TODO: offer retry
-		}
-
-		{
-			FarScreenSave screen;
-
-			progressCtx.FileName = strPasvPath;
-			progressCtx.CurrentFileIndex++;
-			progressCtx.CurrentFileSize = GetFileSize_i64(strPasvPath.c_str());
-			progressCtx.FileProgress = 0;
-			progressCtx.CurrentFileProcessedBytes = 0;
-
-			genRetVal = GenerateHash(strPasvPath.c_str(), cmpAlgo, szHashValuePassive, FileHashingProgress, &progressCtx);
-		}
-
-		if (genRetVal == GENERATE_ABORTED)
-		{
-			// Exit silently
-			fAborted = true;
-			break;
-		}
-		else if (genRetVal == GENERATE_ERROR)
-		{
-			//TODO: offer retry
-		}
-
-		if (strcmp(szHashValueActive, szHashValuePassive) != 0)
-		{
-			vMismatches.push_back(strNextFile);
+			if (fAborted)
+				break;
+			else
+				nFilesSkipped++;
 		}
 	}
 
