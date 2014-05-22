@@ -800,7 +800,7 @@ static void RunComparePanels()
 
 	wstring strActivePanelDir, strPassivePanelDir;
 	StringList vSelectedFiles;
-	int64_t totalFilesSize;
+	int64_t totalFilesSize = 0;
 
 	rhash_ids cmpAlgo = (rhash_ids) optDefaultAlgo;
 	bool recursive = true;
@@ -816,6 +816,8 @@ static void RunComparePanels()
 
 	if (!AskForCompareParams(cmpAlgo, recursive))
 		return;
+
+	FarSInfo.AdvControl(FarSInfo.ModuleNumber, ACTL_SETPROGRESSSTATE, (void*) PS_INDETERMINATE);
 		
 	// Prepare files list
 	{
@@ -828,6 +830,19 @@ static void RunComparePanels()
 	// No suitable items selected for comparison
 	if (vSelectedFiles.size() == 0) return;
 
+	vector<wstring> vMismatches, vMissing;
+	int nFilesSkipped = 0;
+	char szHashValueActive[128] = {0};
+	char szHashValuePassive[128] = {0};
+	int genRetVal;
+	bool fAborted = false;
+
+	ProgressContext progressCtx;
+	progressCtx.TotalFilesCount = vSelectedFiles.size() * 2;
+	progressCtx.TotalFilesSize = totalFilesSize * 2;
+	progressCtx.TotalProcessedBytes = 0;
+	progressCtx.CurrentFileIndex = -1;
+
 	for (StringList::const_iterator cit = vSelectedFiles.begin(); cit != vSelectedFiles.end(); cit++)
 	{
 		wstring strNextFile = *cit;
@@ -835,13 +850,86 @@ static void RunComparePanels()
 		wstring strActvPath = strActivePanelDir + strNextFile;
 		wstring strPasvPath = strPassivePanelDir + strNextFile;
 
-		// Basic check first: does opposite file exists and it is the same size
-		
-		// Next is hash calculation for both files
+		int64_t nActivePanelFileSize = GetFileSize_i64(strActvPath.c_str());
+
+		// Does opposite file exists at all?
+		if (!IsFile(strPasvPath.c_str()))
+		{
+			vMissing.push_back(strNextFile);
+			progressCtx.CurrentFileIndex += 2;
+			progressCtx.TotalProcessedBytes += nActivePanelFileSize * 2;
+			continue;
+		}
+
+		// For speed compare file sizes first
+		if (nActivePanelFileSize != GetFileSize_i64(strPasvPath.c_str()))
+		{
+			vMismatches.push_back(strNextFile);
+			progressCtx.CurrentFileIndex += 2;
+			progressCtx.TotalProcessedBytes += nActivePanelFileSize * 2;
+			continue;
+		}
+
+		{
+			FarScreenSave screen;
+
+			progressCtx.FileName = strActvPath;
+			progressCtx.CurrentFileIndex++;
+			progressCtx.CurrentFileSize = GetFileSize_i64(strActvPath.c_str());
+			progressCtx.FileProgress = 0;
+			progressCtx.CurrentFileProcessedBytes = 0;
+			
+			// Next is hash calculation for both files
+			genRetVal = GenerateHash(strActvPath.c_str(), cmpAlgo, szHashValueActive, FileHashingProgress, &progressCtx);
+		}
+
+		if (genRetVal == GENERATE_ABORTED)
+		{
+			// Exit silently
+			fAborted = true;
+			break;
+		}
+		else if (genRetVal == GENERATE_ERROR)
+		{
+			//TODO: offer retry
+		}
+
+		{
+			FarScreenSave screen;
+
+			progressCtx.FileName = strPasvPath;
+			progressCtx.CurrentFileIndex++;
+			progressCtx.CurrentFileSize = GetFileSize_i64(strPasvPath.c_str());
+			progressCtx.FileProgress = 0;
+			progressCtx.CurrentFileProcessedBytes = 0;
+
+			genRetVal = GenerateHash(strPasvPath.c_str(), cmpAlgo, szHashValuePassive, FileHashingProgress, &progressCtx);
+		}
+
+		if (genRetVal == GENERATE_ABORTED)
+		{
+			// Exit silently
+			fAborted = true;
+			break;
+		}
+		else if (genRetVal == GENERATE_ERROR)
+		{
+			//TODO: offer retry
+		}
+
+		if (strcmp(szHashValueActive, szHashValuePassive) != 0)
+		{
+			vMismatches.push_back(strNextFile);
+		}
 	}
 
-	//TODO: implement
-	DisplayMessage(L"Not implemented", L"Panels Compare", NULL, false, true);
+	FarSInfo.AdvControl(FarSInfo.ModuleNumber, ACTL_SETPROGRESSSTATE, (void*) PS_NOPROGRESS);
+	FarSInfo.AdvControl(FarSInfo.ModuleNumber, ACTL_PROGRESSNOTIFY, 0);
+
+	if (!fAborted)
+	{
+		DisplayValidationResults(vMismatches, vMissing, nFilesSkipped);
+	}
 }
 
 // ------------------------------------- Exported functions --------------------------------------------------
