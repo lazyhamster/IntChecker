@@ -314,7 +314,10 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 		size_t nListIndex = 0;
 		if (vMismatchList.size() > 0)
 		{
-			mmListItems[nListIndex++].Text = L"Mismatched files";
+			wchar_t wszMismatchHeader[64] = {0};
+			swprintf_s(wszMismatchHeader, GetLocMsg(MSG_DLG_MISMATCHED_FILES), vMismatchList.size());
+			
+			mmListItems[nListIndex++].Text = wszMismatchHeader;
 			for (size_t i = 0; i < vMismatchList.size(); i++)
 			{
 				wstring &nextFile = vMismatchList[i];
@@ -324,7 +327,10 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 		}
 		if (vMissingList.size() > 0)
 		{
-			mmListItems[nListIndex++].Text = L"Missing files";
+			wchar_t wszMissingHeader[64] = {0};
+			swprintf_s(wszMissingHeader, GetLocMsg(MSG_DLG_MISSING_FILES), vMissingList.size());
+			
+			mmListItems[nListIndex++].Text = wszMissingHeader;
 			for (size_t i = 0; i < vMissingList.size(); i++)
 			{
 				wstring &nextFile = vMissingList[i];

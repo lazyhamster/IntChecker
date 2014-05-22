@@ -34,8 +34,10 @@
 "No files from hash list exists"
 "Generating hash"
 "Abort calculations?"
-"Validation complete"
+"Complete"
 "Calculation complete"
+"Mismatched Files (%d)"
+"Missing Files (%d)"
 
 "Generate"
 "Algorithm"
