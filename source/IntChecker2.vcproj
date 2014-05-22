@@ -245,6 +245,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="xcopy /Y /D $(ProjectDir)Text\*.* $(OutDir)"
 			/>
 		</Configuration>
 		<Configuration
@@ -551,6 +552,7 @@
 			/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				CommandLine="xcopy /Y /D $(ProjectDir)Text\*.* $(OutDir)"
 			/>
 		</Configuration>
 		<Configuration
