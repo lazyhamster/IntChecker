@@ -480,10 +480,6 @@ static LONG_PTR WINAPI HashParamsDlgProc(HANDLE hDlg, int Msg, int Param1, LONG_
 
 static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive, HashOutputTargets &outputTarget, wstring &outputFileName)
 {
-	HashAlgoInfo *selectedHashInfo = GetAlgoInfo(selectedAlgo);
-	wstring defaultName(L"hashlist");
-	if (optAutoExtension) defaultName += selectedHashInfo->DefaultExt;
-	
 	FarDialogItem DialogItems []={
 		/*0*/{DI_DOUBLEBOX,		3, 1, 41,19, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TITLE)},
 
@@ -500,7 +496,7 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 		/*10*/{DI_RADIOBUTTON,	6,11, 0, 0, 0, 1, DIF_GROUP, 0, GetLocMsg(MSG_GEN_TO_FILE)},
 		/*11*/{DI_RADIOBUTTON,	6,13, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TO_SEPARATE)},
 		/*12*/{DI_RADIOBUTTON,	6,14, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TO_SCREEN)},
-		/*13*/{DI_EDIT,		   10,12,38, 0, 1, 0, DIF_EDITEXPAND|DIF_EDITPATH,0, defaultName.c_str(), 0},
+		/*13*/{DI_EDIT,		   10,12,38, 0, 1, 0, DIF_EDITEXPAND|DIF_EDITPATH,0, outputFileName.c_str(), 0},
 		
 		/*14*/{DI_TEXT,			3,15, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
 		/*15*/{DI_CHECKBOX,		5,16, 0, 0, 0, recursive, 0, 0, GetLocMsg(MSG_GEN_RECURSE)},
@@ -611,7 +607,20 @@ static void RunGenerateHashes()
 	rhash_ids genAlgo = (rhash_ids) optDefaultAlgo;
 	bool recursive = true;
 	HashOutputTargets outputTarget = OT_SINGLEFILE;
-	wstring outputFile;
+	wstring outputFile(L"hashlist");
+
+	HashAlgoInfo *selectedHashInfo = GetAlgoInfo(genAlgo);
+	if (optAutoExtension) outputFile += selectedHashInfo->DefaultExt;
+
+	// If only one file is selected then offer it's name as base for hash file name
+	if (pi.SelectedItemsNumber == 1)
+	{
+		wstring strSelectedFile;
+		if (GetSelectedPanelFilePath(strSelectedFile) && IsFile(strSelectedFile.c_str()))
+		{
+			outputFile = ExtractFileName(strSelectedFile) + selectedHashInfo->DefaultExt;
+		}
+	}
 
 	while(true)
 	{

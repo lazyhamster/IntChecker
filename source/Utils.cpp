@@ -182,3 +182,12 @@ bool CopyTextToClipboard( std::vector<std::wstring> &data )
 	}
 	return CopyTextToClipboard(sstr.str());
 }
+
+std::wstring ExtractFileName( wstring & fullPath )
+{
+	size_t pos = fullPath.find_last_of(L"/\\");
+	if (pos == wstring::npos)
+		return fullPath;
+	else
+		return fullPath.substr(pos + 1);
+}
