@@ -299,10 +299,11 @@
 				LinkIncremental="1"
 				GenerateManifest="false"
 				ModuleDefinitionFile="IntChecker2.def"
-				GenerateDebugInformation="true"
+				GenerateMapFile="true"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				ImportLibrary="$(IntDir)\$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool
@@ -608,10 +609,11 @@
 				LinkIncremental="1"
 				GenerateManifest="false"
 				ModuleDefinitionFile="IntChecker2-Far3.def"
-				GenerateDebugInformation="true"
+				GenerateMapFile="true"
 				SubSystem="2"
 				OptimizeReferences="2"
 				EnableCOMDATFolding="2"
+				ImportLibrary="$(IntDir)\$(TargetName).lib"
 				TargetMachine="17"
 			/>
 			<Tool
