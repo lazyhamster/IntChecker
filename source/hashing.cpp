@@ -220,13 +220,13 @@ int HashList::GetFileRecordIndex( const wchar_t* fileName ) const
 	return -1;
 }
 
-bool HashList::DumpStringToFile( const char* data, DWORD dataSize, const wchar_t* filePath )
+bool HashList::DumpStringToFile( const char* data, size_t dataSize, const wchar_t* filePath )
 {
 	HANDLE hFile = CreateFile(filePath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 	if (hFile == INVALID_HANDLE_VALUE) return false;
 
 	DWORD numWritten;
-	bool retVal = WriteFile(hFile, data, dataSize, &numWritten, NULL) && (numWritten == dataSize);
+	bool retVal = WriteFile(hFile, data, (DWORD) dataSize, &numWritten, NULL) && (numWritten == dataSize);
 	CloseHandle(hFile);
 
 	return retVal;
@@ -274,15 +274,15 @@ HashAlgoInfo* HashList::DetectHashAlgo( const char* testStr )
 	return NULL;
 }
 
-std::wstring HashList::FileInfoToString( int index )
+std::wstring HashList::FileInfoToString( size_t index )
 {
-	if (index < 0 || index >= (int) m_HashList.size())
+	if (index < 0 || index >= m_HashList.size())
 		return L"";
 
 	FileHashInfo& fileInfo = m_HashList[index];
 
 	wchar_t hashStrBuf[256] = {0};
-	MultiByteToWideChar(m_Codepage, 0, fileInfo.HashStr.c_str(), fileInfo.HashStr.size(), hashStrBuf, ARRAY_SIZE(hashStrBuf));
+	MultiByteToWideChar(m_Codepage, 0, fileInfo.HashStr.c_str(), (int) fileInfo.HashStr.size(), hashStrBuf, ARRAY_SIZE(hashStrBuf));
 	
 	wstringstream wsstr;
 	if (m_HashId == RHASH_CRC32)

@@ -27,7 +27,7 @@ private:
 	int m_Codepage;
 
 	int GetFileRecordIndex(const wchar_t* fileName) const;
-	bool DumpStringToFile(const char* data, DWORD dataSize, const wchar_t* filePath);
+	bool DumpStringToFile(const char* data, size_t dataSize, const wchar_t* filePath);
 	void SerializeFileHash(const FileHashInfo& data, stringstream& dest);
 	HashAlgoInfo* DetectHashAlgo(const char* testStr);
 
@@ -44,9 +44,9 @@ public:
 	void SetFileHash(const wchar_t* FileName, std::string HashVal);
 	
 	size_t GetCount() const { return m_HashList.size(); }
-	FileHashInfo GetFileInfo(int index) { return m_HashList.at(index); }
+	FileHashInfo GetFileInfo(size_t index) { return m_HashList.at(index); }
 	rhash_ids GetHashAlgo() const { return m_HashId; }
-	std::wstring FileInfoToString(int index);
+	std::wstring FileInfoToString(size_t index);
 };
 
 // Params: context, processed bytes

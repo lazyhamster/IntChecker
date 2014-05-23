@@ -287,7 +287,7 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 		size_t nNumListItems = (vMismatchList.size() > 0 ? vMismatchList.size() + 1 : 0)
 			+ (vMissingList.size() > 0 ? vMissingList.size() + 1 : 0);
 		FarListItem* mmListItems = (FarListItem*) malloc(nNumListItems * sizeof(FarListItem));
-		FarList mmList = {nNumListItems, mmListItems};
+		FarList mmList = {(int)nNumListItems, mmListItems};
 		memset(mmListItems, 0, nNumListItems * sizeof(FarListItem));
 
 		vector<wstring> vSameFolderFiles;
@@ -360,7 +360,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 	wstring workDir;
 	int nFilesSkipped = 0;
 	vector<wstring> vMismatches, vMissing;
-	vector<int> existingFiles;
+	vector<size_t> existingFiles;
 	int64_t totalFilesSize = 0;
 	char hashValueBuf[150];
 
@@ -395,7 +395,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 	if (existingFiles.size() > 0)
 	{
 		ProgressContext progressCtx;
-		progressCtx.TotalFilesCount = existingFiles.size();
+		progressCtx.TotalFilesCount = (int) existingFiles.size();
 		progressCtx.TotalFilesSize = totalFilesSize;
 		progressCtx.CurrentFileIndex = -1;
 
@@ -507,7 +507,7 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 	};
 	size_t numDialogItems = sizeof(DialogItems) / sizeof(DialogItems[0]);
 
-	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 45, 21, L"GenerateParams", DialogItems, numDialogItems, 0, 0, HashParamsDlgProc, 0);
+	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 45, 21, L"GenerateParams", DialogItems, (unsigned) numDialogItems, 0, 0, HashParamsDlgProc, 0);
 
 	bool retVal = false;
 	if (hDlg != INVALID_HANDLE_VALUE)
@@ -538,7 +538,7 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 
 static void DisplayHashListOnScreen(HashList &list)
 {
-	size_t numListItems = list.GetCount();
+	int numListItems = (int) list.GetCount();
 	FarListItem* hashListItems = new FarListItem[numListItems];
 	FarList hashDump = {numListItems, hashListItems};
 
@@ -660,7 +660,7 @@ static void RunGenerateHashes()
 	// Perform hashing
 	char hashValueBuf[150] = {0};
 	ProgressContext progressCtx;
-	progressCtx.TotalFilesCount = filesToProcess.size();
+	progressCtx.TotalFilesCount = (int) filesToProcess.size();
 	progressCtx.TotalFilesSize = totalFilesSize;
 	progressCtx.TotalProcessedBytes = 0;
 	progressCtx.CurrentFileIndex = -1;
@@ -773,7 +773,7 @@ static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive)
 	};
 	size_t numDialogItems = sizeof(DialogItems) / sizeof(DialogItems[0]);
 
-	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 45, 15, L"CompareParams", DialogItems, numDialogItems, 0, 0, FarSInfo.DefDlgProc, 0);
+	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 45, 15, L"CompareParams", DialogItems, (unsigned) numDialogItems, 0, 0, FarSInfo.DefDlgProc, 0);
 
 	bool retVal = false;
 	if (hDlg != INVALID_HANDLE_VALUE)
@@ -898,7 +898,7 @@ static void RunComparePanels()
 	bool fAborted = false;
 
 	ProgressContext progressCtx;
-	progressCtx.TotalFilesCount = vSelectedFiles.size() * 2;
+	progressCtx.TotalFilesCount = (int) vSelectedFiles.size() * 2;
 	progressCtx.TotalFilesSize = totalFilesSize * 2;
 	progressCtx.TotalProcessedBytes = 0;
 	progressCtx.CurrentFileIndex = -1;
@@ -1035,7 +1035,7 @@ int WINAPI ConfigureW(int ItemNumber)
 			optClearSelectionOnComplete = DlgHlp_GetSelectionState(hDlg, 7);
 			optAutoExtension = DlgHlp_GetSelectionState(hDlg, 8);
 			
-			int selectedAlgo = DlgList_GetCurPos(FarSInfo, hDlg, 2);
+			int selectedAlgo = (int) DlgList_GetCurPos(FarSInfo, hDlg, 2);
 			optDefaultAlgo = SupportedHashes[selectedAlgo].AlgoId;
 
 			SaveSettings();
