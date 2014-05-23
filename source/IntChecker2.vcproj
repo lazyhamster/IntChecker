@@ -745,6 +745,14 @@
 						Name="VCCLCompilerTool"
 					/>
 				</FileConfiguration>
+				<FileConfiguration
+					Name="Release-Far2|x64"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
 			</File>
 			<File
 				RelativePath=".\IntChecker2-Far3.def"
@@ -763,6 +771,14 @@
 				</FileConfiguration>
 				<FileConfiguration
 					Name="Release-Far3|Win32"
+					ExcludedFromBuild="true"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Release-Far3|x64"
 					ExcludedFromBuild="true"
 					>
 					<Tool
