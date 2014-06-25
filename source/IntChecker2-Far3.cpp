@@ -16,7 +16,7 @@
 
 static intptr_t FarAdvControl(enum ADVANCED_CONTROL_COMMANDS command, intptr_t param1 = 0, void* param2 = NULL)
 {
-	FarSInfo.AdvControl(&GUID_PLUGIN_MAIN, command, param1, param2);
+	return FarSInfo.AdvControl(&GUID_PLUGIN_MAIN, command, param1, param2);
 }
 
 static const wchar_t* GetLocMsg(int MsgID)
@@ -591,7 +591,7 @@ static int DisplayHashGenerateError(const wstring& fileName)
 static void RunGenerateHashes()
 {
 	// Check panel for compatibility
-	PanelInfo pi = {0};
+	PanelInfo pi = {sizeof(PanelInfo), 0};
 	if (!FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, &pi)
 		|| (pi.SelectedItemsNumber <= 0) || (pi.PanelType != PTYPE_FILEPANEL))
 	{
@@ -1007,7 +1007,59 @@ void WINAPI ExitFARW(const ExitInfo* Info)
 
 intptr_t WINAPI ConfigureW(const ConfigureInfo* Info)
 {
-	//TODO: implement
+/*
+//TODO: fix
+	FarListItem algoListItems[NUMBER_OF_SUPPORTED_HASHES] = {0};
+	FarList algoDlgList = {NUMBER_OF_SUPPORTED_HASHES, algoListItems};
+
+	FarDialogItem DialogItems []={
+	/*00/ {DI_DOUBLEBOX, 3, 1,40,12, 0, 0, 0,0, GetLocMsg(MSG_CONFIG_TITLE), 0},
+	/*01/ {DI_TEXT,	  5, 2, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_CONFIG_DEFAULT_ALGO), 0},
+	/*02/ {DI_COMBOBOX,  5, 3,20, 0, 0, (DWORD_PTR)&algoDlgList, DIF_DROPDOWNLIST, 0, NULL, 0},
+	/*03/ {DI_TEXT,	  3, 4, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
+	/*04/ {DI_CHECKBOX,  5, 5, 0, 0, 0, optUsePrefix, 0,0, GetLocMsg(MSG_CONFIG_PREFIX), 0},
+	/*05/ {DI_EDIT,	  8, 6,24, 0, 0, 0, 0,0, optPrefix, 0},
+	/*06/ {DI_CHECKBOX,  5, 7, 0, 0, 0, optConfirmAbort, 0,0, GetLocMsg(MSG_CONFIG_CONFIRM_ABORT), 0},
+	/*07/ {DI_CHECKBOX,  5, 8, 0, 0, 0, optClearSelectionOnComplete, 0,0, GetLocMsg(MSG_CONFIG_CLEAR_SELECTION), 0},
+	/*08/ {DI_CHECKBOX,  5, 9, 0, 0, 0, optAutoExtension, 0,0, GetLocMsg(MSG_CONFIG_AUTOEXT), 0},
+	/*09/ {DI_TEXT,	  3,10, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
+	/*0A/ {DI_BUTTON,	  0,11, 0, 0, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_OK), 0},
+	/*0B/ {DI_BUTTON,    0,11, 0, 0, 1, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
+	};
+
+	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
+	{
+		algoListItems[i].Text = SupportedHashes[i].AlgoName.c_str();
+		if (SupportedHashes[i].AlgoId == optDefaultAlgo)
+			algoListItems[i].Flags = LIF_SELECTED;
+	}
+
+	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 44, 14, L"IntCheckerConfig",
+		DialogItems, sizeof(DialogItems) / sizeof(DialogItems[0]), 0, 0, FarSInfo.DefDlgProc, 0);
+
+	int nOkID = ARRAY_SIZE(DialogItems) - 2;
+
+	if (hDlg != INVALID_HANDLE_VALUE)
+	{
+		int ExitCode = FarSInfo.DialogRun(hDlg);
+		if (ExitCode == nOkID) // OK was pressed
+		{
+			optUsePrefix = DlgHlp_GetSelectionState(hDlg, 4);
+			DlgHlp_GetEditBoxText(hDlg, 5, optPrefix, ARRAY_SIZE(optPrefix));
+			optConfirmAbort = DlgHlp_GetSelectionState(hDlg, 6);
+			optClearSelectionOnComplete = DlgHlp_GetSelectionState(hDlg, 7);
+			optAutoExtension = DlgHlp_GetSelectionState(hDlg, 8);
+
+			int selectedAlgo = (int) DlgList_GetCurPos(FarSInfo, hDlg, 2);
+			optDefaultAlgo = SupportedHashes[selectedAlgo].AlgoId;
+
+			SaveSettings();
+		}
+		FarSInfo.DialogFree(hDlg);
+
+		if (ExitCode == nOkID) return TRUE;
+	}
+*/
 	return FALSE;
 }
 
@@ -1017,11 +1069,50 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 	{
 		OpenCommandLineInfo* cmdInfo = (OpenCommandLineInfo*) OInfo->Data;
 
-		//TODO: implement
+		wchar_t* szLocalNameBuffer = _wcsdup(cmdInfo->CommandLine);
+		FSF.Unquote(szLocalNameBuffer);
+		
+		if (!RunValidateFiles(szLocalNameBuffer, true))
+			DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_NOTVALIDLIST), NULL, true, true);
+
+		free(szLocalNameBuffer);
 	}
 	else if (OInfo->OpenFrom == OPEN_PLUGINSMENU)
 	{
-		//TODO: implement
+		PanelInfo pi = {sizeof(PanelInfo), 0};
+		if (!FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, &pi) || (pi.PanelType != PTYPE_FILEPANEL))
+		{
+			return INVALID_HANDLE_VALUE;
+		}
+
+		FarMenuItem MenuItems[] = {
+			{MIF_NONE, GetLocMsg(MSG_MENU_GENERATE), 0},
+			{MIF_NONE, GetLocMsg(MSG_MENU_COMPARE),  0},
+			{MIF_NONE, GetLocMsg(MSG_MENU_VALIDATE), 0}
+		};
+
+		wstring selectedFilePath;
+		int nNumMenuItems = 2;
+
+		if (optDetectHashFiles && (pi.SelectedItemsNumber == 1) && GetSelectedPanelFilePath(selectedFilePath))
+		{
+			nNumMenuItems = IsFile(selectedFilePath.c_str()) ? 3 : 2;
+		}
+
+		int nMItem = FarSInfo.Menu(&GUID_PLUGIN_MAIN, &GUID_DIALOG_MENU, -1, -1, 0, 0, GetLocMsg(MSG_PLUGIN_NAME), NULL, NULL, NULL, NULL, MenuItems, nNumMenuItems);
+
+		switch (nMItem)
+		{
+		case 0:
+			RunGenerateHashes();
+			break;
+		case 1:
+			RunComparePanels();
+			break;
+		case 2:
+			RunValidateFiles(selectedFilePath.c_str(), false);
+			break;
+		}
 	}
 
 	return INVALID_HANDLE_VALUE;
