@@ -4,4 +4,8 @@
     <LocalDebuggerCommand>C:\Tools\Far2DBG\Far.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Far3|Win32'">
+    <LocalDebuggerCommand>C:\Tools\Far3DBG\Far.exe</LocalDebuggerCommand>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
 </Project>
