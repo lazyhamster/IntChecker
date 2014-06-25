@@ -642,8 +642,7 @@ static void RunGenerateHashes()
 	wstring strPanelDir;
 
 	// Win7 only feature
-	//TODO: fix
-	//FarAdvControl(ACTL_SETPROGRESSSTATE, (void*) PS_INDETERMINATE);
+	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_INDETERMINATE, NULL);
 
 	// Prepare files list
 	{
@@ -717,9 +716,8 @@ static void RunGenerateHashes()
 			hashes.SetFileHash(strNextFile.c_str(), hashValueBuf);
 	}
 
-	//TODO: fix
-	//FarAdvControl(ACTL_SETPROGRESSSTATE, (void*) PS_NOPROGRESS);
-	FarAdvControl(ACTL_PROGRESSNOTIFY, 0);
+	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);
+	FarAdvControl(ACTL_PROGRESSNOTIFY, 0, NULL);
 
 	if (!continueSave) return;
 
@@ -880,8 +878,7 @@ static void RunComparePanels()
 	if (!AskForCompareParams(cmpAlgo, recursive))
 		return;
 
-	//TODO: fix
-	//FarAdvControl(ACTL_SETPROGRESSSTATE, (void*) PS_INDETERMINATE);
+	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_INDETERMINATE, NULL);
 
 	// Prepare files list
 	{
@@ -948,9 +945,8 @@ static void RunComparePanels()
 		}
 	}
 
-	//TODO: fix
-	//FarAdvControl(ACTL_SETPROGRESSSTATE, (void*) PS_NOPROGRESS);
-	FarAdvControl(ACTL_PROGRESSNOTIFY, 0);
+	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);
+	FarAdvControl(ACTL_PROGRESSNOTIFY, 0, NULL);
 
 	if (!fAborted)
 	{
