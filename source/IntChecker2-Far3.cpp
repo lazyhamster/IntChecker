@@ -227,6 +227,8 @@ static void SelectFilesOnPanel(HANDLE hPanel, vector<wstring> &fileNames, bool i
 	FarSInfo.PanelControl(hPanel, FCTL_GETPANELINFO, 0, &pi);
 
 	FarSInfo.PanelControl(hPanel, FCTL_BEGINSELECTION, 0, NULL);
+/*
+//TODO: fix
 	for (size_t i = 0; i < pi.ItemsNumber; i++)
 	{
 		PluginPanelItem *PPI = (PluginPanelItem*) malloc(FarSInfo.PanelControl(hPanel, FCTL_GETPANELITEM, i, NULL));
@@ -240,6 +242,7 @@ static void SelectFilesOnPanel(HANDLE hPanel, vector<wstring> &fileNames, bool i
 			free(PPI);
 		}
 	}
+*/
 	FarSInfo.PanelControl(hPanel, FCTL_ENDSELECTION, 0, NULL);
 	FarSInfo.PanelControl(hPanel, FCTL_REDRAWPANEL, 0, NULL);
 }
@@ -260,7 +263,8 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 	else
 	{
 		// Otherwise display proper list of invalid/missing files
-
+/*
+//TODO: fix
 		size_t nNumListItems = (vMismatchList.size() > 0 ? vMismatchList.size() + 1 : 0)
 			+ (vMissingList.size() > 0 ? vMissingList.size() + 1 : 0);
 		FarListItem* mmListItems = (FarListItem*) malloc(nNumListItems * sizeof(FarListItem));
@@ -279,10 +283,10 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 		int nDlgHeight = 21;
 
 		FarDialogItem DialogItems []={
-			/*00*/ {DI_DOUBLEBOX, 3, 1,nDlgWidth-4,nDlgHeight-2, 0, 0, 0,0, GetLocMsg(MSG_DLG_VALIDATION_COMPLETE), 0},
-			/*01*/ {DI_LISTBOX,   5, 2,nDlgWidth-6,nDlgHeight-5, 0, (DWORD_PTR) &mmList, DIF_LISTNOCLOSE | DIF_LISTNOBOX, 0, NULL, 0},
-			/*02*/ {DI_TEXT,	  3,nDlgHeight-4, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
-			/*03*/ {DI_BUTTON,	  0,nDlgHeight-3, 0, 0, 1, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_CLOSE), 0},
+			/*00/ {DI_DOUBLEBOX, 3, 1,nDlgWidth-4,nDlgHeight-2, 0, 0, 0,0, GetLocMsg(MSG_DLG_VALIDATION_COMPLETE), 0},
+			/*01/ {DI_LISTBOX,   5, 2,nDlgWidth-6,nDlgHeight-5, 0, (DWORD_PTR) &mmList, DIF_LISTNOCLOSE | DIF_LISTNOBOX, 0, NULL, 0},
+			/*02/ {DI_TEXT,	  3,nDlgHeight-4, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
+			/*03/ {DI_BUTTON,	  0,nDlgHeight-3, 0, 0, 1, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_CLOSE), 0},
 		};
 
 		HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, nDlgWidth, nDlgHeight, NULL,
@@ -320,6 +324,7 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 		FarSInfo.DialogFree(hDlg);
 
 		SelectFilesOnPanel(PANEL_ACTIVE, vSameFolderFiles, true);
+*/
 	}
 }
 
@@ -345,7 +350,8 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 		return false;
 
 	// Win7 only feature
-	FarAdvControl(ACTL_SETPROGRESSSTATE, (void*) PS_INDETERMINATE);
+//TODO: fix
+//	FarAdvControl(ACTL_SETPROGRESSSTATE, (void*) PS_INDETERMINATE);
 
 	// Prepare files list
 	{
@@ -415,7 +421,8 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 		DisplayMessage(GetLocMsg(MSG_DLG_NOFILES_TITLE), GetLocMsg(MSG_DLG_NOFILES_TEXT), NULL, true, true);
 	}
 
-	FarAdvControl(ACTL_SETPROGRESSSTATE, (void*) PS_NOPROGRESS);
+	//TODO: fix
+	//FarAdvControl(ACTL_SETPROGRESSSTATE, (void*) PS_NOPROGRESS);
 	FarAdvControl(ACTL_PROGRESSNOTIFY, 0);
 
 	return true;
@@ -425,6 +432,8 @@ static LONG_PTR WINAPI HashParamsDlgProc(HANDLE hDlg, int Msg, int Param1, LONG_
 {
 	if (Msg == DN_BTNCLICK && optAutoExtension)
 	{
+/*
+//TODO: fix
 		if (Param2 && (Param1 >= 2) && (Param1 <= 2 + NUMBER_OF_SUPPORTED_HASHES))
 		{
 			int selectedHashIndex = Param1 - 2;
@@ -450,37 +459,43 @@ static LONG_PTR WINAPI HashParamsDlgProc(HANDLE hDlg, int Msg, int Param1, LONG_
 
 			return TRUE;
 		}
+*/
 	}
 
-	return FarSInfo.DefDlgProc(hDlg, Msg, Param1, Param2);
+//TODO: fix
+	//return FarSInfo.DefDlgProc(hDlg, Msg, Param1, Param2);
+	return NULL;
 }
 
 static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive, HashOutputTargets &outputTarget, wstring &outputFileName)
 {
+	return false;
+	/*
+//TODO: fix
 	FarDialogItem DialogItems []={
-		/*0*/{DI_DOUBLEBOX,		3, 1, 41,19, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TITLE)},
+		/*0/{DI_DOUBLEBOX,		3, 1, 41,19, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TITLE)},
 
-		/*1*/{DI_TEXT,			5, 2, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_ALGO), 0},
-		/*2*/{DI_RADIOBUTTON,	6, 3, 0, 0, 0, (selectedAlgo==RHASH_CRC32), DIF_GROUP, 0, L"&1. CRC32"},
-		/*3*/{DI_RADIOBUTTON,	6, 4, 0, 0, 0, (selectedAlgo==RHASH_MD5), 0, 0, L"&2. MD5"},
-		/*4*/{DI_RADIOBUTTON,	6, 5, 0, 0, 0, (selectedAlgo==RHASH_SHA1), 0, 0, L"&3. SHA1"},
-		/*5*/{DI_RADIOBUTTON,	6, 6, 0, 0, 0, (selectedAlgo==RHASH_SHA256), 0, 0, L"&4. SHA256"},
-		/*6*/{DI_RADIOBUTTON,	6, 7, 0, 0, 0, (selectedAlgo==RHASH_SHA512), 0, 0, L"&5. SHA512"},
-		/*7*/{DI_RADIOBUTTON,	6, 8, 0, 0, 0, (selectedAlgo==RHASH_WHIRLPOOL), 0, 0, L"&6. Whirlpool"},
+		/*1/{DI_TEXT,			5, 2, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_ALGO), 0},
+		/*2/{DI_RADIOBUTTON,	6, 3, 0, 0, 0, (selectedAlgo==RHASH_CRC32), DIF_GROUP, 0, L"&1. CRC32"},
+		/*3/{DI_RADIOBUTTON,	6, 4, 0, 0, 0, (selectedAlgo==RHASH_MD5), 0, 0, L"&2. MD5"},
+		/*4/{DI_RADIOBUTTON,	6, 5, 0, 0, 0, (selectedAlgo==RHASH_SHA1), 0, 0, L"&3. SHA1"},
+		/*5/{DI_RADIOBUTTON,	6, 6, 0, 0, 0, (selectedAlgo==RHASH_SHA256), 0, 0, L"&4. SHA256"},
+		/*6/{DI_RADIOBUTTON,	6, 7, 0, 0, 0, (selectedAlgo==RHASH_SHA512), 0, 0, L"&5. SHA512"},
+		/*7/{DI_RADIOBUTTON,	6, 8, 0, 0, 0, (selectedAlgo==RHASH_WHIRLPOOL), 0, 0, L"&6. Whirlpool"},
 
-		/*8*/{DI_TEXT,			3, 9, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
-		/*9*/{DI_TEXT,			5,10, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TARGET), 0},
-		/*10*/{DI_RADIOBUTTON,	6,11, 0, 0, 0, 1, DIF_GROUP, 0, GetLocMsg(MSG_GEN_TO_FILE)},
-		/*11*/{DI_RADIOBUTTON,	6,13, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TO_SEPARATE)},
-		/*12*/{DI_RADIOBUTTON,	6,14, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TO_SCREEN)},
-		/*13*/{DI_EDIT,		   10,12,38, 0, 1, 0, DIF_EDITEXPAND|DIF_EDITPATH,0, outputFileName.c_str(), 0},
+		/*8/{DI_TEXT,			3, 9, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
+		/*9/{DI_TEXT,			5,10, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TARGET), 0},
+		/*10/{DI_RADIOBUTTON,	6,11, 0, 0, 0, 1, DIF_GROUP, 0, GetLocMsg(MSG_GEN_TO_FILE)},
+		/*11/{DI_RADIOBUTTON,	6,13, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TO_SEPARATE)},
+		/*12/{DI_RADIOBUTTON,	6,14, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TO_SCREEN)},
+		/*13/{DI_EDIT,		   10,12,38, 0, 1, 0, DIF_EDITEXPAND|DIF_EDITPATH,0, outputFileName.c_str(), 0},
 
-		/*14*/{DI_TEXT,			3,15, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
-		/*15*/{DI_CHECKBOX,		5,16, 0, 0, 0, recursive, 0, 0, GetLocMsg(MSG_GEN_RECURSE)},
+		/*14/{DI_TEXT,			3,15, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
+		/*15/{DI_CHECKBOX,		5,16, 0, 0, 0, recursive, 0, 0, GetLocMsg(MSG_GEN_RECURSE)},
 
-		/*16*/{DI_TEXT,			3,17, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
-		/*17*/{DI_BUTTON,		0,18, 0,13, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_RUN), 0},
-		/*18*/{DI_BUTTON,		0,18, 0,13, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
+		/*16/{DI_TEXT,			3,17, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
+		/*17/{DI_BUTTON,		0,18, 0,13, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_RUN), 0},
+		/*18/{DI_BUTTON,		0,18, 0,13, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
 	};
 	size_t numDialogItems = sizeof(DialogItems) / sizeof(DialogItems[0]);
 
@@ -511,10 +526,13 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 		FarSInfo.DialogFree(hDlg);
 	}
 	return retVal;
+*/
 }
 
 static void DisplayHashListOnScreen(HashList &list)
 {
+/*
+//TODO: fix
 	int numListItems = (int) list.GetCount();
 	FarListItem* hashListItems = new FarListItem[numListItems];
 	FarList hashDump = {numListItems, hashListItems};
@@ -523,11 +541,11 @@ static void DisplayHashListOnScreen(HashList &list)
 	int nDlgHeight = 21;
 
 	FarDialogItem DialogItems []={
-		/*00*/ {DI_DOUBLEBOX, 3, 1,nDlgWidth-4,nDlgHeight-2, 0, 0, 0,0, GetLocMsg(MSG_DLG_CALC_COMPLETE), 0},
-		/*01*/ {DI_LISTBOX,   5, 2,nDlgWidth-6,nDlgHeight-5, 0, (DWORD_PTR)&hashDump, DIF_LISTNOCLOSE | DIF_LISTNOBOX, 0, NULL, 0},
-		/*02*/ {DI_TEXT,	  3,nDlgHeight-4, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
-		/*03*/ {DI_BUTTON,	  0,nDlgHeight-3, 0, 0, 1, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_CLOSE), 0},
-		/*04*/ {DI_BUTTON,    0,nDlgHeight-3, 0, 0, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CLIPBOARD), 0},
+		/*00/ {DI_DOUBLEBOX, 3, 1,nDlgWidth-4,nDlgHeight-2, 0, 0, 0,0, GetLocMsg(MSG_DLG_CALC_COMPLETE), 0},
+		/*01/ {DI_LISTBOX,   5, 2,nDlgWidth-6,nDlgHeight-5, 0, (DWORD_PTR)&hashDump, DIF_LISTNOCLOSE | DIF_LISTNOBOX, 0, NULL, 0},
+		/*02/ {DI_TEXT,	  3,nDlgHeight-4, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
+		/*03/ {DI_BUTTON,	  0,nDlgHeight-3, 0, 0, 1, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_CLOSE), 0},
+		/*04/ {DI_BUTTON,    0,nDlgHeight-3, 0, 0, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CLIPBOARD), 0},
 	};
 
 	vector<wstring> listStrDump;
@@ -554,6 +572,7 @@ static void DisplayHashListOnScreen(HashList &list)
 	}
 
 	delete [] hashListItems;
+*/
 }
 
 static int DisplayHashGenerateError(const wstring& fileName)
@@ -573,7 +592,7 @@ static void RunGenerateHashes()
 {
 	// Check panel for compatibility
 	PanelInfo pi = {0};
-	if (!FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, (LONG_PTR)&pi)
+	if (!FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, &pi)
 		|| (pi.SelectedItemsNumber <= 0) || (pi.PanelType != PTYPE_FILEPANEL))
 	{
 		DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_INVALID_PANEL), NULL, true, true);
@@ -623,7 +642,8 @@ static void RunGenerateHashes()
 	wstring strPanelDir;
 
 	// Win7 only feature
-	FarAdvControl(ACTL_SETPROGRESSSTATE, (void*) PS_INDETERMINATE);
+	//TODO: fix
+	//FarAdvControl(ACTL_SETPROGRESSSTATE, (void*) PS_INDETERMINATE);
 
 	// Prepare files list
 	{
@@ -697,7 +717,8 @@ static void RunGenerateHashes()
 			hashes.SetFileHash(strNextFile.c_str(), hashValueBuf);
 	}
 
-	FarAdvControl(ACTL_SETPROGRESSSTATE, (void*) PS_NOPROGRESS);
+	//TODO: fix
+	//FarAdvControl(ACTL_SETPROGRESSSTATE, (void*) PS_NOPROGRESS);
 	FarAdvControl(ACTL_PROGRESSNOTIFY, 0);
 
 	if (!continueSave) return;
@@ -722,31 +743,33 @@ static void RunGenerateHashes()
 	if (saveSuccess && optClearSelectionOnComplete)
 	{
 		for (int i = pi.SelectedItemsNumber - 1; i >=0; i--)
-			FarSInfo.Control(PANEL_ACTIVE, FCTL_CLEARSELECTION, i, NULL);
+			FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_CLEARSELECTION, i, NULL);
 	}
 
-	FarSInfo.Control(PANEL_ACTIVE, FCTL_REDRAWPANEL, 0, NULL);
+	FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_REDRAWPANEL, 0, NULL);
 }
 
 static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive)
 {
+/*
+//TODO: fix
 	FarDialogItem DialogItems []={
-		/*0*/{DI_DOUBLEBOX,		3, 1, 41,13, 0, 0, 0, 0, L"Compare"},
+		/*0/{DI_DOUBLEBOX,		3, 1, 41,13, 0, 0, 0, 0, L"Compare"},
 
-		/*1*/{DI_TEXT,			5, 2, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_ALGO), 0},
-		/*2*/{DI_RADIOBUTTON,	6, 3, 0, 0, 0, (selectedAlgo==RHASH_CRC32), DIF_GROUP, 0, L"&1. CRC32"},
-		/*3*/{DI_RADIOBUTTON,	6, 4, 0, 0, 0, (selectedAlgo==RHASH_MD5), 0, 0, L"&2. MD5"},
-		/*4*/{DI_RADIOBUTTON,	6, 5, 0, 0, 0, (selectedAlgo==RHASH_SHA1), 0, 0, L"&3. SHA1"},
-		/*5*/{DI_RADIOBUTTON,	6, 6, 0, 0, 0, (selectedAlgo==RHASH_SHA256), 0, 0, L"&4. SHA256"},
-		/*6*/{DI_RADIOBUTTON,	6, 7, 0, 0, 0, (selectedAlgo==RHASH_SHA512), 0, 0, L"&5. SHA512"},
-		/*7*/{DI_RADIOBUTTON,	6, 8, 0, 0, 0, (selectedAlgo==RHASH_WHIRLPOOL), 0, 0, L"&6. Whirlpool"},
+		/*1/{DI_TEXT,			5, 2, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_ALGO), 0},
+		/*2/{DI_RADIOBUTTON,	6, 3, 0, 0, 0, (selectedAlgo==RHASH_CRC32), DIF_GROUP, 0, L"&1. CRC32"},
+		/*3/{DI_RADIOBUTTON,	6, 4, 0, 0, 0, (selectedAlgo==RHASH_MD5), 0, 0, L"&2. MD5"},
+		/*4/{DI_RADIOBUTTON,	6, 5, 0, 0, 0, (selectedAlgo==RHASH_SHA1), 0, 0, L"&3. SHA1"},
+		/*5/{DI_RADIOBUTTON,	6, 6, 0, 0, 0, (selectedAlgo==RHASH_SHA256), 0, 0, L"&4. SHA256"},
+		/*6/{DI_RADIOBUTTON,	6, 7, 0, 0, 0, (selectedAlgo==RHASH_SHA512), 0, 0, L"&5. SHA512"},
+		/*7/{DI_RADIOBUTTON,	6, 8, 0, 0, 0, (selectedAlgo==RHASH_WHIRLPOOL), 0, 0, L"&6. Whirlpool"},
 
-		/*8*/{DI_TEXT,			3, 9, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
-		/*9*/{DI_CHECKBOX,		5,10, 0, 0, 0, recursive, 0, 0, GetLocMsg(MSG_GEN_RECURSE)},
+		/*8/{DI_TEXT,			3, 9, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
+		/*9/{DI_CHECKBOX,		5,10, 0, 0, 0, recursive, 0, 0, GetLocMsg(MSG_GEN_RECURSE)},
 
-		/*10*/{DI_TEXT,			3,11, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
-		/*11*/{DI_BUTTON,		0,12, 0,13, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_RUN), 0},
-		/*12*/{DI_BUTTON,		0,12, 0,13, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
+		/*10/{DI_TEXT,			3,11, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
+		/*11/{DI_BUTTON,		0,12, 0,13, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_RUN), 0},
+		/*12/{DI_BUTTON,		0,12, 0,13, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
 	};
 	size_t numDialogItems = sizeof(DialogItems) / sizeof(DialogItems[0]);
 
@@ -772,6 +795,8 @@ static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive)
 		FarSInfo.DialogFree(hDlg);
 	}
 	return retVal;
+*/
+	return false;
 }
 
 static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, ProgressContext& progressCtx, char* hashStrBuffer, bool &shouldAbort)
@@ -823,11 +848,11 @@ static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, ProgressC
 static void RunComparePanels()
 {
 	PanelInfo piActv, piPasv;
-	if (!FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, (LONG_PTR) &piActv)
-		|| !FarSInfo.Control(PANEL_PASSIVE, FCTL_GETPANELINFO, 0, (LONG_PTR) &piPasv))
+	if (!FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, &piActv)
+		|| !FarSInfo.PanelControl(PANEL_PASSIVE, FCTL_GETPANELINFO, 0, &piPasv))
 		return;
 
-	if (piActv.PanelType != PTYPE_FILEPANEL || piPasv.PanelType != PTYPE_FILEPANEL || piActv.Plugin || piPasv.Plugin)
+	if (piActv.PanelType != PTYPE_FILEPANEL || piPasv.PanelType != PTYPE_FILEPANEL || piActv.PluginHandle || piPasv.PluginHandle)
 	{
 		DisplayMessage(L"Error", L"Only file panels are supported", NULL, true, true);
 		return;
@@ -855,7 +880,8 @@ static void RunComparePanels()
 	if (!AskForCompareParams(cmpAlgo, recursive))
 		return;
 
-	FarAdvControl(ACTL_SETPROGRESSSTATE, (void*) PS_INDETERMINATE);
+	//TODO: fix
+	//FarAdvControl(ACTL_SETPROGRESSSTATE, (void*) PS_INDETERMINATE);
 
 	// Prepare files list
 	{
@@ -922,7 +948,8 @@ static void RunComparePanels()
 		}
 	}
 
-	FarAdvControl(ACTL_SETPROGRESSSTATE, (void*) PS_NOPROGRESS);
+	//TODO: fix
+	//FarAdvControl(ACTL_SETPROGRESSSTATE, (void*) PS_NOPROGRESS);
 	FarAdvControl(ACTL_PROGRESSNOTIFY, 0);
 
 	if (!fAborted)
