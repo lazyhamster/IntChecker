@@ -227,22 +227,23 @@ static void SelectFilesOnPanel(HANDLE hPanel, vector<wstring> &fileNames, bool i
 	FarSInfo.PanelControl(hPanel, FCTL_GETPANELINFO, 0, &pi);
 
 	FarSInfo.PanelControl(hPanel, FCTL_BEGINSELECTION, 0, NULL);
-/*
-//TODO: fix
+
 	for (size_t i = 0; i < pi.ItemsNumber; i++)
 	{
-		PluginPanelItem *PPI = (PluginPanelItem*) malloc(FarSInfo.PanelControl(hPanel, FCTL_GETPANELITEM, i, NULL));
+		size_t nSize = FarSInfo.PanelControl(hPanel, FCTL_GETPANELITEM, i, NULL);
+		PluginPanelItem *PPI = (PluginPanelItem*) malloc(nSize);
 		if (PPI)
 		{
-			FarSInfo.PanelControl(hPanel, FCTL_GETPANELITEM, i, (LONG_PTR)PPI);
+			FarGetPluginPanelItem gppi = {sizeof(FarGetPluginPanelItem), nSize, PPI};
+			FarSInfo.PanelControl(hPanel, FCTL_GETPANELITEM, i, &gppi);
 			if (std::find(fileNames.begin(), fileNames.end(), PPI->FileName) != fileNames.end())
 			{
-				FarSInfo.PanelControl(hPanel, FCTL_SETSELECTION, i, isSelected ? TRUE : FALSE);
+				FarSInfo.PanelControl(hPanel, FCTL_SETSELECTION, i, (void*) (isSelected ? TRUE : FALSE));
 			}
 			free(PPI);
 		}
 	}
-*/
+
 	FarSInfo.PanelControl(hPanel, FCTL_ENDSELECTION, 0, NULL);
 	FarSInfo.PanelControl(hPanel, FCTL_REDRAWPANEL, 0, NULL);
 }
@@ -350,8 +351,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 		return false;
 
 	// Win7 only feature
-//TODO: fix
-//	FarAdvControl(ACTL_SETPROGRESSSTATE, (void*) PS_INDETERMINATE);
+	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_INDETERMINATE, NULL);
 
 	// Prepare files list
 	{
@@ -421,14 +421,13 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 		DisplayMessage(GetLocMsg(MSG_DLG_NOFILES_TITLE), GetLocMsg(MSG_DLG_NOFILES_TEXT), NULL, true, true);
 	}
 
-	//TODO: fix
-	//FarAdvControl(ACTL_SETPROGRESSSTATE, (void*) PS_NOPROGRESS);
-	FarAdvControl(ACTL_PROGRESSNOTIFY, 0);
+	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);
+	FarAdvControl(ACTL_PROGRESSNOTIFY, 0, NULL);
 
 	return true;
 }
 
-static LONG_PTR WINAPI HashParamsDlgProc(HANDLE hDlg, int Msg, int Param1, LONG_PTR Param2)
+static LONG_PTR WINAPI HashParamsDlgProc(HANDLE hDlg, int Msg, int Param1, void* Param2)
 {
 	if (Msg == DN_BTNCLICK && optAutoExtension)
 	{
@@ -462,9 +461,7 @@ static LONG_PTR WINAPI HashParamsDlgProc(HANDLE hDlg, int Msg, int Param1, LONG_
 */
 	}
 
-//TODO: fix
-	//return FarSInfo.DefDlgProc(hDlg, Msg, Param1, Param2);
-	return NULL;
+	return FarSInfo.DefDlgProc(hDlg, Msg, Param1, Param2);
 }
 
 static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive, HashOutputTargets &outputTarget, wstring &outputFileName)
