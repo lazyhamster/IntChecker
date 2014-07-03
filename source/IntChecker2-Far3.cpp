@@ -746,51 +746,26 @@ static void RunGenerateHashes()
 
 static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive)
 {
-/*
-//TODO: fix
-	FarDialogItem DialogItems []={
-		/*0/{DI_DOUBLEBOX,		3, 1, 41,13, 0, 0, 0, 0, L"Compare"},
+	int doRecurse = recursive;
+	int algoIndex = GetAlgoIndex(selectedAlgo);
+	int algoNames[] = {MSG_ALGO_CRC, MSG_ALGO_MD5, MSG_ALGO_SHA1, MSG_ALGO_SHA256, MSG_ALGO_SHA512, MSG_ALGO_WHIRLPOOL};
+	
+	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_PARAMS, MSG_DLG_COMPARE, NULL);
 
-		/*1/{DI_TEXT,			5, 2, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_ALGO), 0},
-		/*2/{DI_RADIOBUTTON,	6, 3, 0, 0, 0, (selectedAlgo==RHASH_CRC32), DIF_GROUP, 0, L"&1. CRC32"},
-		/*3/{DI_RADIOBUTTON,	6, 4, 0, 0, 0, (selectedAlgo==RHASH_MD5), 0, 0, L"&2. MD5"},
-		/*4/{DI_RADIOBUTTON,	6, 5, 0, 0, 0, (selectedAlgo==RHASH_SHA1), 0, 0, L"&3. SHA1"},
-		/*5/{DI_RADIOBUTTON,	6, 6, 0, 0, 0, (selectedAlgo==RHASH_SHA256), 0, 0, L"&4. SHA256"},
-		/*6/{DI_RADIOBUTTON,	6, 7, 0, 0, 0, (selectedAlgo==RHASH_SHA512), 0, 0, L"&5. SHA512"},
-		/*7/{DI_RADIOBUTTON,	6, 8, 0, 0, 0, (selectedAlgo==RHASH_WHIRLPOOL), 0, 0, L"&6. Whirlpool"},
+	dlgBuilder.AddText(MSG_GEN_ALGO);
+	dlgBuilder.AddRadioButtons(&algoIndex, ARRAY_SIZE(algoNames), algoNames, false);
+	dlgBuilder.AddSeparator();
+	dlgBuilder.AddCheckbox(MSG_GEN_RECURSE, &doRecurse, 0, false);
+	dlgBuilder.AddOKCancel(MSG_BTN_RUN, MSG_BTN_CANCEL, -1, true);
 
-		/*8/{DI_TEXT,			3, 9, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
-		/*9/{DI_CHECKBOX,		5,10, 0, 0, 0, recursive, 0, 0, GetLocMsg(MSG_GEN_RECURSE)},
-
-		/*10/{DI_TEXT,			3,11, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
-		/*11/{DI_BUTTON,		0,12, 0,13, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_RUN), 0},
-		/*12/{DI_BUTTON,		0,12, 0,13, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
-	};
-	size_t numDialogItems = sizeof(DialogItems) / sizeof(DialogItems[0]);
-
-	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 45, 15, L"CompareParams", DialogItems, (unsigned) numDialogItems, 0, 0, FarSInfo.DefDlgProc, 0);
-
-	bool retVal = false;
-	if (hDlg != INVALID_HANDLE_VALUE)
+	if (dlgBuilder.ShowDialog())
 	{
-		int ExitCode = FarSInfo.DialogRun(hDlg);
-		if (ExitCode == numDialogItems - 2) // OK was pressed
-		{
-			recursive = DlgHlp_GetSelectionState(hDlg, 15) != 0;
-
-			for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
-			{
-				// Selection radios start from index = 2
-				if (DlgHlp_GetSelectionState(hDlg, 2 + i))
-					selectedAlgo = SupportedHashes[i].AlgoId;
-			}
-
-			retVal = true;
-		}
-		FarSInfo.DialogFree(hDlg);
+		recursive = doRecurse != 0;
+		selectedAlgo = SupportedHashes[algoIndex].AlgoId;
+		
+		return true;
 	}
-	return retVal;
-*/
+
 	return false;
 }
 
