@@ -38,6 +38,7 @@
 "Calculation complete"
 "Mismatched Files (%d)"
 "Missing Files (%d)"
+"Compare"
 
 "Generate"
 "Algorithm"
@@ -46,3 +47,10 @@
 "Single &File"
 "&Separate hash files"
 "&Display"
+
+"&1. CRC32"
+"&2. MD5"
+"&3. SHA1"
+"&4. SHA256"
+"&5. SHA512"
+"&6. Whirlpool"
