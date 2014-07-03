@@ -290,14 +290,6 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 		FarList mmList = {(int)nNumListItems, mmListItems};
 		memset(mmListItems, 0, nNumListItems * sizeof(FarListItem));
 
-		vector<wstring> vSameFolderFiles;
-		for (size_t i = 0; i < vMismatchList.size(); i++)
-		{
-			wstring &nextFile = vMismatchList[i];
-			if (nextFile.find_first_of(L"\\/") == wstring::npos)
-				vSameFolderFiles.push_back(nextFile);
-		}
-
 		int nDlgWidth = 68;
 		int nDlgHeight = 21;
 
@@ -342,7 +334,19 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 		FarSInfo.DialogRun(hDlg);
 		FarSInfo.DialogFree(hDlg);
 
+		// Select mismatched files that are in the same folder
+
+		vector<wstring> vSameFolderFiles;
+		for (size_t i = 0; i < vMismatchList.size(); i++)
+		{
+			wstring &nextFile = vMismatchList[i];
+			if (nextFile.find_first_of(L"\\/") == wstring::npos)
+				vSameFolderFiles.push_back(nextFile);
+		}
+
 		SelectFilesOnPanel(PANEL_ACTIVE, vSameFolderFiles, true);
+
+		free(mmListItems);
 	}
 }
 
