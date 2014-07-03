@@ -8,12 +8,12 @@ PluginStartupInfo FarSInfo;
 static FARSTANDARDFUNCTIONS FSF;
 
 // Plugin settings
-static bool optDetectHashFiles = true;
-static bool optClearSelectionOnComplete = true;
-static bool optConfirmAbort = true;
-static bool optAutoExtension = true;
+static int optDetectHashFiles = TRUE;
+static int optClearSelectionOnComplete = TRUE;
+static int optConfirmAbort = TRUE;
+static int optAutoExtension = TRUE;
 static int optDefaultAlgo = RHASH_MD5;
-static bool optUsePrefix = true;
+static int optUsePrefix = TRUE;
 static wchar_t optPrefix[32] = L"check";
 
 static rhash_ids s_SupportedAlgos[] = {RHASH_CRC32, RHASH_MD5, RHASH_SHA1, RHASH_SHA256, RHASH_SHA512, RHASH_WHIRLPOOL};

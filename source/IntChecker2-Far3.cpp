@@ -604,6 +604,8 @@ static void RunGenerateHashes()
 	wstring outputFile(L"hashlist");
 
 	HashAlgoInfo *selectedHashInfo = GetAlgoInfo(genAlgo);
+	if (!selectedHashInfo) return;
+
 	if (optAutoExtension) outputFile += selectedHashInfo->DefaultExt;
 
 	// If only one file is selected then offer it's name as base for hash file name
@@ -976,59 +978,40 @@ void WINAPI ExitFARW(const ExitInfo* Info)
 
 intptr_t WINAPI ConfigureW(const ConfigureInfo* Info)
 {
-/*
-//TODO: fix
-	FarListItem algoListItems[NUMBER_OF_SUPPORTED_HASHES] = {0};
-	FarList algoDlgList = {NUMBER_OF_SUPPORTED_HASHES, algoListItems};
-
-	FarDialogItem DialogItems []={
-	/*00/ {DI_DOUBLEBOX, 3, 1,40,12, 0, 0, 0,0, GetLocMsg(MSG_CONFIG_TITLE), 0},
-	/*01/ {DI_TEXT,	  5, 2, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_CONFIG_DEFAULT_ALGO), 0},
-	/*02/ {DI_COMBOBOX,  5, 3,20, 0, 0, (DWORD_PTR)&algoDlgList, DIF_DROPDOWNLIST, 0, NULL, 0},
-	/*03/ {DI_TEXT,	  3, 4, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
-	/*04/ {DI_CHECKBOX,  5, 5, 0, 0, 0, optUsePrefix, 0,0, GetLocMsg(MSG_CONFIG_PREFIX), 0},
-	/*05/ {DI_EDIT,	  8, 6,24, 0, 0, 0, 0,0, optPrefix, 0},
-	/*06/ {DI_CHECKBOX,  5, 7, 0, 0, 0, optConfirmAbort, 0,0, GetLocMsg(MSG_CONFIG_CONFIRM_ABORT), 0},
-	/*07/ {DI_CHECKBOX,  5, 8, 0, 0, 0, optClearSelectionOnComplete, 0,0, GetLocMsg(MSG_CONFIG_CLEAR_SELECTION), 0},
-	/*08/ {DI_CHECKBOX,  5, 9, 0, 0, 0, optAutoExtension, 0,0, GetLocMsg(MSG_CONFIG_AUTOEXT), 0},
-	/*09/ {DI_TEXT,	  3,10, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
-	/*0A/ {DI_BUTTON,	  0,11, 0, 0, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_OK), 0},
-	/*0B/ {DI_BUTTON,    0,11, 0, 0, 1, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
-	};
-
+	LPCWSTR *algoList = new LPCWSTR[NUMBER_OF_SUPPORTED_HASHES];
+	int selectedAlgo = 0;
 	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
 	{
-		algoListItems[i].Text = SupportedHashes[i].AlgoName.c_str();
+		algoList[i] = SupportedHashes[i].AlgoName.c_str();
 		if (SupportedHashes[i].AlgoId == optDefaultAlgo)
-			algoListItems[i].Flags = LIF_SELECTED;
+			selectedAlgo = i;
 	}
 
-	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 44, 14, L"IntCheckerConfig",
-		DialogItems, sizeof(DialogItems) / sizeof(DialogItems[0]), 0, 0, FarSInfo.DefDlgProc, 0);
+	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_CONFIG, GetLocMsg(MSG_CONFIG_TITLE), L"IntCheckerConfig");
 
-	int nOkID = ARRAY_SIZE(DialogItems) - 2;
+	dlgBuilder.AddText(MSG_CONFIG_DEFAULT_ALGO);
+	dlgBuilder.AddComboBox(&selectedAlgo, NULL, 15, algoList, NUMBER_OF_SUPPORTED_HASHES, DIF_DROPDOWNLIST);
 
-	if (hDlg != INVALID_HANDLE_VALUE)
+	dlgBuilder.AddSeparator();
+	dlgBuilder.AddCheckbox(MSG_CONFIG_PREFIX, (BOOL*) &optUsePrefix);
+	
+	FarDialogItem* editItem = dlgBuilder.AddEditField(optPrefix, ARRAY_SIZE(optPrefix), 16);
+	editItem->X1 += 3;
+	
+	dlgBuilder.AddCheckbox(MSG_CONFIG_CONFIRM_ABORT, (BOOL*) &optConfirmAbort);
+	dlgBuilder.AddCheckbox(MSG_CONFIG_CLEAR_SELECTION, (BOOL*) &optClearSelectionOnComplete);
+	dlgBuilder.AddCheckbox(MSG_CONFIG_AUTOEXT, (BOOL*) &optAutoExtension);
+
+	dlgBuilder.AddOKCancel(MSG_BTN_OK, MSG_BTN_CANCEL, -1, true);
+
+	if (dlgBuilder.ShowDialog())
 	{
-		int ExitCode = FarSInfo.DialogRun(hDlg);
-		if (ExitCode == nOkID) // OK was pressed
-		{
-			optUsePrefix = DlgHlp_GetSelectionState(hDlg, 4);
-			DlgHlp_GetEditBoxText(hDlg, 5, optPrefix, ARRAY_SIZE(optPrefix));
-			optConfirmAbort = DlgHlp_GetSelectionState(hDlg, 6);
-			optClearSelectionOnComplete = DlgHlp_GetSelectionState(hDlg, 7);
-			optAutoExtension = DlgHlp_GetSelectionState(hDlg, 8);
-
-			int selectedAlgo = (int) DlgList_GetCurPos(FarSInfo, hDlg, 2);
-			optDefaultAlgo = SupportedHashes[selectedAlgo].AlgoId;
-
-			SaveSettings();
-		}
-		FarSInfo.DialogFree(hDlg);
-
-		if (ExitCode == nOkID) return TRUE;
+		optDefaultAlgo = SupportedHashes[selectedAlgo].AlgoId;
+		
+		SaveSettings();
+		return TRUE;
 	}
-*/
+
 	return FALSE;
 }
 
