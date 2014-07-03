@@ -19,4 +19,6 @@ int PrepareFilesList(const wchar_t* basePath, const wchar_t* basePrefix, StringL
 bool CopyTextToClipboard(std::wstring &data);
 bool CopyTextToClipboard(std::vector<std::wstring> &data);
 
+std::wstring FormatString(const std::wstring fmt, ...);
+
 #endif // Utils_h__
