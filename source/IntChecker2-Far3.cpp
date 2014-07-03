@@ -124,7 +124,7 @@ static void GetSelectedPanelFiles(PanelInfo &pi, wstring &panelDir, StringList &
 		if (PPI)
 		{
 			FarGetPluginPanelItem FGPPI = {sizeof(FarGetPluginPanelItem), requiredBytes, PPI};
-			FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETSELECTEDPANELITEM, i, PPI);
+			FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETSELECTEDPANELITEM, i, &FGPPI);
 			if (wcscmp(PPI->FileName, L"..") && wcscmp(PPI->FileName, L"."))
 			{
 				if ((PPI->FileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
