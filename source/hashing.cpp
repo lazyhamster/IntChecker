@@ -53,12 +53,18 @@ static bool IsComment(char* line)
 
 HashAlgoInfo* GetAlgoInfo(rhash_ids algoId)
 {
+	int i = GetAlgoIndex(algoId);
+	return i >= 0 ? &SupportedHashes[i] : nullptr;
+}
+
+int GetAlgoIndex(rhash_ids algoId)
+{
 	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
 	{
 		if (SupportedHashes[i].AlgoId == algoId)
-			return &SupportedHashes[i];
+			return i;
 	}
-	return NULL;
+	return -1;
 }
 
 //////////////////////////////////////////////////////////////////////////
