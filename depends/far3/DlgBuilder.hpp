@@ -467,6 +467,23 @@ class DialogBuilderBase
 			}
 		}
 
+		T* AddRadioButton(int *Value, int MessageId, bool StartGroup, bool Selected, bool FocusOnSelected=false)
+		{
+			T *Item = AddDialogItem(DI_RADIOBUTTON, GetLangString(MessageId));
+			SetNextY(Item);
+			Item->X2 = Item->X1 + ItemWidth(*Item);
+			if (StartGroup)
+				Item->Flags |= DIF_GROUP;
+			if (Selected)
+			{
+				Item->Selected = TRUE;
+				if (FocusOnSelected)
+					Item->Flags |= DIF_FOCUS;
+			}
+			SetLastItemBinding(CreateRadioButtonBinding(Value));
+			return Item;
+		}
+
 		// Добавляет поле типа DI_FIXEDIT для редактирования указанного числового значения.
 		virtual T *AddIntEditField(int *Value, int Width)
 		{
