@@ -419,18 +419,19 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 	return true;
 }
 
-static LONG_PTR WINAPI HashParamsDlgProc(HANDLE hDlg, int Msg, int Param1, void* Param2)
+static intptr_t WINAPI HashParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t Param1, void* Param2)
 {
+	const int nTextBoxIndex = 13;
+
 	if (Msg == DN_BTNCLICK && optAutoExtension)
 	{
-/*
-//TODO: fix
 		if (Param2 && (Param1 >= 2) && (Param1 <= 2 + NUMBER_OF_SUPPORTED_HASHES))
 		{
 			int selectedHashIndex = Param1 - 2;
 			wchar_t wszHashFileName[MAX_PATH];
 
-			DlgHlp_GetEditBoxText(hDlg, 13, wszHashFileName, ARRAY_SIZE(wszHashFileName));
+			FarDialogItemData fdid = {sizeof(FarDialogItemData), 0, wszHashFileName};
+			FarSInfo.SendDlgMessage(hDlg, DM_GETTEXT, nTextBoxIndex, &fdid);
 
 			// We should only replace extensions if it exists and is one of auto-extensions
 			// this way custom names will not be touched when user switch algorithms
@@ -442,7 +443,7 @@ static LONG_PTR WINAPI HashParamsDlgProc(HANDLE hDlg, int Msg, int Param1, void*
 					if ((i != selectedHashIndex) && (SupportedHashes[i].DefaultExt == extPtr))
 					{
 						wcscpy_s(extPtr, MAX_PATH - (extPtr - wszHashFileName), SupportedHashes[selectedHashIndex].DefaultExt.c_str());
-						FarSInfo.SendDlgMessage(hDlg, DM_SETTEXTPTR, 13, (LONG_PTR) wszHashFileName);
+						FarSInfo.SendDlgMessage(hDlg, DM_SETTEXTPTR, nTextBoxIndex, wszHashFileName);
 						break;
 					}
 				}
@@ -450,7 +451,6 @@ static LONG_PTR WINAPI HashParamsDlgProc(HANDLE hDlg, int Msg, int Param1, void*
 
 			return TRUE;
 		}
-*/
 	}
 
 	return FarSInfo.DefDlgProc(hDlg, Msg, Param1, Param2);
@@ -466,7 +466,7 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 	wchar_t outputFileBuf[MAX_PATH] = {0};
 	wcscpy_s(outputFileBuf, ARRAY_SIZE(outputFileBuf), outputFileName.c_str());
 		
-	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_PARAMS, MSG_GEN_TITLE, L"GenerateParams");
+	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_PARAMS, MSG_GEN_TITLE, L"GenerateParams", HashParamsDlgProc);
 
 	dlgBuilder.AddText(MSG_GEN_ALGO);
 	dlgBuilder.AddRadioButtons(&algoIndex, ARRAY_SIZE(algoNames), algoNames);
