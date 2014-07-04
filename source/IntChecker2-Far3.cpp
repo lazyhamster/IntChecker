@@ -458,64 +458,45 @@ static LONG_PTR WINAPI HashParamsDlgProc(HANDLE hDlg, int Msg, int Param1, void*
 
 static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive, HashOutputTargets &outputTarget, wstring &outputFileName)
 {
-	return false;
-	/*
-//TODO: fix
-	FarDialogItem DialogItems []={
-		/*0/{DI_DOUBLEBOX,		3, 1, 41,19, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TITLE)},
+	int algoIndex = GetAlgoIndex(selectedAlgo);
+	int algoNames[] = {MSG_ALGO_CRC, MSG_ALGO_MD5, MSG_ALGO_SHA1, MSG_ALGO_SHA256, MSG_ALGO_SHA512, MSG_ALGO_WHIRLPOOL};
+	int targetIndex = outputTarget;
+	int doRecurse = recursive;
+	
+	wchar_t outputFileBuf[MAX_PATH] = {0};
+	wcscpy_s(outputFileBuf, ARRAY_SIZE(outputFileBuf), outputFileName.c_str());
+		
+	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_PARAMS, MSG_GEN_TITLE, L"GenerateParams");
 
-		/*1/{DI_TEXT,			5, 2, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_ALGO), 0},
-		/*2/{DI_RADIOBUTTON,	6, 3, 0, 0, 0, (selectedAlgo==RHASH_CRC32), DIF_GROUP, 0, L"&1. CRC32"},
-		/*3/{DI_RADIOBUTTON,	6, 4, 0, 0, 0, (selectedAlgo==RHASH_MD5), 0, 0, L"&2. MD5"},
-		/*4/{DI_RADIOBUTTON,	6, 5, 0, 0, 0, (selectedAlgo==RHASH_SHA1), 0, 0, L"&3. SHA1"},
-		/*5/{DI_RADIOBUTTON,	6, 6, 0, 0, 0, (selectedAlgo==RHASH_SHA256), 0, 0, L"&4. SHA256"},
-		/*6/{DI_RADIOBUTTON,	6, 7, 0, 0, 0, (selectedAlgo==RHASH_SHA512), 0, 0, L"&5. SHA512"},
-		/*7/{DI_RADIOBUTTON,	6, 8, 0, 0, 0, (selectedAlgo==RHASH_WHIRLPOOL), 0, 0, L"&6. Whirlpool"},
+	dlgBuilder.AddText(MSG_GEN_ALGO);
+	dlgBuilder.AddRadioButtons(&algoIndex, ARRAY_SIZE(algoNames), algoNames);
+	dlgBuilder.AddSeparator();
+	dlgBuilder.AddText(MSG_GEN_TARGET);
+	
+	dlgBuilder.AddRadioButton(&targetIndex, MSG_GEN_TO_FILE, true, true);
+	dlgBuilder.AddRadioButton(&targetIndex, MSG_GEN_TO_SEPARATE, false, false)->Y1++;
+	dlgBuilder.AddRadioButton(&targetIndex, MSG_GEN_TO_SCREEN, false, false)->Y1++;
+	
+	auto editFileName = dlgBuilder.AddEditField(outputFileBuf, MAX_PATH, 30);
+	editFileName->Flags = DIF_EDITEXPAND|DIF_EDITPATH;
+	editFileName->X1 += 2;
+	editFileName->Y1 -= 2;
+	
+	dlgBuilder.AddSeparator();
+	dlgBuilder.AddCheckbox(MSG_GEN_RECURSE, &doRecurse, 0, false);
+	dlgBuilder.AddOKCancel(MSG_BTN_RUN, MSG_BTN_CANCEL, -1, true);
 
-		/*8/{DI_TEXT,			3, 9, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
-		/*9/{DI_TEXT,			5,10, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TARGET), 0},
-		/*10/{DI_RADIOBUTTON,	6,11, 0, 0, 0, 1, DIF_GROUP, 0, GetLocMsg(MSG_GEN_TO_FILE)},
-		/*11/{DI_RADIOBUTTON,	6,13, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TO_SEPARATE)},
-		/*12/{DI_RADIOBUTTON,	6,14, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TO_SCREEN)},
-		/*13/{DI_EDIT,		   10,12,38, 0, 1, 0, DIF_EDITEXPAND|DIF_EDITPATH,0, outputFileName.c_str(), 0},
-
-		/*14/{DI_TEXT,			3,15, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
-		/*15/{DI_CHECKBOX,		5,16, 0, 0, 0, recursive, 0, 0, GetLocMsg(MSG_GEN_RECURSE)},
-
-		/*16/{DI_TEXT,			3,17, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
-		/*17/{DI_BUTTON,		0,18, 0,13, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_RUN), 0},
-		/*18/{DI_BUTTON,		0,18, 0,13, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
-	};
-	size_t numDialogItems = sizeof(DialogItems) / sizeof(DialogItems[0]);
-
-	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 45, 21, L"GenerateParams", DialogItems, (unsigned) numDialogItems, 0, 0, HashParamsDlgProc, 0);
-
-	bool retVal = false;
-	if (hDlg != INVALID_HANDLE_VALUE)
+	if (dlgBuilder.ShowDialog())
 	{
-		int ExitCode = FarSInfo.DialogRun(hDlg);
-		if (ExitCode == numDialogItems - 2) // OK was pressed
-		{
-			recursive = DlgHlp_GetSelectionState(hDlg, 15) != 0;
-			DlgHlp_GetEditBoxText(hDlg, 13, outputFileName);
-
-			for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
-			{
-				// Selection radios start from index = 2
-				if (DlgHlp_GetSelectionState(hDlg, 2 + i))
-					selectedAlgo = SupportedHashes[i].AlgoId;
-			}
-
-			if (DlgHlp_GetSelectionState(hDlg, 10)) outputTarget = OT_SINGLEFILE;
-			else if (DlgHlp_GetSelectionState(hDlg, 11)) outputTarget = OT_SEPARATEFILES;
-			else if (DlgHlp_GetSelectionState(hDlg, 12)) outputTarget = OT_DISPLAY;
-
-			retVal = true;
-		}
-		FarSInfo.DialogFree(hDlg);
+		recursive = doRecurse != 0;
+		selectedAlgo = SupportedHashes[algoIndex].AlgoId;
+		outputTarget = (HashOutputTargets) targetIndex;
+		outputFileName = outputFileBuf;
+		
+		return true;
 	}
-	return retVal;
-*/
+		
+	return false;
 }
 
 static void DisplayHashListOnScreen(HashList &list)
@@ -614,10 +595,14 @@ static void RunGenerateHashes()
 		if (!AskForHashGenerationParams(genAlgo, recursive, outputTarget, outputFile))
 			return;
 
+		wchar_t fullPath[PATH_BUFFER_SIZE];
+		FSF.ConvertPath(CPM_FULL, outputFile.c_str(), fullPath, ARRAY_SIZE(fullPath));
+		outputFile = fullPath;
+
 		// Check if hash file already exists
 		if ((outputTarget == OT_SINGLEFILE) && IsFile(outputFile.c_str()))
 		{
-			wchar_t wszMsgText[100];
+			wchar_t wszMsgText[256] = {0};
 			swprintf_s(wszMsgText, ARRAY_SIZE(wszMsgText), GetLocMsg(MSG_DLG_OVERWRITE_FILE_TEXT), outputFile.c_str());
 
 			if (!ConfirmMessage(GetLocMsg(MSG_DLG_OVERWRITE_FILE), wszMsgText, true))
