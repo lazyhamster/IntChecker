@@ -264,58 +264,49 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 	else
 	{
 		// Otherwise display proper list of invalid/missing files
-/*
-//TODO: fix
-		size_t nNumListItems = (vMismatchList.size() > 0 ? vMismatchList.size() + 1 : 0)
-			+ (vMissingList.size() > 0 ? vMissingList.size() + 1 : 0);
-		FarListItem* mmListItems = (FarListItem*) malloc(nNumListItems * sizeof(FarListItem));
-		FarList mmList = {(int)nNumListItems, mmListItems};
-		memset(mmListItems, 0, nNumListItems * sizeof(FarListItem));
 
-		int nDlgWidth = 68;
-		int nDlgHeight = 21;
-
-		FarDialogItem DialogItems []={
-			/*00/ {DI_DOUBLEBOX, 3, 1,nDlgWidth-4,nDlgHeight-2, 0, 0, 0,0, GetLocMsg(MSG_DLG_VALIDATION_COMPLETE), 0},
-			/*01/ {DI_LISTBOX,   5, 2,nDlgWidth-6,nDlgHeight-5, 0, (DWORD_PTR) &mmList, DIF_LISTNOCLOSE | DIF_LISTNOBOX, 0, NULL, 0},
-			/*02/ {DI_TEXT,	  3,nDlgHeight-4, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
-			/*03/ {DI_BUTTON,	  0,nDlgHeight-3, 0, 0, 1, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_CLOSE), 0},
-		};
-
-		HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, nDlgWidth, nDlgHeight, NULL,
-			DialogItems, sizeof(DialogItems) / sizeof(DialogItems[0]), 0, 0, FarSInfo.DefDlgProc, 0);
+		//Prepare list
+		vector<wstring> displayStrings;
 
 		size_t nListIndex = 0;
 		if (vMismatchList.size() > 0)
 		{
-			wchar_t wszMismatchHeader[64] = {0};
-			swprintf_s(wszMismatchHeader, GetLocMsg(MSG_DLG_MISMATCHED_FILES), vMismatchList.size());
+			displayStrings.push_back(FormatString(GetLocMsg(MSG_DLG_MISMATCHED_FILES), vMismatchList.size()));
 
-			mmListItems[nListIndex++].Text = wszMismatchHeader;
 			for (size_t i = 0; i < vMismatchList.size(); i++)
 			{
 				wstring &nextFile = vMismatchList[i];
-				nextFile.insert(0, L"\t\t");
-				mmListItems[nListIndex++].Text = nextFile.c_str();
+				displayStrings.push_back(FormatString(L"\t\t%s", nextFile.c_str()));
 			}
 		}
 		if (vMissingList.size() > 0)
 		{
-			wchar_t wszMissingHeader[64] = {0};
-			swprintf_s(wszMissingHeader, GetLocMsg(MSG_DLG_MISSING_FILES), vMissingList.size());
+			displayStrings.push_back(FormatString(GetLocMsg(MSG_DLG_MISSING_FILES), vMissingList.size()));
 
-			mmListItems[nListIndex++].Text = wszMissingHeader;
 			for (size_t i = 0; i < vMissingList.size(); i++)
 			{
 				wstring &nextFile = vMissingList[i];
-				nextFile.insert(0, L"\t\t");
-				mmListItems[nListIndex++].Text = nextFile.c_str();
+				displayStrings.push_back(FormatString(L"\t\t%s", nextFile.c_str()));
 			}
 		}
 
-		FarSInfo.DialogRun(hDlg);
-		FarSInfo.DialogFree(hDlg);
-*/
+		// Display dialog
+
+		PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_RESULTS, MSG_DLG_VALIDATION_COMPLETE, nullptr);
+
+		const wchar_t* *boxList = new const wchar_t*[displayStrings.size()];
+		for (size_t i = 0; i < displayStrings.size(); i++)
+		{
+			boxList[i] = displayStrings[i].c_str();
+		}
+
+		dlgBuilder.AddListBox(nullptr, 57, 14, boxList, displayStrings.size(), DIF_LISTNOBOX | DIF_LISTNOCLOSE);
+		dlgBuilder.AddOKCancel(MSG_BTN_CLOSE, -1, -1, true);
+
+		dlgBuilder.ShowDialog();
+
+		delete [] boxList;
+
 		// Select mismatched files that are in the same folder
 		
 		vector<wstring> vSameFolderFiles;
