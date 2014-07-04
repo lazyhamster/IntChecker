@@ -53,7 +53,7 @@ static bool ConfirmMessage(const wchar_t* headerText, const wchar_t* messageText
 	int flags = FMSG_MB_YESNO;
 	if (isWarning) flags |= FMSG_WARNING;
 
-	int resp = FarSInfo.Message(&GUID_PLUGIN_MAIN, &GUID_MESSAGE_BOX, flags, NULL, MsgLines, 2, 0);
+	intptr_t resp = FarSInfo.Message(&GUID_PLUGIN_MAIN, &GUID_MESSAGE_BOX, flags, NULL, MsgLines, 2, 0);
 	return (resp == 0);
 }
 
@@ -64,10 +64,9 @@ static bool ConfirmMessage(int headerMsgID, int textMsgID, bool isWarning)
 
 static bool GetPanelDir(HANDLE hPanel, wstring& dirStr)
 {
-	int nBufSize;
 	bool ret = false;
 
-	nBufSize = FarSInfo.PanelControl(hPanel, FCTL_GETPANELDIRECTORY, 0, NULL);
+	size_t nBufSize = FarSInfo.PanelControl(hPanel, FCTL_GETPANELDIRECTORY, 0, NULL);
 	FarPanelDirectory *panelDir = (FarPanelDirectory*) malloc(nBufSize);
 	panelDir->StructSize = sizeof(FarPanelDirectory);
 	if (FarSInfo.PanelControl(hPanel, FCTL_GETPANELDIRECTORY, nBufSize, panelDir))
@@ -427,7 +426,7 @@ static intptr_t WINAPI HashParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t Par
 	{
 		if (Param2 && (Param1 >= 2) && (Param1 <= 2 + NUMBER_OF_SUPPORTED_HASHES))
 		{
-			int selectedHashIndex = Param1 - 2;
+			int selectedHashIndex = (int) Param1 - 2;
 			wchar_t wszHashFileName[MAX_PATH];
 
 			FarDialogItemData fdid = {sizeof(FarDialogItemData), 0, wszHashFileName};
@@ -517,7 +516,7 @@ static void DisplayHashListOnScreen(HashList &list)
 	dlgBuilder.AddListBox(NULL, 60, 15, listBoxItems, list.GetCount(), DIF_LISTNOCLOSE | DIF_LISTNOBOX);
 	dlgBuilder.AddOKCancel(MSG_BTN_CLOSE, MSG_BTN_CLIPBOARD, -1, true);
 	
-	int exitCode = dlgBuilder.ShowDialogEx();
+	intptr_t exitCode = dlgBuilder.ShowDialogEx();
 	if (exitCode == 1)
 	{
 		CopyTextToClipboard(listStrDump);
@@ -536,7 +535,7 @@ static int DisplayHashGenerateError(const wstring& fileName)
 	DlgLines[4] = L"Retry";
 	DlgLines[5] = GetLocMsg(MSG_BTN_CANCEL);
 
-	return FarSInfo.Message(&GUID_PLUGIN_MAIN, &GUID_MESSAGE_BOX, FMSG_WARNING, NULL, DlgLines, ARRAY_SIZE(DlgLines), 3);
+	return (int) FarSInfo.Message(&GUID_PLUGIN_MAIN, &GUID_MESSAGE_BOX, FMSG_WARNING, NULL, DlgLines, ARRAY_SIZE(DlgLines), 3);
 }
 
 static void RunGenerateHashes()
@@ -697,7 +696,7 @@ static void RunGenerateHashes()
 	// Clear selection if requested
 	if (saveSuccess && optClearSelectionOnComplete)
 	{
-		for (int i = pi.SelectedItemsNumber - 1; i >=0; i--)
+		for (size_t i = pi.SelectedItemsNumber - 1; i >=0; i--)
 			FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_CLEARSELECTION, i, NULL);
 	}
 
@@ -1008,7 +1007,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 			nNumMenuItems = IsFile(selectedFilePath.c_str()) ? 3 : 2;
 		}
 
-		int nMItem = FarSInfo.Menu(&GUID_PLUGIN_MAIN, &GUID_DIALOG_MENU, -1, -1, 0, 0, GetLocMsg(MSG_PLUGIN_NAME), NULL, NULL, NULL, NULL, MenuItems, nNumMenuItems);
+		intptr_t nMItem = FarSInfo.Menu(&GUID_PLUGIN_MAIN, &GUID_DIALOG_MENU, -1, -1, 0, 0, GetLocMsg(MSG_PLUGIN_NAME), NULL, NULL, NULL, NULL, MenuItems, nNumMenuItems);
 
 		switch (nMItem)
 		{

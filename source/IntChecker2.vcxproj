@@ -388,6 +388,7 @@
     <ClCompile Include="IntChecker2.cpp">
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug-Far3|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release-Far3|Win32'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release-Far3|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="RegistrySettings.cpp" />
     <ClCompile Include="stdafx.cpp">

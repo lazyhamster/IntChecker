@@ -862,7 +862,7 @@ public:
 	{
 		if (SelectedIndex)
 		{
-			*SelectedIndex = Info.SendDlgMessage(*DialogHandle, DM_LISTGETCURPOS, ID, 0);
+			*SelectedIndex = (int) Info.SendDlgMessage(*DialogHandle, DM_LISTGETCURPOS, ID, 0);
 		}
 		if (TextBuf)
 		{
