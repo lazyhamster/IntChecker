@@ -18,6 +18,19 @@ if NOT ERRORLEVEL == 0 GOTO PACK_ERROR
 
 :Far3
 
+IF NOT EXIST ..\bin\Release-Far3\ GOTO Far3x64
+ECHO Packing Far3 x86
+%PACKER_CMD% -- ..\bin\IntChecker2_Far3_x86_%1.rar "..\bin\Release-Far3\*" > nul
+if NOT ERRORLEVEL == 0 GOTO PACK_ERROR
+
+:Far3x64
+IF NOT EXIST ..\bin\Release-Far3-x64\ GOTO Done
+ECHO Packing Far3 x64
+%PACKER_CMD% -- ..\bin\IntChecker2_Far3_x64_%1.rar "..\bin\Release-Far3-x64\*" > nul
+if NOT ERRORLEVEL == 0 GOTO PACK_ERROR
+
+:Done
+
 ECHO [SUCCESS]
 EXIT 0
 
