@@ -696,7 +696,7 @@ static void RunGenerateHashes()
 	// Clear selection if requested
 	if (saveSuccess && optClearSelectionOnComplete)
 	{
-		for (size_t i = pi.SelectedItemsNumber - 1; i >=0; i--)
+		for (int i = (int) pi.SelectedItemsNumber - 1; i >=0; i--)
 			FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_CLEARSELECTION, i, NULL);
 	}
 
