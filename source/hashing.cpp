@@ -143,7 +143,7 @@ bool HashList::LoadList( const wchar_t* filepath )
 
 	// Do not accept files larger then 128kb
 	int64_t fileSize = GetFileSize_i64(filepath);
-	if (fileSize > 128 * 1024) return false;
+	if ((fileSize <= 0) || (fileSize > 128 * 1024)) return false;
 	
 	if (_wfopen_s(&inputFile, filepath, L"r") != 0)
 		return false;
