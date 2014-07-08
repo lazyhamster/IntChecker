@@ -24,7 +24,7 @@ bool CheckEsc()
 
 bool IsAbsPath(const wchar_t* path)
 {
-	return (wcslen(path) > 3) && ((path[1] == L':' && path[2] == L'\\') || (path[0] == L'\\' && path[1] == L'\\'));
+	return !PathIsRelative(path);
 }
 
 void IncludeTrailingPathDelim(wchar_t *pathBuf, size_t bufMaxSize)
