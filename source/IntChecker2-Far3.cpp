@@ -337,7 +337,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 	vector<wstring> vMismatches, vMissing;
 	vector<size_t> existingFiles;
 	int64_t totalFilesSize = 0;
-	char hashValueBuf[150];
+	char hashValueBuf[150] = {0};
 
 	if (!GetPanelDir(PANEL_ACTIVE, workDir))
 		return false;
