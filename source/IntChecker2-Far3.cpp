@@ -977,13 +977,14 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 	{
 		OpenCommandLineInfo* cmdInfo = (OpenCommandLineInfo*) OInfo->Data;
 
-		wchar_t* szLocalNameBuffer = _wcsdup(cmdInfo->CommandLine);
-		FSF.Unquote(szLocalNameBuffer);
-		
-		if (!RunValidateFiles(szLocalNameBuffer, true))
-			DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_NOTVALIDLIST), NULL, true, true);
+		wchar_t wszLocalNameBuffer[PATH_BUFFER_SIZE] = {0};
 
-		free(szLocalNameBuffer);
+		wcscpy_s(wszLocalNameBuffer, ARRAY_SIZE(wszLocalNameBuffer), cmdInfo->CommandLine);
+		FSF.Unquote(wszLocalNameBuffer);
+		FSF.ConvertPath(CPM_FULL, wszLocalNameBuffer, wszLocalNameBuffer, ARRAY_SIZE(wszLocalNameBuffer));
+		
+		if (!RunValidateFiles(wszLocalNameBuffer, true))
+			DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_NOTVALIDLIST), NULL, true, true);
 	}
 	else if (OInfo->OpenFrom == OPEN_PLUGINSMENU)
 	{
