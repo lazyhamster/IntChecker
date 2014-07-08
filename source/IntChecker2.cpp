@@ -383,7 +383,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 		{
 			FileHashInfo fileInfo = hashes.GetFileInfo(i);
 
-			wstring strFullFilePath = workDir + fileInfo.Filename;
+			wstring strFullFilePath = IsAbsPath(fileInfo.Filename.c_str()) ? fileInfo.Filename : workDir + fileInfo.Filename;
 			if (IsFile(strFullFilePath.c_str()))
 			{
 				existingFiles.push_back(i);
@@ -406,7 +406,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 		for (size_t i = 0; i < existingFiles.size(); i++)
 		{
 			FileHashInfo fileInfo = hashes.GetFileInfo(existingFiles[i]);
-			wstring strFullFilePath = workDir + fileInfo.Filename;
+			wstring strFullFilePath = IsAbsPath(fileInfo.Filename.c_str()) ? fileInfo.Filename : workDir + fileInfo.Filename;
 
 			progressCtx.FileName = fileInfo.Filename;
 			progressCtx.CurrentFileIndex++;
