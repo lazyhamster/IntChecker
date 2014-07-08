@@ -30,14 +30,14 @@ bool IsAbsPath(const wchar_t* path)
 void IncludeTrailingPathDelim(wchar_t *pathBuf, size_t bufMaxSize)
 {
 	size_t nPathLen = wcslen(pathBuf);
-	if (pathBuf[nPathLen - 1] != '\\')
+	if ((nPathLen > 0) && (pathBuf[nPathLen - 1] != '\\'))
 		wcscat_s(pathBuf, bufMaxSize, L"\\");
 }
 
 void IncludeTrailingPathDelim(wstring &pathStr)
 {
 	size_t nStrLen = pathStr.length();
-	if (pathStr[nStrLen - 1] != '\\')
+	if ((nStrLen > 0) && (pathStr[nStrLen - 1] != '\\'))
 		pathStr += L"\\";
 }
 
