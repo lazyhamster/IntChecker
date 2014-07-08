@@ -20,6 +20,9 @@ typedef void (*pupdate_t)(void *ctx, const void* msg, size_t size);
 typedef void (*pfinal_t)(void*, unsigned char*);
 typedef void (*pcleanup_t)(void*);
 
+/**
+ * Information about a hash function
+ */
 typedef struct rhash_hash_info
 {
 	rhash_info *info;
@@ -30,6 +33,29 @@ typedef struct rhash_hash_info
 	pfinal_t   final;
 	pcleanup_t cleanup;
 } rhash_hash_info;
+
+/**
+ * Information on a hash function and its context
+ */
+typedef struct rhash_vector_item
+{
+	struct rhash_hash_info* hash_info;
+	void *context;
+} rhash_vector_item;
+
+/**
+ * The rhash context containing contexts for several hash functions
+ */
+typedef struct rhash_context_ext
+{
+	struct rhash_context rc;
+	unsigned hash_vector_size; /* number of contained hash sums */
+	unsigned flags;
+	unsigned state;
+	void *callback, *callback_data;
+	void *bt_ctx;
+	rhash_vector_item vector[1]; /* contexts of contained hash sums */
+} rhash_context_ext;
 
 extern rhash_hash_info rhash_hash_info_default[RHASH_HASH_COUNT];
 extern rhash_hash_info* rhash_info_table;
@@ -56,6 +82,10 @@ extern rhash_info info_sha224;
 extern rhash_info info_sha256;
 extern rhash_info info_sha384;
 extern rhash_info info_sha512;
+extern rhash_info info_sha3_224;
+extern rhash_info info_sha3_256;
+extern rhash_info info_sha3_384;
+extern rhash_info info_sha3_512;
 extern rhash_info info_edr256;
 extern rhash_info info_edr512;
 
@@ -78,6 +108,10 @@ extern rhash_info info_edr512;
 #endif
 
 void rhash_init_algorithms(unsigned mask);
+
+#if defined(OPENSSL_RUNTIME) && !defined(USE_OPENSSL)
+# define USE_OPENSSL
+#endif
 
 #ifdef __cplusplus
 } /* extern "C" */

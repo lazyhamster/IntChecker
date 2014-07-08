@@ -84,6 +84,12 @@
     <ClCompile Include="librhash\whirlpool_sbox.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="librhash\sha3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="librhash\util.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="librhash\aich.h">
@@ -153,6 +159,9 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="librhash\whirlpool.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="librhash\sha3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

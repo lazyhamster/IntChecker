@@ -1,6 +1,6 @@
 /* rhash.c - implementation of LibRHash library calls
  *
- * Copyright: 2008 Aleksey Kravchenko <rhash.admin@gmail.com>
+ * Copyright: 2008-2012 Aleksey Kravchenko <rhash.admin@gmail.com>
  *
  * Permission is hereby granted,  free of charge,  to any person  obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -8,7 +8,16 @@
  * the rights to  use, copy, modify,  merge, publish, distribute, sublicense,
  * and/or sell copies  of  the Software,  and to permit  persons  to whom the
  * Software is furnished to do so.
+ *
+ * This program  is  distributed  in  the  hope  that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  Use this program  at  your own risk!
  */
+
+/* macros for large file support, must be defined before any include file */
+#define _LARGEFILE64_SOURCE
+#define _FILE_OFFSET_BITS 64
+
 #include <string.h> /* memset() */
 #include <stdlib.h> /* free() */
 #include <stddef.h> /* ptrdiff_t */
@@ -59,29 +68,6 @@ int RHASH_API rhash_count(void)
 	return rhash_info_size;
 }
 
-/**
- * Information on a hash function and its context
- */
-typedef struct rhash_vector_item
-{
-	struct rhash_hash_info* hash_info;
-	void *context;
-} rhash_vector_item;
-
-/**
- * The rhash context containing contexts for several hash functions
- */
-typedef struct rhash_context_ext
-{
-	struct rhash_context rc;
-	unsigned hash_vector_size; /* number of contained hash sums */
-	unsigned flags;
-	unsigned state;
-	void *callback, *callback_data;
-	void *bt_ctx;
-	rhash_vector_item vector[1]; /* contexts of contained hash sums */
-} rhash_context_ext;
-
 /* Lo-level rhash library functions */
 
 /**
@@ -90,7 +76,7 @@ typedef struct rhash_context_ext
  * Then the context must be freed by calling rhash_free().
  *
  * @param hash_id union of bit flags, containing ids of hashes to calculate.
- * @return initialized rhash context
+ * @return initialized rhash context, NULL on error and errno is set
  */
 RHASH_API rhash rhash_init(unsigned hash_id)
 {
@@ -105,7 +91,10 @@ RHASH_API rhash rhash_init(unsigned hash_id)
 	char* phash_ctx;
 
 	hash_id &= RHASH_ALL_HASHES;
-	if(hash_id == 0) return NULL;
+	if(hash_id == 0) {
+		errno = EINVAL;
+		return NULL;
+	}
 
 	tail_bit_index = rhash_ctz(hash_id); /* get trailing bit index */
 	assert(tail_bit_index < RHASH_HASH_COUNT);
@@ -188,7 +177,7 @@ void rhash_free(rhash ctx)
 {
 	rhash_context_ext* const ectx = (rhash_context_ext*)ctx;
 	unsigned i;
-	
+
 	if(ctx == 0) return;
 	assert(ectx->hash_vector_size <= RHASH_HASH_COUNT);
 	ectx->state = STATE_DELETED; /* mark memory block as being removed */
@@ -214,7 +203,9 @@ RHASH_API void rhash_reset(rhash ctx)
 {
 	rhash_context_ext* const ectx = (rhash_context_ext*)ctx;
 	unsigned i;
-	assert(ectx->hash_vector_size > 0 && ectx->hash_vector_size < RHASH_HASH_COUNT);
+
+	assert(ectx->hash_vector_size > 0);
+	assert(ectx->hash_vector_size <= RHASH_HASH_COUNT);
 	ectx->state = STATE_ACTIVE; /* re-activate the structure */
 
 	/* re-initialize every hash in a loop */
@@ -243,7 +234,7 @@ RHASH_API int rhash_update(rhash ctx, const void* message, size_t length)
 {
 	rhash_context_ext* const ectx = (rhash_context_ext*)ctx;
 	unsigned i;
-	
+
 	assert(ectx->hash_vector_size <= RHASH_HASH_COUNT);
 	if(ectx->state != STATE_ACTIVE) return 0; /* do nothing if canceled */
 
@@ -329,9 +320,11 @@ static void rhash_put_digest(rhash ctx, unsigned hash_id, unsigned char* result)
 	}
 	digest = ((unsigned char*)item->context + info->digest_diff);
 	if(info->info->flags & F_SWAP32) {
-		rhash_u32_swap_copy(result, 0, digest, info->info->digest_size);
+		assert((info->info->digest_size & 3) == 0);
+		/* NB: the next call is correct only for multiple of 4 byte size */
+		rhash_swap_copy_str_to_u32(result, 0, digest, info->info->digest_size);
 	} else if(info->info->flags & F_SWAP64) {
-		rhash_u64_swap_copy(result, 0, digest, info->info->digest_size);
+		rhash_swap_copy_u64_to_str(result, digest, info->info->digest_size);
 	} else {
 		memcpy(result, digest, info->info->digest_size);
 	}
@@ -409,18 +402,20 @@ RHASH_API int rhash_file_update(rhash ctx, FILE* fd)
 	buffer = pmem + align8;
 
 	while(!feof(fd)) {
-		if(ectx->state != STATE_ACTIVE) break; /* stop if canceled */
+		/* stop if canceled */
+		if(ectx->state != STATE_ACTIVE) break;
 
 		length = fread(buffer, 1, block_size, fd);
-		/* read can return -1 on error */
-		if(length == (size_t)-1) {
-			res = -1; /* note: fread sets errno */
-			break;
-		}
-		rhash_update(ctx, buffer, length);
 
-		if(ectx->callback) {
-			((rhash_callback_t)ectx->callback)(ectx->callback_data, ectx->rc.msg_size);
+		if(ferror(fd)) {
+			res = -1; /* note: errno contains error code */
+			break;
+		} else if (length) {
+			rhash_update(ctx, buffer, length);
+
+			if(ectx->callback) {
+				((rhash_callback_t)ectx->callback)(ectx->callback_data, ectx->rc.msg_size);
+			}
 		}
 	}
 
@@ -443,7 +438,10 @@ RHASH_API int rhash_file(unsigned hash_id, const char* filepath, unsigned char* 
 	int res;
 
 	hash_id &= RHASH_ALL_HASHES;
-	if(hash_id == 0) return -1;
+	if(hash_id == 0) {
+		errno = EINVAL;
+		return -1;
+	}
 
 	if((fd = fopen(filepath, "rb")) == NULL) return -1;
 
@@ -475,7 +473,10 @@ RHASH_API int rhash_wfile(unsigned hash_id, const wchar_t* filepath, unsigned ch
 	int res;
 
 	hash_id &= RHASH_ALL_HASHES;
-	if(hash_id == 0) return -1;
+	if(hash_id == 0) {
+		errno = EINVAL;
+		return -1;
+	}
 
 	if((fd = _wfsopen(filepath, L"rb", _SH_DENYWR)) == NULL) return -1;
 
@@ -486,7 +487,7 @@ RHASH_API int rhash_wfile(unsigned hash_id, const wchar_t* filepath, unsigned ch
 
 	rhash_final(ctx, result);
 	rhash_free(ctx);
-	return 0;
+	return res;
 }
 #endif
 
@@ -597,7 +598,7 @@ static size_t rhash_get_magnet_url_size(const char* filepath,
 	}
 
 	/* loop through hash values */
-	for(bit = hash & -hash; bit <= hash; bit <<= 1) {
+	for(bit = hash & -(int)hash; bit <= hash; bit <<= 1) {
 		const char* name;
 		if((bit & hash) == 0) continue;
 		if((name = rhash_get_magnet_name(bit)) == 0) continue;
@@ -662,7 +663,7 @@ RHASH_API size_t rhash_print_magnet(char* output, const char* filepath,
 		if(!hash) continue;
 
 		/* loop through hash values */
-		for(bit = hash & -hash; bit <= hash; bit <<= 1) {
+		for(bit = hash & -(int)hash; bit <= hash; bit <<= 1) {
 			const char* name;
 			if((bit & hash) == 0) continue;
 			if(!(name = rhash_get_magnet_name(bit))) continue;
@@ -672,7 +673,7 @@ RHASH_API size_t rhash_print_magnet(char* output, const char* filepath,
 			strcpy(output, name);
 			output += strlen(name);
 			*(output++) = ':';
-			output += rhash_print(output, context, bit, 
+			output += rhash_print(output, context, bit,
 				(bit & (RHASH_SHA1 | RHASH_BTIH) ? flags | RHPR_BASE32 : flags));
 			*(output++) = '&';
 		}
@@ -724,17 +725,19 @@ size_t rhash_print_bytes(char* output, const unsigned char* bytes,
 }
 
 /**
- * Print text presentation of a hash sum with given hash_id to output buffer.
- * If hash_id is zero, then print hash sum with the lowest id stored in hash
- * context. Function fails if hash_id doesn't exist within the context.
+ * Print text presentation of a hash sum with given hash_id to the specified
+ * output buffer. If the hash_id is zero, then print the hash sum with
+ * the lowest id stored in the hash context.
+ * The function call fails if the context doesn't include a hash with the
+ * given hash_id.
  *
  * @param output a buffer to print the hash to
  * @param context algorithms state
  * @param hash_id id of the hash sum to print or 0 to print the first hash
  *                saved in the context.
- * @param flags  controls how to print the sum, can contain flags
+ * @param flags  a bitmask controlling how to print the hash. Can contain flags
  *               RHPR_UPPERCASE, RHPR_HEX, RHPR_BASE32, RHPR_BASE64, etc.
- * @return number of written characters on success, 0 on fail
+ * @return the number of written characters on success or 0 on fail
  */
 size_t RHASH_API rhash_print(char* output, rhash context, unsigned hash_id, int flags)
 {

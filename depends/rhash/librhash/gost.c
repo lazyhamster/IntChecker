@@ -2,7 +2,7 @@
  * based on the Russian Standard GOST R 34.11-94.
  * See also RFC 4357.
  *
- * Copyright: 2009 Aleksey Kravchenko <rhash.admin@gmail.com>
+ * Copyright: 2009-2012 Aleksey Kravchenko <rhash.admin@gmail.com>
  *
  * Permission is hereby granted,  free of charge,  to any person  obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -10,6 +10,10 @@
  * the rights to  use, copy, modify,  merge, publish, distribute, sublicense,
  * and/or sell copies  of  the Software,  and to permit  persons  to whom the
  * Software is furnished to do so.
+ *
+ * This program  is  distributed  in  the  hope  that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  Use this program  at  your own risk!
  */
 
 #include <string.h>
@@ -23,7 +27,7 @@ extern unsigned rhash_gost_sbox_cryptpro[4][256];
  * Initialize algorithm context before calculaing hash
  * with test parameters set.
  *
- * @param ctx context to initalize
+ * @param ctx context to initialize
  */
 void rhash_gost_init(gost_ctx *ctx)
 {
@@ -33,7 +37,7 @@ void rhash_gost_init(gost_ctx *ctx)
 /**
  * Initialize GOST algorithm context with CryptoPro parameter set.
  *
- * @param ctx context to initalize
+ * @param ctx context to initialize
  */
 void rhash_gost_cryptopro_init(gost_ctx *ctx)
 {
@@ -321,10 +325,10 @@ static void rhash_gost_compute_sum_and_hash(gost_ctx * ctx, const unsigned* bloc
 
 	/* compute the 256-bit sum */
 	for(i = 0; i < 8; i++) {
-		const unsigned old = ctx->sum[i];
 		LOAD_BLOCK_LE(i);
 		ctx->sum[i] += block_le[i] + carry;
-		carry = (ctx->sum[i] < old || ctx->sum[i] < block_le[i] ? 1 : 0);
+		carry = (ctx->sum[i] < block_le[i] ? 1 :
+			ctx->sum[i] == block_le[i] ? carry : 0);
 	}
 #endif /* USE_GCC_ASM_IA32 */
 

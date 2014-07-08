@@ -1,7 +1,7 @@
 /* sha.h sha512 and sha384 hash functions */
 #ifndef SHA512_H
 #define SHA512_H
-#include <stdint.h>
+#include "ustd.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,7 +23,7 @@ typedef struct sha512_ctx
 void rhash_sha384_init(sha512_ctx *ctx);
 void rhash_sha512_init(sha512_ctx *ctx);
 void rhash_sha512_update(sha512_ctx *ctx, const unsigned char* data, size_t length);
-void rhash_sha512_final(sha512_ctx *ctx, unsigned char result[32]);
+void rhash_sha512_final(sha512_ctx *ctx, unsigned char* result);
 
 #ifdef __cplusplus
 } /* extern "C" */

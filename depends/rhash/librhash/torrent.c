@@ -1,6 +1,6 @@
 /* torrent.c - create BitTorrent files and calculate BitTorrent  InfoHash (BTIH).
  *
- * Copyright: 2010 Aleksey Kravchenko <rhash.admin@gmail.com>
+ * Copyright: 2010-2012 Aleksey Kravchenko <rhash.admin@gmail.com>
  *
  * Permission is hereby granted,  free of charge,  to any person  obtaining a
  * copy of this software and associated documentation files (the "Software"),
@@ -8,6 +8,10 @@
  * the rights to  use, copy, modify,  merge, publish, distribute, sublicense,
  * and/or sell copies  of  the Software,  and to permit  persons  to whom the
  * Software is furnished to do so.
+ *
+ * This program  is  distributed  in  the  hope  that it will be useful,  but
+ * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
+ * or FITNESS FOR A PARTICULAR PURPOSE.  Use this program  at  your own risk!
  */
 
 #include <string.h>
@@ -31,6 +35,7 @@
 #define SHA1_FINAL(ctx, result) rhash_sha1_final(&ctx->sha1_context, (result))
 #endif
 
+#define BT_MIN_HASH_LENGTH 16384
 /** size of a SHA1 hash in bytes */
 #define BT_HASH_SIZE 20
 /** number of SHA1 hashes to store together in one block */
@@ -44,7 +49,8 @@
 void bt_init(torrent_ctx* ctx)
 {
 	memset(ctx, 0, sizeof(torrent_ctx));
-	ctx->piece_length = 65536;
+	ctx->piece_length = BT_MIN_HASH_LENGTH;
+	assert(BT_MIN_HASH_LENGTH == bt_default_piece_length(0));
 
 #ifdef USE_OPENSSL
 	{
@@ -62,6 +68,20 @@ void bt_init(torrent_ctx* ctx)
 }
 
 /**
+ * Free memory allocated by properties of torrent_vect structure.
+ *
+ * @param vect vector to clean
+ */
+static void bt_vector_clean(torrent_vect *vect)
+{
+	size_t i;
+	for(i = 0; i < vect->size; i++) {
+		free(vect->array[i]);
+	}
+	free(vect->array);
+}
+
+/**
  * Clean up torrent context by freeing all dynamically
  * allocated memory.
  *
@@ -69,23 +89,16 @@ void bt_init(torrent_ctx* ctx)
  */
 void bt_cleanup(torrent_ctx *ctx)
 {
-	size_t i;
 	assert(ctx != NULL);
 
-	/* destroy array of hash blocks */
-	for(i = 0; i < ctx->hash_blocks.size; i++) {
-		free(ctx->hash_blocks.array[i]);
-	}
-
-	/* destroy array of file paths */
-	for(i = 0; i < ctx->files.size; i++) {
-		free(ctx->files.array[i]);
-	}
+	/* destroy arrays of hash blocks and file paths */
+	bt_vector_clean(&ctx->hash_blocks);
+	bt_vector_clean(&ctx->files);
 
 	free(ctx->program_name);
 	free(ctx->announce);
 	ctx->announce = ctx->program_name = 0;
-	free(ctx->torrent_str);
+	free(ctx->content.str);
 }
 
 static void bt_generate_torrent(torrent_ctx *ctx);
@@ -240,18 +253,18 @@ void bt_final(torrent_ctx *ctx, unsigned char result[20])
 static int bt_str_ensure_length(torrent_ctx* ctx, size_t length)
 {
 	char* new_str;
-	if(length >= ctx->torrent_allocated && !ctx->error) {
+	if(length >= ctx->content.allocated && !ctx->error) {
 		length++; /* allocate one character more */
 		if(length < 64) length = 64;
 		else length = (length + 255) & ~255;
-		new_str = (char*)realloc(ctx->torrent_str, length);
+		new_str = (char*)realloc(ctx->content.str, length);
 		if(new_str == NULL) {
 			ctx->error = 1;
-			ctx->torrent_allocated = 0;
+			ctx->content.allocated = 0;
 			return 0;
 		}
-		ctx->torrent_str = new_str;
-		ctx->torrent_allocated = length;
+		ctx->content.str = new_str;
+		ctx->content.allocated = length;
 	}
 	return 1;
 }
@@ -266,10 +279,10 @@ static void bt_str_append(torrent_ctx *ctx, const char* text)
 {
 	size_t length = strlen(text);
 
-	if(!bt_str_ensure_length(ctx, ctx->torrent_length + length)) return;
-	memcpy(ctx->torrent_str + ctx->torrent_length, text, length);
-	ctx->torrent_length += length;
-	ctx->torrent_str[ctx->torrent_length] = '\0';
+	if(!bt_str_ensure_length(ctx, ctx->content.length + length)) return;
+	memcpy(ctx->content.str + ctx->content.length, text, length);
+	ctx->content.length += length;
+	ctx->content.str[ctx->content.length] = '\0';
 }
 
 /**
@@ -284,14 +297,14 @@ static void bt_bencode_int(torrent_ctx* ctx, const char* name, uint64_t number)
 	if(name) bt_str_append(ctx, name);
 
 	/* add up to 20 digits and 2 letters */
-	if(!bt_str_ensure_length(ctx, ctx->torrent_length + 22)) return;
-	p = ctx->torrent_str + ctx->torrent_length;
+	if(!bt_str_ensure_length(ctx, ctx->content.length + 22)) return;
+	p = ctx->content.str + ctx->content.length;
 	*(p++) = 'i';
 	p += rhash_sprintI64(p, number);
 	*(p++) = 'e';
 	*p = '\0'; /* terminate string with \0 */
 
-	ctx->torrent_length = (p - ctx->torrent_str);
+	ctx->content.length = (p - ctx->content.str);
 }
 
 /**
@@ -307,11 +320,11 @@ static void bt_bencode_str(torrent_ctx* ctx, const char* name, const char* str)
 	char* p;
 
 	if(name) bt_str_append(ctx, name);
-	if(!bt_str_ensure_length(ctx, ctx->torrent_length + len + 21)) return;
+	if(!bt_str_ensure_length(ctx, ctx->content.length + len + 21)) return;
 
-	p = ctx->torrent_str + ctx->torrent_length;
+	p = ctx->content.str + ctx->content.length;
 	p += (num_len = rhash_sprintI64(p, len));
-	ctx->torrent_length += len + num_len + 1;
+	ctx->content.length += len + num_len + 1;
 
 	*(p++) = ':';
 	memcpy(p, str, len + 1); /* copy with trailing '\0' */
@@ -324,22 +337,22 @@ static void bt_bencode_str(torrent_ctx* ctx, const char* name, const char* str)
  */
 static void bt_bencode_pieces(torrent_ctx* ctx)
 {
-	int pieces_length = ctx->piece_count * BT_HASH_SIZE;
+	size_t pieces_length = ctx->piece_count * BT_HASH_SIZE;
 	int num_len;
 	int size, i;
 	char* p;
 
-	if(!bt_str_ensure_length(ctx, ctx->torrent_length + pieces_length + 21))
+	if(!bt_str_ensure_length(ctx, ctx->content.length + pieces_length + 21))
 		return;
 
-	p = ctx->torrent_str + ctx->torrent_length;
+	p = ctx->content.str + ctx->content.length;
 	p += (num_len = rhash_sprintI64(p, pieces_length));
-	ctx->torrent_length += pieces_length + num_len + 1;
+	ctx->content.length += pieces_length + num_len + 1;
 
 	*(p++) = ':';
 	p[pieces_length] = '\0'; /* terminate with \0 just in case */
 
-	for(size = ctx->piece_count, i = 0; size > 0;
+	for(size = (int)ctx->piece_count, i = 0; size > 0;
 		size -= BT_BLOCK_SIZE, i++)
 	{
 		memcpy(p, ctx->hash_blocks.array[i],
@@ -351,9 +364,9 @@ static void bt_bencode_pieces(torrent_ctx* ctx)
 /**
  * Calculate default torrent piece length, using uTorrent algorithm.
  * Algorithm:
- *  length = 64K for total_size < 64M,
- *  length = 4M for total_size >= 2G,
- *  length = top_bit(total_size) / 512 otherwise.
+ *  length = 16K for total_size < 16M,
+ *  length = 8M for total_size >= 4G,
+ *  length = top_bit(total_size) / 1024 otherwise.
  *
  * @param total_size total hashed batch size of torrent file
  * @return piece length used by torrent file
@@ -361,9 +374,9 @@ static void bt_bencode_pieces(torrent_ctx* ctx)
 size_t bt_default_piece_length(uint64_t total_size)
 {
 	uint64_t hi_bit;
-	if(total_size < 67108864) return 65536;
-	if(total_size >= I64(2147483648) ) return 4194304;
-	for(hi_bit = 67108864 << 1; hi_bit <= total_size; hi_bit <<= 1);
+	if(total_size < 16777216) return BT_MIN_HASH_LENGTH;
+	if(total_size >= I64(4294967296) ) return 8388608;
+	for(hi_bit = 16777216 << 1; hi_bit <= total_size; hi_bit <<= 1);
 	return (size_t)(hi_bit >> 10);
 }
 
@@ -404,8 +417,7 @@ static void bt_generate_torrent(torrent_ctx *ctx)
 	uint64_t total_size = 0;
 	size_t info_start_pos;
 
-	assert(ctx->torrent_str == NULL);
-	/*assert(ctx->files.size <= 1);*/
+	assert(ctx->content.str == NULL);
 
 	if(ctx->piece_length == 0) {
 		if(ctx->files.size == 1) {
@@ -430,7 +442,7 @@ static void bt_generate_torrent(torrent_ctx *ctx)
 	bt_str_append(ctx, "8:encoding5:UTF-8");
 
 	bt_str_append(ctx, "4:infod"); /* start info dictionary */
-	info_start_pos = ctx->torrent_length - 1;
+	info_start_pos = ctx->content.length - 1;
 
 	if(ctx->files.size > 1) {
 		size_t i;
@@ -466,8 +478,8 @@ static void bt_generate_torrent(torrent_ctx *ctx)
 
 	/* calculate BTIH */
 	SHA1_INIT(ctx);
-	SHA1_UPDATE(ctx, (unsigned char*)ctx->torrent_str + info_start_pos,
-		ctx->torrent_length - info_start_pos - 1);
+	SHA1_UPDATE(ctx, (unsigned char*)ctx->content.str + info_start_pos,
+		ctx->content.length - info_start_pos - 1);
 	SHA1_FINAL(ctx, ctx->btih);
 }
 
@@ -555,7 +567,7 @@ int bt_set_announce(torrent_ctx *ctx, const char* announce_url)
  */
 size_t bt_get_text(torrent_ctx *ctx, char** pstr)
 {
-	assert(ctx->torrent_str);
-	*pstr = ctx->torrent_str;
-	return ctx->torrent_length;
+	assert(ctx->content.str);
+	*pstr = ctx->content.str;
+	return ctx->content.length;
 }

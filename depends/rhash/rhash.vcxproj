@@ -287,12 +287,14 @@
     <ClCompile Include="librhash\ripemd-160.c" />
     <ClCompile Include="librhash\sha1.c" />
     <ClCompile Include="librhash\sha256.c" />
+    <ClCompile Include="librhash\sha3.c" />
     <ClCompile Include="librhash\sha512.c" />
     <ClCompile Include="librhash\snefru.c" />
     <ClCompile Include="librhash\tiger.c" />
     <ClCompile Include="librhash\tiger_sbox.c" />
     <ClCompile Include="librhash\torrent.c" />
     <ClCompile Include="librhash\tth.c" />
+    <ClCompile Include="librhash\util.c" />
     <ClCompile Include="librhash\whirlpool.c" />
     <ClCompile Include="librhash\whirlpool_sbox.c" />
   </ItemGroup>
@@ -313,6 +315,7 @@
     <ClInclude Include="librhash\ripemd-160.h" />
     <ClInclude Include="librhash\sha1.h" />
     <ClInclude Include="librhash\sha256.h" />
+    <ClInclude Include="librhash\sha3.h" />
     <ClInclude Include="librhash\sha512.h" />
     <ClInclude Include="librhash\snefru.h" />
     <ClInclude Include="librhash\tiger.h" />
