@@ -43,6 +43,7 @@
 "Generate"
 "Algorithm"
 "Process directories &recursively"
+"Store absolute paths"
 "Output to"
 "Single &File"
 "&Separate hash files"
