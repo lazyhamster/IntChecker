@@ -416,10 +416,15 @@
       <DeploymentContent>true</DeploymentContent>
       <FileType>Text</FileType>
     </None>
+    <None Include="Text\history_ru.txt">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
     <None Include="Text\IntCheckerEng.lng">
       <DeploymentContent>true</DeploymentContent>
     </None>
-    <None Include="Text\IntCheckerRus.lng" />
+    <None Include="Text\IntCheckerRus.lng">
+      <DeploymentContent>true</DeploymentContent>
+    </None>
     <None Include="Text\readme_ru.txt">
       <DeploymentContent>true</DeploymentContent>
     </None>

@@ -61,6 +61,9 @@
     <None Include="Text\readme_ru.txt">
       <Filter>Text</Filter>
     </None>
+    <None Include="Text\history_ru.txt">
+      <Filter>Text</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Far3Guids.h">
