@@ -455,7 +455,7 @@ static intptr_t WINAPI HashParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t Par
 	return FarSInfo.DefDlgProc(hDlg, Msg, Param1, Param2);
 }
 
-static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive, HashOutputTargets &outputTarget, wstring &outputFileName)
+static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive, HashOutputTargets &outputTarget, wstring &outputFileName, int &storeAbsPaths)
 {
 	int algoIndex = GetAlgoIndex(selectedAlgo);
 	int algoNames[] = {MSG_ALGO_CRC, MSG_ALGO_MD5, MSG_ALGO_SHA1, MSG_ALGO_SHA256, MSG_ALGO_SHA512, MSG_ALGO_WHIRLPOOL};
@@ -483,6 +483,7 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 	
 	dlgBuilder.AddSeparator();
 	dlgBuilder.AddCheckbox(MSG_GEN_RECURSE, &doRecurse, 0, false);
+	dlgBuilder.AddCheckbox(MSG_GEN_ABSPATH, &storeAbsPaths);
 	dlgBuilder.AddOKCancel(MSG_BTN_RUN, MSG_BTN_CANCEL, -1, true);
 
 	if (dlgBuilder.ShowDialog())
@@ -554,6 +555,7 @@ static void RunGenerateHashes()
 	bool recursive = true;
 	HashOutputTargets outputTarget = OT_SINGLEFILE;
 	wstring outputFile(L"hashlist");
+	int storeAbsPaths = 0;
 
 	HashAlgoInfo *selectedHashInfo = GetAlgoInfo(genAlgo);
 	if (!selectedHashInfo) return;
@@ -572,7 +574,7 @@ static void RunGenerateHashes()
 
 	while(true)
 	{
-		if (!AskForHashGenerationParams(genAlgo, recursive, outputTarget, outputFile))
+		if (!AskForHashGenerationParams(genAlgo, recursive, outputTarget, outputFile, storeAbsPaths))
 			return;
 
 		wchar_t fullPath[PATH_BUFFER_SIZE];
@@ -669,7 +671,9 @@ static void RunGenerateHashes()
 		if (!continueSave) break;
 
 		if (fSaveHash)
-			hashes.SetFileHash(strNextFile.c_str(), hashValueBuf);
+		{
+			hashes.SetFileHash(storeAbsPaths ? strFullPath.c_str() : strNextFile.c_str(), hashValueBuf);
+		}
 	}
 
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);
