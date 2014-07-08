@@ -989,9 +989,9 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 	else if (OInfo->OpenFrom == OPEN_PLUGINSMENU)
 	{
 		PanelInfo pi = {sizeof(PanelInfo), 0};
-		if (!FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, &pi) || (pi.PanelType != PTYPE_FILEPANEL))
+		if (!FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, &pi) || (pi.PanelType != PTYPE_FILEPANEL) || (pi.PluginHandle != NULL))
 		{
-			return INVALID_HANDLE_VALUE;
+			return NULL;
 		}
 
 		FarMenuItem MenuItems[] = {
@@ -1024,5 +1024,5 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 		}
 	}
 
-	return INVALID_HANDLE_VALUE;
+	return NULL;
 }
