@@ -222,8 +222,9 @@ static void SelectFilesOnPanel(HANDLE hPanel, vector<wstring> &fileNames, bool i
 {
 	if (fileNames.size() == 0) return;
 
-	PanelInfo pi = {0};
-	FarSInfo.PanelControl(hPanel, FCTL_GETPANELINFO, 0, &pi);
+	PanelInfo pi = {sizeof(PanelInfo), 0};
+	if (!FarSInfo.PanelControl(hPanel, FCTL_GETPANELINFO, 0, &pi))
+		return;
 
 	FarSInfo.PanelControl(hPanel, FCTL_BEGINSELECTION, 0, NULL);
 
