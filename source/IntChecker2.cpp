@@ -304,9 +304,11 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 			DialogItems, sizeof(DialogItems) / sizeof(DialogItems[0]), 0, 0, FarSInfo.DefDlgProc, 0);
 
 		size_t nListIndex = 0;
+		wchar_t wszMismatchHeader[64] = {0};
+		wchar_t wszMissingHeader[64] = {0};
+
 		if (vMismatchList.size() > 0)
 		{
-			wchar_t wszMismatchHeader[64] = {0};
 			swprintf_s(wszMismatchHeader, GetLocMsg(MSG_DLG_MISMATCHED_FILES), vMismatchList.size());
 			
 			mmListItems[nListIndex++].Text = wszMismatchHeader;
@@ -319,7 +321,6 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 		}
 		if (vMissingList.size() > 0)
 		{
-			wchar_t wszMissingHeader[64] = {0};
 			swprintf_s(wszMissingHeader, GetLocMsg(MSG_DLG_MISSING_FILES), vMissingList.size());
 			
 			mmListItems[nListIndex++].Text = wszMissingHeader;
