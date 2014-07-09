@@ -781,7 +781,7 @@ static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, ProgressC
 
 static void RunComparePanels()
 {
-	PanelInfo piActv, piPasv;
+	PanelInfo piActv = {sizeof(PanelInfo), 0}, piPasv = {sizeof(PanelInfo), 0};
 	if (!FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, &piActv)
 		|| !FarSInfo.PanelControl(PANEL_PASSIVE, FCTL_GETPANELINFO, 0, &piPasv))
 		return;
