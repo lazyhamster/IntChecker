@@ -478,7 +478,7 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 	dlgBuilder.AddRadioButton(&targetIndex, MSG_GEN_TO_SCREEN, false, false)->Y1++;
 	
 	auto editFileName = dlgBuilder.AddEditField(outputFileBuf, MAX_PATH, 30);
-	editFileName->Flags = DIF_EDITEXPAND|DIF_EDITPATH;
+	editFileName->Flags = DIF_EDITEXPAND|DIF_EDITPATH|DIF_FOCUS;
 	editFileName->X1 += 2;
 	editFileName->Y1 -= 2;
 	
