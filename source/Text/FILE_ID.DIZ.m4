@@ -1,4 +1,5 @@
-Integrity Checker 2.0.4
+m4_include(`version.m4i')m4_dnl
+Integrity Checker PLUGIN_VERSION
 Plugin for FAR 2.0, 3.0
 ---------------------------
 

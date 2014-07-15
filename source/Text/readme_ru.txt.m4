@@ -1,5 +1,6 @@
+m4_include(`version.m4i')m4_dnl
 Плагин: Integrity Checker
-Версия: 2.0.4
+Версия: PLUGIN_VERSION
 Автор: Ariman
 
 --------------------------------------------------------
