@@ -420,12 +420,7 @@
   <ItemGroup>
     <None Include="IntChecker2-Far3.def" />
     <None Include="IntChecker2.def" />
-    <None Include="Text\IntCheckerEng.lng">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
-    <None Include="Text\IntCheckerRus.lng">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
+    <None Include="version.m4i" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Far3Guids.h" />
@@ -447,6 +442,8 @@
   <ItemGroup>
     <M4_Macro Include="Text\FILE_ID.DIZ.m4" />
     <M4_Macro Include="Text\history_ru.txt.m4" />
+    <M4_Macro Include="Text\IntCheckerEng.lng.m4" />
+    <M4_Macro Include="Text\IntCheckerRus.lng.m4" />
     <M4_Macro Include="Text\readme_ru.txt.m4" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

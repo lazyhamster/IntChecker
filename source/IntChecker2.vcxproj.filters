@@ -49,10 +49,7 @@
     <None Include="IntChecker2.def">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="Text\IntCheckerEng.lng">
-      <Filter>Text</Filter>
-    </None>
-    <None Include="Text\IntCheckerRus.lng">
+    <None Include="version.m4i">
       <Filter>Text</Filter>
     </None>
   </ItemGroup>
@@ -93,6 +90,12 @@
       <Filter>Text</Filter>
     </M4_Macro>
     <M4_Macro Include="Text\readme_ru.txt.m4">
+      <Filter>Text</Filter>
+    </M4_Macro>
+    <M4_Macro Include="Text\IntCheckerEng.lng.m4">
+      <Filter>Text</Filter>
+    </M4_Macro>
+    <M4_Macro Include="Text\IntCheckerRus.lng.m4">
       <Filter>Text</Filter>
     </M4_Macro>
   </ItemGroup>
