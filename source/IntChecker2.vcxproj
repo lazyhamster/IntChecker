@@ -78,6 +78,7 @@
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
+    <Import Project="..\extra\m4.props" />
   </ImportGroup>
   <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release-Far3|Win32'" Label="PropertySheets">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -284,9 +285,7 @@
       <TargetMachine>MachineX86</TargetMachine>
       <AdditionalDependencies>Shlwapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-    <PostBuildEvent>
-      <Command>xcopy /Y /D $(ProjectDir)Text\*.* $(OutDir)</Command>
-    </PostBuildEvent>
+    <PostBuildEvent />
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Far3|x64'">
     <Midl>
@@ -421,20 +420,10 @@
   <ItemGroup>
     <None Include="IntChecker2-Far3.def" />
     <None Include="IntChecker2.def" />
-    <None Include="Text\FILE_ID.DIZ">
-      <DeploymentContent>true</DeploymentContent>
-      <FileType>Text</FileType>
-    </None>
-    <None Include="Text\history_ru.txt">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
     <None Include="Text\IntCheckerEng.lng">
       <DeploymentContent>true</DeploymentContent>
     </None>
     <None Include="Text\IntCheckerRus.lng">
-      <DeploymentContent>true</DeploymentContent>
-    </None>
-    <None Include="Text\readme_ru.txt">
       <DeploymentContent>true</DeploymentContent>
     </None>
   </ItemGroup>
@@ -455,7 +444,13 @@
       <ReferenceOutputAssembly>false</ReferenceOutputAssembly>
     </ProjectReference>
   </ItemGroup>
+  <ItemGroup>
+    <M4_Macro Include="Text\FILE_ID.DIZ.m4" />
+    <M4_Macro Include="Text\history_ru.txt.m4" />
+    <M4_Macro Include="Text\readme_ru.txt.m4" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
+    <Import Project="..\extra\m4.targets" />
   </ImportGroup>
 </Project>

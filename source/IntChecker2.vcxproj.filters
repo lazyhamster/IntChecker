@@ -49,19 +49,10 @@
     <None Include="IntChecker2.def">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="Text\FILE_ID.DIZ">
-      <Filter>Text</Filter>
-    </None>
     <None Include="Text\IntCheckerEng.lng">
       <Filter>Text</Filter>
     </None>
     <None Include="Text\IntCheckerRus.lng">
-      <Filter>Text</Filter>
-    </None>
-    <None Include="Text\readme_ru.txt">
-      <Filter>Text</Filter>
-    </None>
-    <None Include="Text\history_ru.txt">
       <Filter>Text</Filter>
     </None>
   </ItemGroup>
@@ -93,5 +84,16 @@
     <ClInclude Include="version.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <M4_Macro Include="Text\FILE_ID.DIZ.m4">
+      <Filter>Text</Filter>
+    </M4_Macro>
+    <M4_Macro Include="Text\history_ru.txt.m4">
+      <Filter>Text</Filter>
+    </M4_Macro>
+    <M4_Macro Include="Text\readme_ru.txt.m4">
+      <Filter>Text</Filter>
+    </M4_Macro>
   </ItemGroup>
 </Project>
