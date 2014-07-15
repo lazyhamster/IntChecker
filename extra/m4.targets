@@ -1,0 +1,82 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <PropertyPageSchema
+      Include="$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml" />
+    <AvailableItemName
+      Include="M4_Macro">
+      <Targets>_M4_Macro</Targets>
+    </AvailableItemName>
+  </ItemGroup>
+  <UsingTask
+    TaskName="M4_Macro"
+    TaskFactory="XamlTaskFactory"
+    AssemblyName="Microsoft.Build.Tasks.v4.0">
+    <Task>$(MSBuildThisFileDirectory)$(MSBuildThisFileName).xml</Task>
+  </UsingTask>
+  <Target
+    Name="_M4_Macro"
+    BeforeTargets="$(M4_MacroBeforeTargets)"
+    AfterTargets="$(M4_MacroAfterTargets)"
+    Condition="'@(M4_Macro)' != ''"
+    DependsOnTargets="$(M4_MacroDependsOn);ComputeM4_MacroOutput"
+    Outputs="%(M4_Macro.OutputFile)"
+    Inputs="%(M4_Macro.Identity);%(M4_Macro.AdditionalDependencies);$(MSBuildProjectFile)">
+    <ItemGroup
+      Condition="'@(SelectedFiles)' != ''">
+      <M4_Macro
+        Remove="@(M4_Macro)"
+        Condition="'%(Identity)' != '@(SelectedFiles)'" />
+    </ItemGroup>
+    <ItemGroup>
+      <M4_Macro_tlog
+        Include="%(M4_Macro.Outputs)"
+        Condition="'%(M4_Macro.Outputs)' != '' and '%(M4_Macro.ExcludedFromBuild)' != 'true'">
+        <Source>@(M4_Macro, '|')</Source>
+      </M4_Macro_tlog>
+    </ItemGroup>
+    <Message
+      Importance="High"
+      Text="%(M4_Macro.ExecutionDescription)" />
+    <WriteLinesToFile
+      Condition="'@(M4_Macro_tlog)' != '' and '%(M4_Macro_tlog.ExcludedFromBuild)' != 'true'"
+      File="$(IntDir)$(ProjectName).write.1.tlog"
+      Lines="^%(M4_Macro_tlog.Source);@(M4_Macro_tlog-&gt;'%(Fullpath)')" />
+    <M4_Macro
+      Condition="'@(M4_Macro)' != '' and '%(M4_Macro.ExcludedFromBuild)' != 'true'"
+      CommandLineTemplate="%(M4_Macro.CommandLineTemplate)"
+      OutputFile="%(M4_Macro.OutputFile)"
+      AdditionalOptions="%(M4_Macro.AdditionalOptions)"
+      Inputs="%(M4_Macro.Identity)" />
+  </Target>
+  <PropertyGroup>
+    <ComputeLinkInputsTargets>
+            $(ComputeLinkInputsTargets);
+            ComputeM4_MacroOutput;
+          </ComputeLinkInputsTargets>
+    <ComputeLibInputsTargets>
+            $(ComputeLibInputsTargets);
+            ComputeM4_MacroOutput;
+          </ComputeLibInputsTargets>
+  </PropertyGroup>
+  <Target
+    Name="ComputeM4_MacroOutput"
+    Condition="'@(M4_Macro)' != ''">
+    <ItemGroup>
+      <M4_MacroDirsToMake
+        Condition="'@(M4_Macro)' != '' and '%(M4_Macro.ExcludedFromBuild)' != 'true'"
+        Include="%(M4_Macro.Outputs)" />
+      <Link
+        Include="%(M4_MacroDirsToMake.Identity)"
+        Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+      <Lib
+        Include="%(M4_MacroDirsToMake.Identity)"
+        Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+      <ImpLib
+        Include="%(M4_MacroDirsToMake.Identity)"
+        Condition="'%(Extension)'=='.obj' or '%(Extension)'=='.res' or '%(Extension)'=='.rsc' or '%(Extension)'=='.lib'" />
+    </ItemGroup>
+    <MakeDir
+      Directories="@(M4_MacroDirsToMake-&gt;'%(RootDir)%(Directory)')" />
+  </Target>
+</Project>

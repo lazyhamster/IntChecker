@@ -1,0 +1,20 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <PropertyGroup
+    Condition="'$(M4_MacroBeforeTargets)' == '' and '$(M4_MacroAfterTargets)' == '' and '$(ConfigurationType)' != 'Makefile'">
+    <M4_MacroBeforeTargets>Midl</M4_MacroBeforeTargets>
+    <M4_MacroAfterTargets>CustomBuild</M4_MacroAfterTargets>
+  </PropertyGroup>
+  <PropertyGroup>
+    <M4_MacroDependsOn
+      Condition="'$(ConfigurationType)' != 'Makefile'">_SelectedFiles;$(M4_MacroDependsOn)</M4_MacroDependsOn>
+  </PropertyGroup>
+  <ItemDefinitionGroup>
+    <M4_Macro>
+      <OutputFile>$(OutDir)%(Filename)</OutputFile>
+      <CommandLineTemplate>m4 -P [AdditionalOptions] [Inputs] &gt; [OutputFile]</CommandLineTemplate>
+      <ExecutionDescription>Processing m4 script (%(Identity)) ...</ExecutionDescription>
+      <AdditionalDependencies>version.m4i</AdditionalDependencies>
+    </M4_Macro>
+  </ItemDefinitionGroup>
+</Project>
