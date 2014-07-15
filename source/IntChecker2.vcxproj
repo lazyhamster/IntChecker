@@ -428,6 +428,7 @@
     <ClInclude Include="hashing.h" />
     <ClInclude Include="Lang.h" />
     <ClInclude Include="RegistrySettings.h" />
+    <ClInclude Include="resource.h" />
     <ClInclude Include="stdafx.h" />
     <ClInclude Include="targetver.h" />
     <ClInclude Include="Utils.h" />
@@ -445,6 +446,9 @@
     <M4_Macro Include="Text\IntCheckerEng.lng.m4" />
     <M4_Macro Include="Text\IntCheckerRus.lng.m4" />
     <M4_Macro Include="Text\readme_ru.txt.m4" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="IntChecker2.rc" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
