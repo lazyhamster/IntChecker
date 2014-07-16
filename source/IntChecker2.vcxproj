@@ -441,6 +441,16 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <M4_Macro Include="IntChecker2.rc.m4">
+      <OutputFile Condition="'$(Configuration)|$(Platform)'=='Debug-Far2|Win32'">$(ProjectDir)%(Filename)</OutputFile>
+      <OutputFile Condition="'$(Configuration)|$(Platform)'=='Debug-Far3|Win32'">$(ProjectDir)%(Filename)</OutputFile>
+      <OutputFile Condition="'$(Configuration)|$(Platform)'=='Release-Far2|Win32'">$(ProjectDir)%(Filename)</OutputFile>
+      <OutputFile Condition="'$(Configuration)|$(Platform)'=='Release-Far3|Win32'">$(ProjectDir)%(Filename)</OutputFile>
+      <OutputFile Condition="'$(Configuration)|$(Platform)'=='Debug-Far2|x64'">$(ProjectDir)%(Filename)</OutputFile>
+      <OutputFile Condition="'$(Configuration)|$(Platform)'=='Debug-Far3|x64'">$(ProjectDir)%(Filename)</OutputFile>
+      <OutputFile Condition="'$(Configuration)|$(Platform)'=='Release-Far2|x64'">$(ProjectDir)%(Filename)</OutputFile>
+      <OutputFile Condition="'$(Configuration)|$(Platform)'=='Release-Far3|x64'">$(ProjectDir)%(Filename)</OutputFile>
+    </M4_Macro>
     <M4_Macro Include="Text\FILE_ID.DIZ.m4" />
     <M4_Macro Include="Text\history_ru.txt.m4" />
     <M4_Macro Include="Text\IntCheckerEng.lng.m4" />
