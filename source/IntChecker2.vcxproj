@@ -456,6 +456,16 @@
     <M4_Macro Include="Text\IntCheckerEng.lng.m4" />
     <M4_Macro Include="Text\IntCheckerRus.lng.m4" />
     <M4_Macro Include="Text\readme_ru.txt.m4" />
+    <M4_Macro Include="version.h.m4">
+      <OutputFile Condition="'$(Configuration)|$(Platform)'=='Debug-Far2|Win32'">$(ProjectDir)%(Filename)</OutputFile>
+      <OutputFile Condition="'$(Configuration)|$(Platform)'=='Debug-Far3|Win32'">$(ProjectDir)%(Filename)</OutputFile>
+      <OutputFile Condition="'$(Configuration)|$(Platform)'=='Release-Far2|Win32'">$(ProjectDir)%(Filename)</OutputFile>
+      <OutputFile Condition="'$(Configuration)|$(Platform)'=='Release-Far3|Win32'">$(ProjectDir)%(Filename)</OutputFile>
+      <OutputFile Condition="'$(Configuration)|$(Platform)'=='Debug-Far2|x64'">$(ProjectDir)%(Filename)</OutputFile>
+      <OutputFile Condition="'$(Configuration)|$(Platform)'=='Debug-Far3|x64'">$(ProjectDir)%(Filename)</OutputFile>
+      <OutputFile Condition="'$(Configuration)|$(Platform)'=='Release-Far2|x64'">$(ProjectDir)%(Filename)</OutputFile>
+      <OutputFile Condition="'$(Configuration)|$(Platform)'=='Release-Far3|x64'">$(ProjectDir)%(Filename)</OutputFile>
+    </M4_Macro>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="IntChecker2.rc" />
