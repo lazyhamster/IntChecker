@@ -88,14 +88,9 @@ static bool GetSelectedPanelFilePath(wstring& nameStr)
 	if (FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, &pi))
 		if ((pi.SelectedItemsNumber == 1) && (pi.PanelType == PTYPE_FILEPANEL))
 		{
-			intptr_t dirBufSize = FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETPANELDIRECTORY, 0, NULL);
-			FarPanelDirectory *panelDir = (FarPanelDirectory*) malloc(dirBufSize);
-			panelDir->StructSize = sizeof(FarPanelDirectory);
-			FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETPANELDIRECTORY, dirBufSize, panelDir);
-
-			wstring strNameBuffer = panelDir->Name;
-			IncludeTrailingPathDelim(strNameBuffer);
-
+			wstring strNameBuffer;
+			GetPanelDir(PANEL_ACTIVE, strNameBuffer);
+			
 			size_t itemBufSize = FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETCURRENTPANELITEM, 0, NULL);
 			PluginPanelItem *PPI = (PluginPanelItem*)malloc(itemBufSize);
 			if (PPI)
