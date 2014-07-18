@@ -15,7 +15,7 @@ static bool CanBeHash(const char* msg, int msgSize)
 {
 	for (int i = 0; i < msgSize; i++)
 	{
-		if (!msg[i] || !isxdigit(msg[i]))
+		if (msg[i] <= 31 || !isxdigit(msg[i]))
 			return false;
 	}
 	return true;
@@ -28,6 +28,19 @@ static bool CanBePath(const char* msg, int msgSize)
 	{
 		if (!msg[i]) break;
 		if ((msg[i] <= 31) || (strchr(IllegalPathChars, msg[i]) != NULL))
+			return false;
+	}
+	return true;
+}
+
+static bool CanBePath(const wchar_t* str)
+{
+	const wchar_t* IllegalPathChars = L"<>\"|?*";
+
+	size_t strLen = wcslen(str);
+	for (size_t i = 0; i < strLen; i++)
+	{
+		if ((str[i] <= 31) || (wcschr(IllegalPathChars, str[i]) != NULL))
 			return false;
 	}
 	return true;
@@ -192,12 +205,18 @@ bool HashList::LoadList( const wchar_t* filepath )
 			possibleHash = readBuf + (strSize - listAlgo->HashStrSize);
 		}
 
-		int possiblePathSize = (int) (strSize - listAlgo->HashStrSize - listAlgo->NumDelimSpaces);
-		if (CanBeHash(possibleHash, listAlgo->HashStrSize) && CanBePath(possiblePath, possiblePathSize))
+		if (!CanBeHash(possibleHash, listAlgo->HashStrSize))
 		{
-			int numChars = MultiByteToWideChar(m_Codepage, 0, possiblePath, possiblePathSize, wpathBuf, ARRAY_SIZE(wpathBuf));
-			wpathBuf[numChars] = '\0';
+			fres = false;
+			break;
+		}
+
+		int possiblePathSize = (int) (strSize - listAlgo->HashStrSize - listAlgo->NumDelimSpaces);
+		int numChars = MultiByteToWideChar(m_Codepage, 0, possiblePath, possiblePathSize, wpathBuf, ARRAY_SIZE(wpathBuf));
+		wpathBuf[numChars] = '\0';
 			
+		if (CanBePath(wpathBuf))	
+		{
 			FileHashInfo fileInfo;
 			fileInfo.Filename = wpathBuf;
 			fileInfo.HashStr.append(possibleHash, listAlgo->HashStrSize);
