@@ -29,7 +29,8 @@ private:
 	int GetFileRecordIndex(const wchar_t* fileName) const;
 	bool DumpStringToFile(const char* data, size_t dataSize, const wchar_t* filePath);
 	void SerializeFileHash(const FileHashInfo& data, stringstream& dest);
-	HashAlgoInfo* DetectHashAlgo(const char* testStr);
+	int DetectHashAlgo(const char* testStr);
+	bool ParseLine(const char* inputStr, int hashAlgoIndex, FileHashInfo &fileInfo);
 
 public:
 	HashList(rhash_ids hashId, int codePage) : m_HashId(hashId), m_Codepage(codePage) {}
