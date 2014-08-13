@@ -111,7 +111,7 @@ static bool GetPanelDir(HANDLE hPanel, wstring& dirStr)
 	return ret;
 }
 
-static bool GetSelectedPanelFilePath(wstring& nameStr)
+static bool GetSelectedPanelItemPath(wstring& nameStr)
 {
 	nameStr.clear();
 
@@ -126,10 +126,7 @@ static bool GetSelectedPanelFilePath(wstring& nameStr)
 			if (PPI)
 			{
 				FarSInfo.Control(PANEL_ACTIVE, FCTL_GETCURRENTPANELITEM, 0, (LONG_PTR)PPI);
-				if ((PPI->FindData.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
-				{
-					nameStr = panelDir + PPI->FindData.lpwszFileName;
-				}
+				nameStr = panelDir + PPI->FindData.lpwszFileName;
 				free(PPI);
 			}
 		}
@@ -624,7 +621,7 @@ static void RunGenerateHashes()
 	if (pi.SelectedItemsNumber == 1)
 	{
 		wstring strSelectedFile;
-		if (GetSelectedPanelFilePath(strSelectedFile) && IsFile(strSelectedFile.c_str()))
+		if (GetSelectedPanelItemPath(strSelectedFile) && (strSelectedFile != L".."))
 		{
 			outputFile = ExtractFileName(strSelectedFile) + selectedHashInfo->DefaultExt;
 		}
@@ -1088,7 +1085,7 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 		wstring selectedFilePath;
 		int nNumMenuItems = 2;
 		
-		if (optDetectHashFiles && (pi.SelectedItemsNumber == 1) && GetSelectedPanelFilePath(selectedFilePath))
+		if (optDetectHashFiles && (pi.SelectedItemsNumber == 1) && GetSelectedPanelItemPath(selectedFilePath))
 		{
 			nNumMenuItems = IsFile(selectedFilePath.c_str()) ? 3 : 2;
 		}
