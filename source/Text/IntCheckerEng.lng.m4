@@ -29,7 +29,7 @@
 "Preparing file list"
 "Overwrite file"
 "File %s already exists. Overwrite?"
-"Can not work with this panel"
+"No files selected"
 "No files"
 "No files from hash list exists"
 "Generating hash"
