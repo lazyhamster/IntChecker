@@ -65,8 +65,11 @@ int64_t GetFileSize_i64(HANDLE hFile)
 
 bool IsFile( const wchar_t* path )
 {
+	wstring strSearchPath(PATH_EXTRALONG_PREFIX);
+	strSearchPath.append(path);
+
 	WIN32_FIND_DATA fd = {0};
-	HANDLE hFind = FindFirstFile(path, &fd);
+	HANDLE hFind = FindFirstFile(strSearchPath.c_str(), &fd);
 	if (hFind != INVALID_HANDLE_VALUE)
 	{
 		FindClose(hFind);
@@ -102,7 +105,8 @@ static wstring GetFullPath(const wchar_t* path)
 
 static int EnumFiles(const wstring& baseAbsPath, const wstring& pathPrefix, StringList &destList, int64_t &totalSize, bool recursive)
 {
-	wstring strBasePath = baseAbsPath + L"*.*";
+	wstring strBasePath(PATH_EXTRALONG_PREFIX);
+	strBasePath.append(baseAbsPath).append(L"*.*");
 
 	WIN32_FIND_DATA fd;
 	HANDLE hFind;

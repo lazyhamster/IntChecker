@@ -225,7 +225,7 @@ bool HashList::DumpStringToFile( const char* data, size_t dataSize, const wchar_
 
 void HashList::SerializeFileHash( const FileHashInfo& data, stringstream& dest )
 {
-	char szFilenameBuf[MAX_PATH] = {0};
+	char szFilenameBuf[PATH_BUFFER_SIZE] = {0};
 	
 	WideCharToMultiByte(m_Codepage, 0, data.Filename.c_str(), -1, szFilenameBuf, ARRAY_SIZE(szFilenameBuf), NULL, NULL);
 	if (m_HashId == RHASH_CRC32)
@@ -314,7 +314,10 @@ std::wstring HashList::FileInfoToString( size_t index )
 
 int GenerateHash( const wchar_t* filePath, rhash_ids hashAlgo, char* result, HashingProgressFunc progressFunc, HANDLE progressContext )
 {
-	HANDLE hFile = CreateFile(filePath, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, 0);
+	wstring strUniPath(PATH_EXTRALONG_PREFIX);
+	strUniPath.append(filePath);
+	
+	HANDLE hFile = CreateFile(strUniPath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, 0);
 	if (hFile == INVALID_HANDLE_VALUE) return GENERATE_ERROR;
 
 	const size_t readBufSize = 32 * 1024;
