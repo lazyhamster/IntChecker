@@ -298,7 +298,7 @@ std::wstring HashList::FileInfoToString( size_t index )
 
 	FileHashInfo& fileInfo = m_HashList[index];
 
-	wchar_t hashStrBuf[256] = {0};
+	wchar_t hashStrBuf[PATH_BUFFER_SIZE] = {0};
 	MultiByteToWideChar(m_Codepage, 0, fileInfo.HashStr.c_str(), (int) fileInfo.HashStr.size(), hashStrBuf, ARRAY_SIZE(hashStrBuf));
 	
 	wstringstream wsstr;

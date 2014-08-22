@@ -95,7 +95,7 @@ void TrimRight( char* str )
 
 static wstring GetFullPath(const wchar_t* path)
 {
-	wchar_t tmpBuf[4096];
+	wchar_t tmpBuf[PATH_BUFFER_SIZE];
 	GetFullPathName(path, ARRAY_SIZE(tmpBuf), tmpBuf, NULL);
 	return tmpBuf;
 }
