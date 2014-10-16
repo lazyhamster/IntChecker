@@ -64,6 +64,11 @@ static bool IsComment(char* line)
 	return true;
 }
 
+static bool IsDelimChar(char c)
+{
+	return isspace(c) || (c == '*');
+}
+
 HashAlgoInfo* GetAlgoInfo(rhash_ids algoId)
 {
 	int i = GetAlgoIndex(algoId);
@@ -239,7 +244,7 @@ bool HashList::ParseLine( const char* inputStr, int hashAlgoIndex, FileHashInfo 
 	size_t strSize = strlen(inputStr);
 	HashAlgoInfo* algo = &SupportedHashes[hashAlgoIndex];
 	
-	const char *possibleHash, *possiblePath;
+	const char *possibleHash, *possiblePath, *delimStart;
 	wchar_t wpathBuf[PATH_BUFFER_SIZE];
 	
 	// First check if line is too short
@@ -252,16 +257,24 @@ bool HashList::ParseLine( const char* inputStr, int hashAlgoIndex, FileHashInfo 
 	{
 		possibleHash = inputStr;
 		possiblePath = inputStr + (algo->HashStrSize + algo->NumDelimSpaces);
+		delimStart = possibleHash + algo->HashStrSize;
 	}
 	else
 	{
 		possiblePath = inputStr;
 		possibleHash = inputStr + (strSize - algo->HashStrSize);
+		delimStart = possibleHash - algo->NumDelimSpaces;
 	}
 
 	if (!CanBeHash(possibleHash, algo->HashStrSize))
 	{
 		return false;
+	}
+
+	for (int i = 0; i < algo->NumDelimSpaces; i++)
+	{
+		if (!IsDelimChar(delimStart[i]))
+			return false;
 	}
 
 	int possiblePathSize = (int) (strSize - algo->HashStrSize - algo->NumDelimSpaces);
