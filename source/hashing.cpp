@@ -5,7 +5,7 @@
 HashAlgoInfo SupportedHashes[] = {
 	{RHASH_CRC32, 8, false, 1, L".sfv", L"CRC32"},
 	{RHASH_MD5, 32, true, 2, L".md5", L"MD5"},
-	{RHASH_SHA1, 40, true, 2, L".sha1", L"SHA-1"},
+	{RHASH_SHA1, 40, true, 2, L".sha1", L"SHA1"},
 	{RHASH_SHA256, 64, true, 2, L".sha256", L"SHA-256"},
 	{RHASH_SHA512, 128, true, 2, L".sha512", L"SHA-512"},
 	{RHASH_WHIRLPOOL, 128, true, 2, L".wrpl", L"Whirlpool"}
