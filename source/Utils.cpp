@@ -187,13 +187,20 @@ bool CopyTextToClipboard( std::vector<std::wstring> &data )
 	return CopyTextToClipboard(sstr.str());
 }
 
-std::wstring ExtractFileName( wstring & fullPath )
+std::wstring ExtractFileName( std::wstring & fullPath )
 {
 	size_t pos = fullPath.find_last_of(L"/\\");
 	if (pos == wstring::npos)
 		return fullPath;
 	else
 		return fullPath.substr(pos + 1);
+}
+
+std::wstring ExtractFileExt( std::wstring & path )
+{
+	std::wstring fileName = ExtractFileName(path);
+	size_t pos = fileName.rfind('.');
+	return (pos != wstring::npos) ? fileName.substr(pos) : L"";
 }
 
 std::wstring FormatString(const std::wstring fmt_str, ...)

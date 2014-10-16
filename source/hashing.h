@@ -29,7 +29,7 @@ private:
 	int GetFileRecordIndex(const wchar_t* fileName) const;
 	bool DumpStringToFile(const char* data, size_t dataSize, const wchar_t* filePath);
 	void SerializeFileHash(const FileHashInfo& data, stringstream& dest);
-	int DetectHashAlgo(const char* testStr);
+	int DetectHashAlgo(const char* testStr, const wchar_t* filePath);
 	bool ParseLine(const char* inputStr, int hashAlgoIndex, FileHashInfo &fileInfo);
 
 public:

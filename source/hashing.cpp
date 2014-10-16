@@ -179,7 +179,7 @@ bool HashList::LoadList( const wchar_t* filepath )
 		
 		if (listAlgoIndex < 0)
 		{
-			listAlgoIndex = DetectHashAlgo(readBuf);
+			listAlgoIndex = DetectHashAlgo(readBuf, filepath);
 			if (listAlgoIndex < 0)
 			{
 				fres = false;
@@ -292,16 +292,30 @@ bool HashList::ParseLine( const char* inputStr, int hashAlgoIndex, FileHashInfo 
 	return false;
 }
 
-int HashList::DetectHashAlgo( const char* testStr )
+int HashList::DetectHashAlgo( const char* testStr, const wchar_t* filePath )
 {
 	FileHashInfo fileInfo;
+	int foundAlgo = -1;
+
+	// Some hashes have same length of hash string
+	// In this case we will distinguish algorithm by file extension
+
+	wstring path(filePath);
+	wstring ext = ExtractFileExt(path);
 
 	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
 	{
 		if (ParseLine(testStr, i, fileInfo))
-			return i;
+		{
+			bool sameExt = (_wcsicmp(ext.c_str(), SupportedHashes[i].DefaultExt.c_str()) == 0);
+			if ((foundAlgo < 0) || sameExt)
+			{
+				foundAlgo = i;
+			}
+			if (sameExt) break;
+		}
 	}
-	return -1;
+	return foundAlgo;
 }
 
 std::wstring HashList::FileInfoToString( size_t index )
