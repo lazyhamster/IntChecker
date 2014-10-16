@@ -9,7 +9,7 @@
 /*
   DlgBuilder.hpp
 
-  Dynamic construction of dialogs for FAR Manager 3.0 build 3976
+  Dynamic construction of dialogs for FAR Manager 3.0 build 4040
 */
 
 /*
@@ -862,7 +862,7 @@ public:
 	{
 		if (SelectedIndex)
 		{
-			*SelectedIndex = (int) Info.SendDlgMessage(*DialogHandle, DM_LISTGETCURPOS, ID, 0);
+			*SelectedIndex = Info.SendDlgMessage(*DialogHandle, DM_LISTGETCURPOS, ID, 0);
 		}
 		if (TextBuf)
 		{
