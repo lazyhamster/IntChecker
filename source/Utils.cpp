@@ -187,7 +187,7 @@ bool CopyTextToClipboard( std::vector<std::wstring> &data )
 	return CopyTextToClipboard(sstr.str());
 }
 
-std::wstring ExtractFileName( std::wstring & fullPath )
+std::wstring ExtractFileName( const std::wstring & fullPath )
 {
 	size_t pos = fullPath.find_last_of(L"/\\");
 	if (pos == wstring::npos)
@@ -196,7 +196,7 @@ std::wstring ExtractFileName( std::wstring & fullPath )
 		return fullPath.substr(pos + 1);
 }
 
-std::wstring ExtractFileExt( std::wstring & path )
+std::wstring ExtractFileExt( const std::wstring & path )
 {
 	std::wstring fileName = ExtractFileName(path);
 	size_t pos = fileName.rfind('.');

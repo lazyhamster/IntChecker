@@ -6,8 +6,8 @@ bool CheckEsc();
 bool IsAbsPath(const wchar_t* path);
 void IncludeTrailingPathDelim(wchar_t *pathBuf, size_t bufMaxSize);
 void IncludeTrailingPathDelim(wstring &pathStr);
-std::wstring ExtractFileName(std::wstring & fullPath);
-std::wstring ExtractFileExt( std::wstring & path );
+std::wstring ExtractFileName(const std::wstring& fullPath);
+std::wstring ExtractFileExt(const std::wstring& path);
 
 int64_t GetFileSize_i64(const wchar_t* path);
 int64_t GetFileSize_i64(HANDLE hFile);
