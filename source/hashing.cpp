@@ -168,6 +168,7 @@ bool HashList::LoadList( const wchar_t* filepath )
 
 	bool fres = true;
 	int listAlgoIndex = -1;
+	HashListFormat listFormat = HLF_UNKNOWN;
 	vector<FileHashInfo> parsedList;
 
 	while (fgets(readBuf, sizeof(readBuf), inputFile))
@@ -179,8 +180,7 @@ bool HashList::LoadList( const wchar_t* filepath )
 		
 		if (listAlgoIndex < 0)
 		{
-			listAlgoIndex = DetectHashAlgo(readBuf, filepath);
-			if (listAlgoIndex < 0)
+			if (!DetectHashAlgo(readBuf, filepath, listAlgoIndex, listFormat))
 			{
 				fres = false;
 				break;
@@ -292,7 +292,7 @@ bool HashList::ParseLine( const char* inputStr, int hashAlgoIndex, FileHashInfo 
 	return false;
 }
 
-int HashList::DetectHashAlgo( const char* testStr, const wchar_t* filePath )
+bool HashList::DetectHashAlgo( const char* testStr, const wchar_t* filePath, int &foundAlgoIndex, HashListFormat &listFormat )
 {
 	FileHashInfo fileInfo;
 	int foundAlgo = -1;
@@ -315,7 +315,15 @@ int HashList::DetectHashAlgo( const char* testStr, const wchar_t* filePath )
 			if (sameExt) break;
 		}
 	}
-	return foundAlgo;
+
+	if (foundAlgo >= 0)
+	{
+		foundAlgoIndex = foundAlgo;
+		listFormat = HLF_SIMPLE;
+		return true;
+	}
+	
+	return false;
 }
 
 std::wstring HashList::FileInfoToString( size_t index )

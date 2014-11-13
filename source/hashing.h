@@ -19,6 +19,13 @@ struct HashAlgoInfo
 	std::wstring AlgoName;
 };
 
+enum HashListFormat
+{
+	HLF_UNKNOWN,
+	HLF_SIMPLE,
+	HLF_BSD
+};
+
 class HashList
 {
 private:
@@ -29,7 +36,7 @@ private:
 	int GetFileRecordIndex(const wchar_t* fileName) const;
 	bool DumpStringToFile(const char* data, size_t dataSize, const wchar_t* filePath);
 	void SerializeFileHash(const FileHashInfo& data, stringstream& dest);
-	int DetectHashAlgo(const char* testStr, const wchar_t* filePath);
+	bool DetectHashAlgo(const char* testStr, const wchar_t* filePath, int &foundAlgoIndex, HashListFormat &listFormat);
 	bool ParseLine(const char* inputStr, int hashAlgoIndex, FileHashInfo &fileInfo);
 
 public:
