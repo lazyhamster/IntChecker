@@ -590,7 +590,7 @@ static void RunGenerateHashes()
 
 	StringList filesToProcess;
 	int64_t totalFilesSize = 0;
-	HashList hashes(genAlgo);
+	HashList hashes;
 	wstring strPanelDir;
 
 	// Win7 only feature
