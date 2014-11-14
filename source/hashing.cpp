@@ -174,8 +174,8 @@ bool HashList::LoadList( const wchar_t* filepath )
 	{
 		TrimRight(readBuf);
 
-		// Just skipping comment lines
-		if (IsComment(readBuf)) continue;
+		// Just skipping comments and empty lines
+		if (!readBuf[0] || IsComment(readBuf)) continue;
 		
 		if (listAlgoIndex < 0)
 		{
