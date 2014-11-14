@@ -381,7 +381,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 
 			{
 				FarScreenSave screen;
-				int genRetVal = GenerateHash(strFullFilePath.c_str(), hashes.GetHashAlgo(), hashValueBuf, FileHashingProgress, &progressCtx);
+				int genRetVal = GenerateHash(strFullFilePath.c_str(), fileInfo.GetAlgo(), hashValueBuf, FileHashingProgress, &progressCtx);
 
 				if (genRetVal == GENERATE_ABORTED)
 				{

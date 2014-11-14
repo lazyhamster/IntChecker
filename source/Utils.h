@@ -21,5 +21,6 @@ bool CopyTextToClipboard(std::wstring &data);
 bool CopyTextToClipboard(std::vector<std::wstring> &data);
 
 std::wstring FormatString(const std::wstring fmt, ...);
+std::wstring ConvertToUnicode(std::string &str);
 
 #endif // Utils_h__

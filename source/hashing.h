@@ -3,22 +3,6 @@
 
 #include "rhash/librhash/rhash.h"
 
-struct FileHashInfo
-{
-	std::wstring Filename;
-	std::string HashStr;
-};
-
-struct HashAlgoInfo
-{
-	rhash_ids AlgoId;
-	int HashStrSize;
-	bool HashBeforePath;
-	int NumDelimSpaces;
-	std::wstring DefaultExt;
-	std::wstring AlgoName;
-};
-
 enum HashListFormat
 {
 	HLF_UNKNOWN,
@@ -26,10 +10,29 @@ enum HashListFormat
 	HLF_BSD
 };
 
+struct HashAlgoInfo
+{
+	rhash_ids AlgoId;
+	std::wstring AlgoName;
+	std::wstring DefaultExt;
+	std::string ParseExpr;
+};
+
+#define NUMBER_OF_SUPPORTED_HASHES 6
+extern HashAlgoInfo SupportedHashes[NUMBER_OF_SUPPORTED_HASHES];
+
+struct FileHashInfo
+{
+	std::wstring Filename;
+	std::string HashStr;
+	int HashAlgoIndex;
+
+	rhash_ids GetAlgo() const { return SupportedHashes[HashAlgoIndex].AlgoId; }
+};
+
 class HashList
 {
 private:
-	rhash_ids m_HashId;
 	std::vector<FileHashInfo> m_HashList;
 	int m_Codepage;
 
@@ -37,12 +40,12 @@ private:
 	bool DumpStringToFile(const char* data, size_t dataSize, const wchar_t* filePath);
 	void SerializeFileHash(const FileHashInfo& data, stringstream& dest);
 	bool DetectHashAlgo(const char* testStr, const wchar_t* filePath, int &foundAlgoIndex, HashListFormat &listFormat);
-	bool ParseLine(const char* inputStr, int hashAlgoIndex, FileHashInfo &fileInfo);
+	bool TryParseBSD(const char* inputStr, FileHashInfo &fileInfo);
+	bool TryParseSimple(const char* inputStr, int hashAlgoIndex, FileHashInfo &fileInfo);
 
 public:
-	HashList(rhash_ids hashId, int codePage) : m_HashId(hashId), m_Codepage(codePage) {}
-	HashList(rhash_ids hashId) : m_HashId(hashId), m_Codepage(CP_UTF8) {}
-	HashList() : m_HashId(RHASH_HASH_COUNT), m_Codepage(CP_UTF8) {}
+	HashList(int codePage) : m_Codepage(codePage) {}
+	HashList() : m_Codepage(CP_UTF8) {}
 
 	bool SaveList(const wchar_t* filepath);
 	bool SaveListSeparate(const wchar_t* baseDir);
@@ -53,7 +56,6 @@ public:
 	
 	size_t GetCount() const { return m_HashList.size(); }
 	FileHashInfo GetFileInfo(size_t index) { return m_HashList.at(index); }
-	rhash_ids GetHashAlgo() const { return m_HashId; }
 	std::wstring FileInfoToString(size_t index);
 };
 
@@ -67,8 +69,5 @@ typedef bool (CALLBACK *HashingProgressFunc)(HANDLE, int64_t);
 int GenerateHash(const wchar_t* filePath, rhash_ids hashAlgo, char* result, HashingProgressFunc progressFunc, HANDLE progressContext);
 HashAlgoInfo* GetAlgoInfo(rhash_ids algoId);
 int GetAlgoIndex(rhash_ids algoId);
-
-#define NUMBER_OF_SUPPORTED_HASHES 6
-extern HashAlgoInfo SupportedHashes[NUMBER_OF_SUPPORTED_HASHES];
 
 #endif // hashing_h__
