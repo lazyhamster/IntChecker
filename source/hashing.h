@@ -27,7 +27,7 @@ struct FileHashInfo
 	std::string HashStr;
 	int HashAlgoIndex;
 
-	rhash_ids GetAlgo() const { return SupportedHashes[HashAlgoIndex].AlgoId; }
+	rhash_ids GetAlgo() const { return (HashAlgoIndex >= 0) ? SupportedHashes[HashAlgoIndex].AlgoId : RHASH_HASH_COUNT; }
 };
 
 class HashList
@@ -51,7 +51,6 @@ public:
 	bool SaveListSeparate(const wchar_t* baseDir);
 	bool LoadList(const wchar_t* filepath);
 
-	std::string GetFileHash(const wchar_t* FileName) const;
 	void SetFileHash(const wchar_t* FileName, std::string HashVal);
 	
 	size_t GetCount() const { return m_HashList.size(); }
