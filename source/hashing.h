@@ -51,7 +51,7 @@ public:
 	bool SaveListSeparate(const wchar_t* baseDir);
 	bool LoadList(const wchar_t* filepath);
 
-	void SetFileHash(const wchar_t* FileName, std::string HashVal);
+	void SetFileHash(const wchar_t* fileName, std::string hashVal, rhash_ids hashAlgo);
 	
 	size_t GetCount() const { return m_HashList.size(); }
 	FileHashInfo GetFileInfo(size_t index) { return m_HashList.at(index); }

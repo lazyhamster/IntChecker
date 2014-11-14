@@ -722,7 +722,7 @@ static void RunGenerateHashes()
 
 		if (fSaveHash)
 		{
-			hashes.SetFileHash(storeAbsPaths ? strFullPath.c_str() : strNextFile.c_str(), hashValueBuf);
+			hashes.SetFileHash(storeAbsPaths ? strFullPath.c_str() : strNextFile.c_str(), hashValueBuf, genAlgo);
 		}
 	}
 

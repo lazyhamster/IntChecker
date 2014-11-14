@@ -89,19 +89,19 @@ int GetAlgoIndex(rhash_ids algoId)
 
 //////////////////////////////////////////////////////////////////////////
 
-void HashList::SetFileHash( const wchar_t* FileName, std::string HashVal )
+void HashList::SetFileHash( const wchar_t* fileName, std::string hashVal, rhash_ids hashAlgo )
 {
-	int index = GetFileRecordIndex(FileName);
+	int index = GetFileRecordIndex(fileName);
 	if (index >= 0)
 	{
-		m_HashList[index].HashStr = HashVal;
+		m_HashList[index].HashStr = hashVal;
 	}
 	else
 	{
 		FileHashInfo info;
-		info.Filename = FileName;
-		info.HashStr = HashVal;
-		info.HashAlgoIndex = -1;
+		info.Filename = fileName;
+		info.HashStr = hashVal;
+		info.HashAlgoIndex = GetAlgoIndex(hashAlgo);
 
 		m_HashList.push_back(info);
 	}
