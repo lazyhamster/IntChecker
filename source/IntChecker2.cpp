@@ -585,15 +585,16 @@ static void DisplayHashListOnScreen(HashList &list)
 
 static int DisplayHashGenerateError(const wstring& fileName)
 {
-	static const wchar_t* DlgLines[6];
+	static const wchar_t* DlgLines[7];
 	DlgLines[0] = GetLocMsg(MSG_DLG_ERROR);
-	DlgLines[1] = L"Can not calculate hash for";
+	DlgLines[1] = GetLocMsg(MSG_DLG_FILE_ERROR);
 	DlgLines[2] = fileName.c_str();
-	DlgLines[3] = L"Skip";
-	DlgLines[4] = L"Retry";
-	DlgLines[5] = GetLocMsg(MSG_BTN_CANCEL);
+	DlgLines[3] = GetLocMsg(MSG_BTN_SKIP);
+	DlgLines[4] = GetLocMsg(MSG_BTN_SKIPALL);
+	DlgLines[5] = GetLocMsg(MSG_BTN_RETRY);
+	DlgLines[6] = GetLocMsg(MSG_BTN_CANCEL);
 
-	return FarSInfo.Message(FarSInfo.ModuleNumber, FMSG_WARNING, NULL, DlgLines, ARRAY_SIZE(DlgLines), 3);
+	return FarSInfo.Message(FarSInfo.ModuleNumber, FMSG_WARNING, NULL, DlgLines, ARRAY_SIZE(DlgLines), 4);
 }
 
 static void RunGenerateHashes()
@@ -670,6 +671,7 @@ static void RunGenerateHashes()
 	progressCtx.CurrentFileIndex = -1;
 
 	bool continueSave = true;
+	bool fAutoSkipErrors = false;
 	for (StringList::const_iterator cit = filesToProcess.begin(); cit != filesToProcess.end(); cit++)
 	{
 		wstring strNextFile = *cit;
@@ -704,11 +706,16 @@ static void RunGenerateHashes()
 				}
 				else if (genRetVal == GENERATE_ERROR)
 				{
-					int resp = DisplayHashGenerateError(strNextFile);
+					int resp = fAutoSkipErrors ? EDR_SKIP : DisplayHashGenerateError(strNextFile);
 					if (resp == EDR_RETRY)
 						continue;
 					else if (resp == EDR_SKIP)
 						fSaveHash = false;
+					else if (resp == EDR_SKIPALL)
+					{
+						fSaveHash = false;
+						fAutoSkipErrors = true;
+					}
 					else
 						continueSave = false;
 				}
@@ -760,7 +767,7 @@ static void RunGenerateHashes()
 static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive)
 {
 	FarDialogItem DialogItems []={
-		/*0*/{DI_DOUBLEBOX,		3, 1, 41,13, 0, 0, 0, 0, L"Compare"},
+		/*0*/{DI_DOUBLEBOX,		3, 1, 41,13, 0, 0, 0, 0, GetLocMsg(MSG_DLG_COMPARE)},
 
 		/*1*/{DI_TEXT,			5, 2, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_ALGO), 0},
 		/*2*/{DI_RADIOBUTTON,	6, 3, 0, 0, 0, (selectedAlgo==RHASH_CRC32), DIF_GROUP, 0, L"&1. CRC32"},

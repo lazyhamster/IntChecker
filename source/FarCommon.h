@@ -26,8 +26,9 @@ enum HashOutputTargets
 };
 
 #define EDR_SKIP 0
-#define EDR_RETRY 1
-#define EDR_ABORT 2
+#define EDR_SKIPALL 1
+#define EDR_RETRY 2
+#define EDR_ABORT 3
 
 struct ProgressContext
 {

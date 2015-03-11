@@ -21,6 +21,7 @@
 "To Clipboard"
 "Retry"
 "Skip"
+"Skip All"
 
 "Error"
 "Confirm"
@@ -39,6 +40,7 @@
 "Mismatched Files (%d)"
 "Missing Files (%d)"
 "Compare"
+"Can not calculate hash for"
 
 "Generate"
 "Algorithm"
