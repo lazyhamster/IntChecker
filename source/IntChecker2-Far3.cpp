@@ -733,7 +733,7 @@ static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive)
 	return false;
 }
 
-static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, ProgressContext& progressCtx, char* hashStrBuffer, bool &shouldAbort)
+static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, ProgressContext& progressCtx, char* hashStrBuffer, bool &shouldAbort, bool &shouldSkipAllErrors)
 {
 	FarScreenSave screen;
 
@@ -764,11 +764,12 @@ static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, ProgressC
 		}
 		else if (genRetVal == GENERATE_ERROR)
 		{
-			int errResp = DisplayHashGenerateError(filePath);
+			int errResp = shouldSkipAllErrors ? EDR_SKIP : DisplayHashGenerateError(filePath);
 			if (errResp == EDR_RETRY)
 				continue;
-			else
-				shouldAbort = (errResp == EDR_ABORT);
+
+			shouldAbort = (errResp == EDR_ABORT);
+			shouldSkipAllErrors = shouldSkipAllErrors || (errResp == EDR_SKIPALL);
 
 			return false;
 		}
@@ -832,6 +833,7 @@ static void RunComparePanels()
 	char szHashValueActive[128] = {0};
 	char szHashValuePassive[128] = {0};
 	bool fAborted = false;
+	bool fSkipAllErrors = false;
 
 	ProgressContext progressCtx;
 	progressCtx.TotalFilesCount = (int) vSelectedFiles.size() * 2;
@@ -866,8 +868,8 @@ static void RunComparePanels()
 			continue;
 		}
 
-		if (RunGeneration(strActvPath, cmpAlgo, progressCtx, szHashValueActive, fAborted)
-			&& RunGeneration(strPasvPath, cmpAlgo, progressCtx, szHashValuePassive, fAborted))
+		if (RunGeneration(strActvPath, cmpAlgo, progressCtx, szHashValueActive, fAborted, fSkipAllErrors)
+			&& RunGeneration(strPasvPath, cmpAlgo, progressCtx, szHashValuePassive, fAborted, fSkipAllErrors))
 		{
 			if (strcmp(szHashValueActive, szHashValuePassive) != 0)
 				vMismatches.push_back(strNextFile);
