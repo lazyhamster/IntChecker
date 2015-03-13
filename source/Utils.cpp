@@ -218,10 +218,10 @@ std::wstring FormatString(const std::wstring fmt_str, ...)
 	return std::wstring(formatted);
 }
 
-std::wstring ConvertToUnicode( std::string &str )
+std::wstring ConvertToUnicode( std::string &str, int cp )
 {
-	int numChars = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, NULL, 0);
+	int numChars = MultiByteToWideChar(cp, 0, str.c_str(), -1, NULL, 0);
 	std::unique_ptr<wchar_t[]> tmpBuf(new wchar_t[numChars + 1]);
-	MultiByteToWideChar(CP_UTF8, 0, str.c_str(), -1, tmpBuf.get(), numChars + 1);
+	MultiByteToWideChar(cp, 0, str.c_str(), -1, tmpBuf.get(), numChars + 1);
 	return tmpBuf.get();
 }

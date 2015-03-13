@@ -284,7 +284,7 @@ std::wstring HashList::FileInfoToString( size_t index )
 	stringstream sstr;
 	SerializeFileHash(fileInfo, sstr);
 
-	return ConvertToUnicode(sstr.str());
+	return ConvertToUnicode(sstr.str(), m_Codepage);
 }
 
 bool HashList::TryParseBSD( const char* inputStr, FileHashInfo &fileInfo )
@@ -294,13 +294,13 @@ bool HashList::TryParseBSD( const char* inputStr, FileHashInfo &fileInfo )
 	
 	if (boost::regex_match(inputStr, match, rx))
 	{
-		std::wstring hashName = ConvertToUnicode(std::string(match[1].first, match[1].second));
+		std::wstring hashName = ConvertToUnicode(std::string(match[1].first, match[1].second), m_Codepage);
 
 		for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
 		{
 			if (_wcsicmp(hashName.c_str(), SupportedHashes[i].AlgoName.c_str()) == 0)
 			{
-				fileInfo.Filename = ConvertToUnicode(std::string(match[2].first, match[2].second));
+				fileInfo.Filename = ConvertToUnicode(std::string(match[2].first, match[2].second), m_Codepage);
 				fileInfo.HashStr = match[3].first;
 				fileInfo.HashAlgoIndex = i;
 				
@@ -321,7 +321,7 @@ bool HashList::TryParseSimple( const char* inputStr, int hashAlgoIndex, FileHash
 	{
 		std::string strPath = match["path"];
 		
-		fileInfo.Filename = ConvertToUnicode(strPath);
+		fileInfo.Filename = ConvertToUnicode(strPath, m_Codepage);
 		fileInfo.HashStr = match["hash"];
 		fileInfo.HashAlgoIndex = hashAlgoIndex;
 
