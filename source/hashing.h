@@ -65,7 +65,7 @@ typedef bool (CALLBACK *HashingProgressFunc)(HANDLE, int64_t);
 #define GENERATE_ERROR 1
 #define GENERATE_ABORTED 2
 
-int GenerateHash(const wchar_t* filePath, rhash_ids hashAlgo, char* result, HashingProgressFunc progressFunc, HANDLE progressContext);
+int GenerateHash(const wchar_t* filePath, rhash_ids hashAlgo, char* result, bool useUppercase, HashingProgressFunc progressFunc, HANDLE progressContext);
 HashAlgoInfo* GetAlgoInfo(rhash_ids algoId);
 int GetAlgoIndex(rhash_ids algoId);
 

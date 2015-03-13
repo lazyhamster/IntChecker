@@ -14,6 +14,8 @@ static int optConfirmAbort = TRUE;
 static int optAutoExtension = TRUE;
 static int optDefaultAlgo = RHASH_MD5;
 static int optUsePrefix = TRUE;
+static int optHashUppercase = FALSE;
+static int optListDefaultCodepage = CP_UTF8;
 static wchar_t optPrefix[32] = L"check";
 
 static rhash_ids s_SupportedAlgos[] = {RHASH_CRC32, RHASH_MD5, RHASH_SHA1, RHASH_SHA256, RHASH_SHA512, RHASH_WHIRLPOOL};

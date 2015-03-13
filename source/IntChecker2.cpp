@@ -414,7 +414,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 
 			{
 				FarScreenSave screen;
-				int genRetVal = GenerateHash(strFullFilePath.c_str(), fileInfo.GetAlgo(), hashValueBuf, FileHashingProgress, &progressCtx);
+				int genRetVal = GenerateHash(strFullFilePath.c_str(), fileInfo.GetAlgo(), hashValueBuf, false, FileHashingProgress, &progressCtx);
 
 				if (genRetVal == GENERATE_ABORTED)
 				{
@@ -697,7 +697,7 @@ static void RunGenerateHashes()
 				
 				fSaveHash = true;
 
-				int genRetVal = GenerateHash(strFullPath.c_str(), genAlgo, hashValueBuf, FileHashingProgress, &progressCtx);
+				int genRetVal = GenerateHash(strFullPath.c_str(), genAlgo, hashValueBuf, optHashUppercase != 0, FileHashingProgress, &progressCtx);
 
 				if (genRetVal == GENERATE_ABORTED)
 				{
@@ -831,7 +831,7 @@ static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, ProgressC
 		progressCtx.TotalProcessedBytes = nOldTotalBytes;
 
 		// Next is hash calculation for both files
-		int genRetVal = GenerateHash(filePath.c_str(), hashAlgo, hashStrBuffer, FileHashingProgress, &progressCtx);
+		int genRetVal = GenerateHash(filePath.c_str(), hashAlgo, hashStrBuffer, false, FileHashingProgress, &progressCtx);
 
 		if (genRetVal == GENERATE_ABORTED)
 		{

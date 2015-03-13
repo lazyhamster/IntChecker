@@ -333,7 +333,7 @@ bool HashList::TryParseSimple( const char* inputStr, int hashAlgoIndex, FileHash
 
 //////////////////////////////////////////////////////////////////////////
 
-int GenerateHash( const wchar_t* filePath, rhash_ids hashAlgo, char* result, HashingProgressFunc progressFunc, HANDLE progressContext )
+int GenerateHash( const wchar_t* filePath, rhash_ids hashAlgo, char* result, bool useUppercase, HashingProgressFunc progressFunc, HANDLE progressContext )
 {
 	wstring strUniPath(PATH_EXTRALONG_PREFIX);
 	strUniPath.append(filePath);
@@ -369,8 +369,11 @@ int GenerateHash( const wchar_t* filePath, rhash_ids hashAlgo, char* result, Has
 	
 	if (retVal == GENERATE_SUCCESS)
 	{
+		int printFlags = RHPR_HEX;
+		if (useUppercase) printFlags = printFlags | RHPR_UPPERCASE;
+
 		rhash_final(hashCtx, NULL);
-		rhash_print(result, hashCtx, hashAlgo, RHPR_HEX);
+		rhash_print(result, hashCtx, hashAlgo, printFlags);
 	}
 
 	rhash_free(hashCtx);
