@@ -997,10 +997,10 @@ void WINAPI GetPluginInfoW(struct PluginInfo *Info)
 	Info->StructSize = sizeof(PluginInfo);
 	Info->Flags = 0;
 
-	static wchar_t *PluginMenuStrings[1];
-	PluginMenuStrings[0] = L"Integrity Checker";
-	static wchar_t *PluginConfigStrings[1];
-	PluginConfigStrings[0] = L"Integrity Checker";
+	static const wchar_t *PluginMenuStrings[1];
+	PluginMenuStrings[0] = GetLocMsg(MSG_PLUGIN_NAME);
+	static const wchar_t *PluginConfigStrings[1];
+	PluginConfigStrings[0] = GetLocMsg(MSG_PLUGIN_CONFIG_NAME);
 
 	Info->PluginMenuStrings = PluginMenuStrings;
 	Info->PluginMenuStringsNumber = sizeof(PluginMenuStrings) / sizeof(PluginMenuStrings[0]);
