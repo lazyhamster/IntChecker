@@ -12,7 +12,8 @@
 "Default algorithm"
 "Confirm &abort"
 "Clear &selection on complete"
-"Automatic hashlist extension"
+"Automatic hashlist &extension"
+"Save hashes in &uppercase"
 
 "OK"
 "Cancel"

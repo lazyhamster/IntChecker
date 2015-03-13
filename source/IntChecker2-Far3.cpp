@@ -148,6 +148,7 @@ static void LoadSettings()
 	optDefaultAlgo				= ps.Get(0, L"DefaultHash", optDefaultAlgo);
 	optUsePrefix				= ps.Get(0, L"UsePrefix", optUsePrefix);
 	optAutoExtension			= ps.Get(0, L"AutoExtension", optAutoExtension);
+	optHashUppercase			= ps.Get(0, L"HashInUppercase", optHashUppercase);
 
 	ps.Get(0, L"Prefix", optPrefix, ARRAY_SIZE(optPrefix));
 }
@@ -163,6 +164,7 @@ static void SaveSettings()
 	ps.Set(0, L"Prefix", optPrefix);
 	ps.Set(0, L"UsePrefix", optUsePrefix);
 	ps.Set(0, L"AutoExtension", optAutoExtension);
+	ps.Set(0, L"HashInUppercase", optHashUppercase);
 }
 
 static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
@@ -964,6 +966,7 @@ intptr_t WINAPI ConfigureW(const ConfigureInfo* Info)
 	dlgBuilder.AddCheckbox(MSG_CONFIG_CONFIRM_ABORT, (BOOL*) &optConfirmAbort);
 	dlgBuilder.AddCheckbox(MSG_CONFIG_CLEAR_SELECTION, (BOOL*) &optClearSelectionOnComplete);
 	dlgBuilder.AddCheckbox(MSG_CONFIG_AUTOEXT, (BOOL*) &optAutoExtension);
+	dlgBuilder.AddCheckbox(MSG_CONFIG_UPPERCASE, (BOOL*) &optHashUppercase);
 
 	dlgBuilder.AddOKCancel(MSG_BTN_OK, MSG_BTN_CANCEL, -1, true);
 
