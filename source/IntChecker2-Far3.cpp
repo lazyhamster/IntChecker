@@ -496,10 +496,11 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 	return false;
 }
 
-static void DisplayHashListOnScreen(HashList &list)
+static void DisplayHashListOnScreen(const HashList &list)
 {
 	vector<wstring> listStrDump;
 	LPCWSTR *listBoxItems = new LPCWSTR[list.GetCount()];
+	int maxLineWidth = 0;
 
 	for (size_t i = 0; i < list.GetCount(); i++)
 	{
@@ -507,11 +508,23 @@ static void DisplayHashListOnScreen(HashList &list)
 
 		wstring &line = listStrDump[i];
 		listBoxItems[i] = line.c_str();
+		maxLineWidth = max(maxLineWidth, (int) line.size());
+	}
+
+	int nListWidth = 60;
+
+	SMALL_RECT farRect;
+	if (FarSInfo.AdvControl(&GUID_PLUGIN_MAIN, ACTL_GETFARRECT, 0, &farRect))
+	{
+		int farWidth = farRect.Right - farRect.Left + 1;
+		maxLineWidth += 2; // spaces on both sides of the text
+		if (maxLineWidth > nListWidth && farWidth > maxLineWidth + 20)
+			nListWidth = min(maxLineWidth, farWidth - 20);
 	}
 	
 	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_RESULTS, MSG_GEN_TITLE, nullptr);
 
-	dlgBuilder.AddListBox(NULL, 60, 15, listBoxItems, list.GetCount(), DIF_LISTNOCLOSE | DIF_LISTNOBOX);
+	dlgBuilder.AddListBox(NULL, nListWidth, 15, listBoxItems, list.GetCount(), DIF_LISTNOCLOSE | DIF_LISTNOBOX);
 	dlgBuilder.AddOKCancel(MSG_BTN_CLOSE, MSG_BTN_CLIPBOARD, -1, true);
 	
 	intptr_t exitCode = dlgBuilder.ShowDialogEx();
