@@ -22,9 +22,9 @@ bool CheckEsc()
 		return false;
 }
 
-bool IsAbsPath(const wchar_t* path)
+std::wstring MakeAbsPath(const std::wstring path, const std::wstring refDir)
 {
-	return !PathIsRelative(path);
+	return PathIsRelative(path.c_str()) ? refDir + path : path;
 }
 
 void IncludeTrailingPathDelim(wchar_t *pathBuf, size_t bufMaxSize)

@@ -3,7 +3,7 @@
 
 bool CheckEsc();
 
-bool IsAbsPath(const wchar_t* path);
+std::wstring MakeAbsPath(const std::wstring path, const std::wstring refDir);
 void IncludeTrailingPathDelim(wchar_t *pathBuf, size_t bufMaxSize);
 void IncludeTrailingPathDelim(wstring &pathStr);
 std::wstring ExtractFileName(const std::wstring& fullPath);
