@@ -38,7 +38,7 @@ private:
 
 	int GetFileRecordIndex(const wchar_t* fileName) const;
 	bool DumpStringToFile(const char* data, size_t dataSize, const wchar_t* filePath);
-	void SerializeFileHash(const FileHashInfo& data, stringstream& dest);
+	void SerializeFileHash(const FileHashInfo& data, stringstream& dest) const;
 	bool DetectHashAlgo(const char* testStr, const wchar_t* filePath, int &foundAlgoIndex, HashListFormat &listFormat);
 	bool TryParseBSD(const char* inputStr, FileHashInfo &fileInfo);
 	bool TryParseSimple(const char* inputStr, int hashAlgoIndex, FileHashInfo &fileInfo);
@@ -55,7 +55,7 @@ public:
 	
 	size_t GetCount() const { return m_HashList.size(); }
 	FileHashInfo GetFileInfo(size_t index) { return m_HashList.at(index); }
-	std::wstring FileInfoToString(size_t index);
+	std::wstring FileInfoToString(size_t index) const;
 };
 
 // Params: context, processed bytes

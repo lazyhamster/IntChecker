@@ -222,7 +222,7 @@ bool HashList::DumpStringToFile( const char* data, size_t dataSize, const wchar_
 	return retVal;
 }
 
-void HashList::SerializeFileHash( const FileHashInfo& data, stringstream& dest )
+void HashList::SerializeFileHash( const FileHashInfo& data, stringstream& dest ) const
 {
 	char szFilenameBuf[PATH_BUFFER_SIZE] = {0};
 	
@@ -274,12 +274,12 @@ bool HashList::DetectHashAlgo( const char* testStr, const wchar_t* filePath, int
 	return false;
 }
 
-std::wstring HashList::FileInfoToString( size_t index )
+std::wstring HashList::FileInfoToString( size_t index ) const
 {
 	if (index < 0 || index >= m_HashList.size())
 		return L"";
 
-	FileHashInfo& fileInfo = m_HashList[index];
+	const FileHashInfo& fileInfo = m_HashList[index];
 	
 	stringstream sstr;
 	SerializeFileHash(fileInfo, sstr);
