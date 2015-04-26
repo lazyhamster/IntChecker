@@ -909,8 +909,8 @@ static void RunComparePanels()
 
 	vector<wstring> vMismatches, vMissing;
 	int nFilesSkipped = 0;
-	char szHashValueActive[128] = {0};
-	char szHashValuePassive[128] = {0};
+	char szHashValueActive[130] = {0};
+	char szHashValuePassive[130] = {0};
 	bool fAborted = false;
 	bool fSkipAllErrors = false;
 
