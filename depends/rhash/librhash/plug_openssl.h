@@ -1,7 +1,7 @@
 /* plug_openssl.h - plug-in openssl algorithms */
 #ifndef RHASH_PLUG_OPENSSL_H
 #define RHASH_PLUG_OPENSSL_H
-#ifdef USE_OPENSSL
+#if defined(USE_OPENSSL) || defined(OPENSSL_RUNTIME)
 
 #ifdef __cplusplus
 extern "C" {
@@ -10,8 +10,7 @@ extern "C" {
 int rhash_plug_openssl(void); /* load openssl algorithms */
 
 #define RHASH_OPENSSL_DEFAULT_HASHES (RHASH_MD5 | RHASH_SHA1 | \
-	RHASH_SHA224 | RHASH_SHA256 | RHASH_SHA384 | RHASH_SHA512 | \
-	RHASH_WHIRLPOOL)
+	RHASH_SHA224 | RHASH_SHA256 | RHASH_SHA384 | RHASH_SHA512)
 
 extern unsigned rhash_openssl_hash_mask; /* mask of hash sums to use */
 
@@ -19,5 +18,5 @@ extern unsigned rhash_openssl_hash_mask; /* mask of hash sums to use */
 } /* extern "C" */
 #endif /* __cplusplus */
 
-#endif /* USE_OPENSSL */
+#endif /* defined(USE_OPENSSL) || defined(OPENSSL_RUNTIME) */
 #endif /* RHASH_PLUG_OPENSSL_H */

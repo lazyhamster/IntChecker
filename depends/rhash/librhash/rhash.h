@@ -74,8 +74,13 @@ typedef struct rhash_context
 	unsigned hash_id;
 } rhash_context;
 
-/** type of a pointer passed to all hashing functions */
+#ifndef LIBRHASH_RHASH_CTX_DEFINED
+#define LIBRHASH_RHASH_CTX_DEFINED
+/**
+ * Hashing context.
+ */
 typedef struct rhash_context* rhash;
+#endif /* LIBRHASH_RHASH_CTX_DEFINED */
 
 /** type of a callback to be called periodically while hashing a file */
 typedef void (*rhash_callback_t)(void* data, unsigned long long offset);
@@ -188,7 +193,7 @@ typedef unsigned long rhash_uptr_t;
 /** The value returned by rhash_transmit on error */
 #define RHASH_ERROR ((rhash_uptr_t)-1)
 /** Convert a pointer to rhash_uptr_t */
-#define RHASH_STR2UPTR(str) ((rhash_uptr_t)(str))
+#define RHASH_STR2UPTR(str) ((rhash_uptr_t)(char*)(str))
 /** Convert a rhash_uptr_t to a void* pointer */
 #define RHASH_UPTR2PVOID(u) ((void*)((char*)0 + (u)))
 

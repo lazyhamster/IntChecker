@@ -75,7 +75,7 @@ void bt_init(torrent_ctx* ctx)
 static void bt_vector_clean(torrent_vect *vect)
 {
 	size_t i;
-	for(i = 0; i < vect->size; i++) {
+	for (i = 0; i < vect->size; i++) {
 		free(vect->array[i]);
 	}
 	free(vect->array);
@@ -91,14 +91,15 @@ void bt_cleanup(torrent_ctx *ctx)
 {
 	assert(ctx != NULL);
 
-	/* destroy arrays of hash blocks and file paths */
+	/* destroy arrays */
 	bt_vector_clean(&ctx->hash_blocks);
 	bt_vector_clean(&ctx->files);
+	bt_vector_clean(&ctx->announce);
 
 	free(ctx->program_name);
-	free(ctx->announce);
-	ctx->announce = ctx->program_name = 0;
 	free(ctx->content.str);
+	ctx->program_name = 0;
+	ctx->content.str = 0;
 }
 
 static void bt_generate_torrent(torrent_ctx *ctx);
@@ -113,10 +114,10 @@ static void bt_generate_torrent(torrent_ctx *ctx);
 static int bt_vector_add_ptr(torrent_vect* vect, void* item)
 {
 	/* check if vector contains enough space for the next item */
-	if(vect->size >= vect->allocated) {
+	if (vect->size >= vect->allocated) {
 		size_t size = (vect->allocated == 0 ? 128 : vect->allocated * 2);
 		void *new_array = realloc(vect->array, size * sizeof(void*));
-		if(new_array == NULL) return 0; /* failed: no memory */
+		if (new_array == NULL) return 0; /* failed: no memory */
 		vect->array = (void**)new_array;
 		vect->allocated = size;
 	}
@@ -137,10 +138,10 @@ static int bt_store_piece_sha1(torrent_ctx *ctx)
 	unsigned char* block;
 	unsigned char* hash;
 
-	if((ctx->piece_count % BT_BLOCK_SIZE) == 0) {
+	if ((ctx->piece_count % BT_BLOCK_SIZE) == 0) {
 		block = (unsigned char*)malloc(BT_HASH_SIZE * BT_BLOCK_SIZE);
-		if(block == NULL || !bt_vector_add_ptr(&ctx->hash_blocks, block)) {
-			if(block) free(block);
+		if (block == NULL || !bt_vector_add_ptr(&ctx->hash_blocks, block)) {
+			if (block) free(block);
 			return 0;
 		}
 	} else {
@@ -174,17 +175,17 @@ int bt_add_file(torrent_ctx *ctx, const char* path, uint64_t filesize)
 {
 	size_t len = strlen(path);
 	bt_file_info* info = (bt_file_info*)malloc(sizeof(uint64_t) + len + 1);
-	if(info == NULL) {
+	if (info == NULL) {
 		ctx->error = 1;
 		return 0;
 	}
 
 	info->size = filesize;
 	memcpy(info->path, path, len + 1);
-	if(!bt_vector_add_ptr(&ctx->files, info)) return 0;
+	if (!bt_vector_add_ptr(&ctx->files, info)) return 0;
 
 	/* recalculate piece length (but only if hashing not started yet) */
-	if(ctx->piece_count == 0 && ctx->index == 0) {
+	if (ctx->piece_count == 0 && ctx->index == 0) {
 		/* note: in case of batch of files should use a total batch size */
 		ctx->piece_length = bt_default_piece_length(filesize);
 	}
@@ -205,10 +206,10 @@ void bt_update(torrent_ctx *ctx, const void* msg, size_t size)
 	size_t rest = (size_t)(ctx->piece_length - ctx->index);
 	assert(ctx->index < ctx->piece_length);
 
-	while(size > 0) {
+	while (size > 0) {
 		size_t left = (size < rest ? size : rest);
 		SHA1_UPDATE(ctx, pmsg, left);
-		if(size < rest) {
+		if (size < rest) {
 			ctx->index += left;
 			break;
 		}
@@ -232,12 +233,12 @@ void bt_update(torrent_ctx *ctx, const void* msg, size_t size)
  */
 void bt_final(torrent_ctx *ctx, unsigned char result[20])
 {
-	if(ctx->index > 0) {
+	if (ctx->index > 0) {
 		bt_store_piece_sha1(ctx); /* flush buffered data */
 	}
 
 	bt_generate_torrent(ctx);
-	if(result) memcpy(result, ctx->btih, btih_hash_size);
+	if (result) memcpy(result, ctx->btih, btih_hash_size);
 }
 
 /* BitTorrent functions */
@@ -253,12 +254,12 @@ void bt_final(torrent_ctx *ctx, unsigned char result[20])
 static int bt_str_ensure_length(torrent_ctx* ctx, size_t length)
 {
 	char* new_str;
-	if(length >= ctx->content.allocated && !ctx->error) {
+	if (length >= ctx->content.allocated && !ctx->error) {
 		length++; /* allocate one character more */
-		if(length < 64) length = 64;
+		if (length < 64) length = 64;
 		else length = (length + 255) & ~255;
 		new_str = (char*)realloc(ctx->content.str, length);
-		if(new_str == NULL) {
+		if (new_str == NULL) {
 			ctx->error = 1;
 			ctx->content.allocated = 0;
 			return 0;
@@ -279,7 +280,7 @@ static void bt_str_append(torrent_ctx *ctx, const char* text)
 {
 	size_t length = strlen(text);
 
-	if(!bt_str_ensure_length(ctx, ctx->content.length + length)) return;
+	if (!bt_str_ensure_length(ctx, ctx->content.length + length)) return;
 	memcpy(ctx->content.str + ctx->content.length, text, length);
 	ctx->content.length += length;
 	ctx->content.str[ctx->content.length] = '\0';
@@ -294,10 +295,10 @@ static void bt_str_append(torrent_ctx *ctx, const char* text)
 static void bt_bencode_int(torrent_ctx* ctx, const char* name, uint64_t number)
 {
 	char* p;
-	if(name) bt_str_append(ctx, name);
+	if (name) bt_str_append(ctx, name);
 
 	/* add up to 20 digits and 2 letters */
-	if(!bt_str_ensure_length(ctx, ctx->content.length + 22)) return;
+	if (!bt_str_ensure_length(ctx, ctx->content.length + 22)) return;
 	p = ctx->content.str + ctx->content.length;
 	*(p++) = 'i';
 	p += rhash_sprintI64(p, number);
@@ -319,8 +320,8 @@ static void bt_bencode_str(torrent_ctx* ctx, const char* name, const char* str)
 	int num_len;
 	char* p;
 
-	if(name) bt_str_append(ctx, name);
-	if(!bt_str_ensure_length(ctx, ctx->content.length + len + 21)) return;
+	if (name) bt_str_append(ctx, name);
+	if (!bt_str_ensure_length(ctx, ctx->content.length + len + 21)) return;
 
 	p = ctx->content.str + ctx->content.length;
 	p += (num_len = rhash_sprintI64(p, len));
@@ -342,7 +343,7 @@ static void bt_bencode_pieces(torrent_ctx* ctx)
 	int size, i;
 	char* p;
 
-	if(!bt_str_ensure_length(ctx, ctx->content.length + pieces_length + 21))
+	if (!bt_str_ensure_length(ctx, ctx->content.length + pieces_length + 21))
 		return;
 
 	p = ctx->content.str + ctx->content.length;
@@ -352,7 +353,7 @@ static void bt_bencode_pieces(torrent_ctx* ctx)
 	*(p++) = ':';
 	p[pieces_length] = '\0'; /* terminate with \0 just in case */
 
-	for(size = (int)ctx->piece_count, i = 0; size > 0;
+	for (size = (int)ctx->piece_count, i = 0; size > 0;
 		size -= BT_BLOCK_SIZE, i++)
 	{
 		memcpy(p, ctx->hash_blocks.array[i],
@@ -374,9 +375,9 @@ static void bt_bencode_pieces(torrent_ctx* ctx)
 size_t bt_default_piece_length(uint64_t total_size)
 {
 	uint64_t hi_bit;
-	if(total_size < 16777216) return BT_MIN_HASH_LENGTH;
-	if(total_size >= I64(4294967296) ) return 8388608;
-	for(hi_bit = 16777216 << 1; hi_bit <= total_size; hi_bit <<= 1);
+	if (total_size < 16777216) return BT_MIN_HASH_LENGTH;
+	if (total_size >= I64(4294967296) ) return 8388608;
+	for (hi_bit = 16777216 << 1; hi_bit <= total_size; hi_bit <<= 1);
 	return (size_t)(hi_bit >> 10);
 }
 
@@ -384,7 +385,7 @@ size_t bt_default_piece_length(uint64_t total_size)
 static const char* bt_get_basename(const char* path)
 {
 	const char *p = strchr(path, '\0') - 1;
-	for(; p >= path && *p != '/' && *p != '\\'; p--);
+	for (; p >= path && *p != '/' && *p != '\\'; p--);
 	return (p + 1);
 }
 
@@ -392,8 +393,8 @@ static const char* bt_get_basename(const char* path)
 static const char* get_batch_name(char* path)
 {
 	char* p = (char*)bt_get_basename(path) - 1;
-	for(; p > path && (*p == '/' || *p == '\\'); p--) *p = 0;
-	if(p <= path) return "BATCH_DIR";
+	for (; p > path && (*p == '/' || *p == '\\'); p--) *p = 0;
+	if (p <= path) return "BATCH_DIR";
 	return bt_get_basename(path);
 }
 
@@ -419,39 +420,56 @@ static void bt_generate_torrent(torrent_ctx *ctx)
 
 	assert(ctx->content.str == NULL);
 
-	if(ctx->piece_length == 0) {
-		if(ctx->files.size == 1) {
+	if (ctx->piece_length == 0) {
+		if (ctx->files.size == 1) {
 			total_size = ((bt_file_info*)ctx->files.array[0])->size;
 		}
 		ctx->piece_length = bt_default_piece_length(total_size);
 	}
 
-	/* write torrent header to the ctx->torrent string buffer */
-	if((ctx->options & BT_OPT_INFOHASH_ONLY) == 0) {
+	if ((ctx->options & BT_OPT_INFOHASH_ONLY) == 0) {
+		/* write the torrent header */
 		bt_str_append(ctx, "d");
-		if(ctx->announce) {
-			bt_bencode_str(ctx, "8:announce", ctx->announce);
+		if (ctx->announce.array && ctx->announce.size > 0) {
+			bt_bencode_str(ctx, "8:announce", ctx->announce.array[0]);
+
+			/* if more than one announce url */
+			if (ctx->announce.size > 1) {
+				/* add the announce-list key-value pair */
+				size_t i;
+				bt_str_append(ctx, "13:announce-listll");
+
+				for (i = 0; i < ctx->announce.size; i++) {
+					if (i > 0) {
+						bt_str_append(ctx, "el");
+					}
+					bt_bencode_str(ctx, 0, ctx->announce.array[i]);
+				}
+				bt_str_append(ctx, "ee");
+			}
 		}
 
-		if(ctx->program_name) {
+		if (ctx->program_name) {
 			bt_bencode_str(ctx, "10:created by", ctx->program_name);
 		}
 		bt_bencode_int(ctx, "13:creation date", (uint64_t)time(NULL));
+
+		bt_str_append(ctx, "8:encoding5:UTF-8");
 	}
 
-	bt_str_append(ctx, "8:encoding5:UTF-8");
+	/* write the essential for BTIH part of the torrent file */
 
-	bt_str_append(ctx, "4:infod"); /* start info dictionary */
+	bt_str_append(ctx, "4:infod"); /* start the info dictionary */
 	info_start_pos = ctx->content.length - 1;
 
-	if(ctx->files.size > 1) {
+	if (ctx->files.size > 1) {
 		size_t i;
 
 		/* process batch torrent */
 		bt_str_append(ctx, "5:filesl"); /* start list of files */
 
 		/* write length and path for each file in the batch */
-		for(i = 0; i < ctx->files.size; i++) {
+		for (i = 0; i < ctx->files.size; i++) {
 			bt_file_info_append(ctx, "d6:length", "4:pathl",
 				(bt_file_info*)ctx->files.array[i]);
 			bt_str_append(ctx, "ee");
@@ -460,7 +478,7 @@ static void bt_generate_torrent(torrent_ctx *ctx)
 		bt_bencode_str(ctx, "e4:name", get_batch_name(
 			((bt_file_info*)ctx->files.array[0])->path));
 	}
-	else if(ctx->files.size > 0) {
+	else if (ctx->files.size > 0) {
 		/* write size and basename of the first file */
 		/* in the non-batch mode other files are ignored */
 		bt_file_info_append(ctx, "6:length", "4:name",
@@ -471,7 +489,7 @@ static void bt_generate_torrent(torrent_ctx *ctx)
 	bt_str_append(ctx, "6:pieces");
 	bt_bencode_pieces(ctx);
 
-	if(ctx->options & BT_OPT_PRIVATE) {
+	if (ctx->options & BT_OPT_PRIVATE) {
 		bt_str_append(ctx, "7:privatei1e");
 	}
 	bt_str_append(ctx, "ee");
@@ -513,7 +531,7 @@ static char* bt_strdup(const char* str)
 {
 	size_t len = strlen(str);
 	char* res = (char*)malloc(len + 1);
-	if(res) memcpy(res, str, len + 1);
+	if (res) memcpy(res, str, len + 1);
 	return res;
 }
 #define strdup bt_strdup
@@ -545,17 +563,19 @@ void bt_set_piece_length(torrent_ctx *ctx, size_t piece_length)
 }
 
 /**
- * Set torrent announcement-URL for storing into torrent file.
+ * Add a tracker announce-URL to the torrent file.
  *
  * @param ctx the torrent algorithm context
- * @param announce_url the announcement-URL
+ * @param announce_url the announce URL of the tracker
  * @return non-zero on success, zero on error
  */
-int bt_set_announce(torrent_ctx *ctx, const char* announce_url)
+int bt_add_announce(torrent_ctx *ctx, const char* announce_url)
 {
-	free(ctx->announce);
-	ctx->announce = strdup(announce_url);
-	return (ctx->announce != NULL);
+	char* url_copy;
+	if (!announce_url || announce_url[0] == '\0') return 0;
+	url_copy = strdup(announce_url);
+	if (!url_copy) return 0;
+	return bt_vector_add_ptr(&ctx->announce, url_copy);
 }
 
 /**
