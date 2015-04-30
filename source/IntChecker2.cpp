@@ -1037,7 +1037,22 @@ int WINAPI ConfigureW(int ItemNumber)
 			algoListItems[i].Flags = LIF_SELECTED;
 	}
 
-	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 44, 15, L"IntCheckerConfig",
+	// Expand right border of the dialog if test is too long to fit
+	int borderX2 = DialogItems[0].X2;
+	for (int i = 1; i < ARRAY_SIZE(DialogItems); i++)
+	{
+		if (DialogItems[i].Type == DI_CHECKBOX)
+		{
+			int itemRigthBorder = DialogItems[i].X1 + 4 + wcslen(DialogItems[i].PtrData) + 1;
+			if (itemRigthBorder > borderX2)
+			{
+				borderX2 = itemRigthBorder;
+				DialogItems[0].X2 = itemRigthBorder;
+			}
+		}
+	}
+
+	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, borderX2 + 4, 15, L"IntCheckerConfig",
 		DialogItems, sizeof(DialogItems) / sizeof(DialogItems[0]), 0, 0, FarSInfo.DefDlgProc, 0);
 
 	int nOkID = ARRAY_SIZE(DialogItems) - 2;
