@@ -8,7 +8,7 @@
 #include <boost/function.hpp>
 #include <boost/optional.hpp>
 
-typedef boost::function<void ()> MenuAction;
+typedef boost::function<void (intptr_t aItemUserData)> MenuAction;
 
 #define SET_OPT_STR(str, val) if (val) str = std::wstring(val); else str = boost::none
 #define OPT_STR_VAL(str) (str ? str->c_str() : nullptr)
@@ -89,7 +89,8 @@ public:
 			if (rc <= (intptr_t) m_Actions.size())
 			{
 				MenuAction &action = m_Actions[rc];
-				if (action) action();
+				FarMenuItem &item = m_Items[rc];
+				if (action) action(item.UserData);
 			}
 			return true;
 		}

@@ -1022,8 +1022,8 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 
 		FarMenu openMenu(&FarSInfo, &GUID_PLUGIN_MAIN, &GUID_DIALOG_MENU, GetLocMsg(MSG_PLUGIN_NAME));
 
-		openMenu.AddItemEx(GetLocMsg(MSG_MENU_GENERATE), RunGenerateHashes);
-		openMenu.AddItemEx(GetLocMsg(MSG_MENU_COMPARE), RunComparePanels);
+		openMenu.AddItemEx(GetLocMsg(MSG_MENU_GENERATE), boost::bind(RunGenerateHashes));
+		openMenu.AddItemEx(GetLocMsg(MSG_MENU_COMPARE), boost::bind(RunComparePanels));
 
 		wstring selectedFilePath;
 		if ((pi.SelectedItemsNumber == 1) && GetSelectedPanelItemPath(selectedFilePath) && IsFile(selectedFilePath.c_str()))
