@@ -971,6 +971,46 @@ static void RunComparePanels()
 	}
 }
 
+void RunCompareWithClipboard(std::wstring &selectedFile)
+{
+	std::string clipText;
+	if (!GetTextFromClipboard(clipText))
+	{
+		DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_CLIP_ERROR), NULL, true, true);
+		return;
+	}
+
+	TrimStr(clipText);
+
+	std::vector<int> algoIndicies = DetectHashAlgo(clipText);
+
+	if (algoIndicies.size() == 0)
+	{
+		DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_LOOKS_NO_HASH), NULL, true, true);
+		return;
+	}
+
+	//TODO: show menu for cases where more then 1 candidate
+
+	rhash_ids algo = SupportedHashes[algoIndicies[0]].AlgoId;
+	char szHashValueBuf[150] = {0};
+	bool fAborted = false, fSkipAllErrors = false;
+
+	ProgressContext progressCtx;
+	progressCtx.TotalFilesCount = 1;
+	progressCtx.TotalFilesSize = GetFileSize_i64(selectedFile.c_str());
+	progressCtx.TotalProcessedBytes = 0;
+	progressCtx.CurrentFileIndex = -1;
+
+	if (RunGeneration(selectedFile, algo, progressCtx, szHashValueBuf, fAborted, fSkipAllErrors))
+	{
+		if (_stricmp(szHashValueBuf, clipText.c_str()) == 0)
+			DisplayMessage(GetLocMsg(MSG_DLG_CALC_COMPLETE), GetLocMsg(MSG_DLG_FILE_CLIP_MATCH), NULL, false, true);
+		else
+			DisplayMessage(GetLocMsg(MSG_DLG_CALC_COMPLETE), GetLocMsg(MSG_DLG_FILE_CLIP_MISMATCH), NULL, true, true);
+	}
+}
+
 // ------------------------------------- Exported functions --------------------------------------------------
 
 int WINAPI GetMinFarVersionW(void)
@@ -1106,15 +1146,17 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 		FarMenuItem MenuItems[] = {
 			{GetLocMsg(MSG_MENU_GENERATE), 1, 0, 0},
 			{GetLocMsg(MSG_MENU_COMPARE),  0, 0, 0},
-			{GetLocMsg(MSG_MENU_VALIDATE), 0, 0, 0}
+			{GetLocMsg(MSG_MENU_VALIDATE), 0, 0, 0},
+			{GetLocMsg(MSG_MENU_COMPARE_CLIP), 0, 0, 0}
 		};
 
 		wstring selectedFilePath;
 		int nNumMenuItems = 2;
 		
+		//TODO: use optDetectHashFiles properly
 		if (optDetectHashFiles && (pi.SelectedItemsNumber == 1) && GetSelectedPanelItemPath(selectedFilePath))
 		{
-			nNumMenuItems = IsFile(selectedFilePath.c_str()) ? 3 : 2;
+			nNumMenuItems = IsFile(selectedFilePath.c_str()) ? 4 : 2;
 		}
 
 		int nMItem = FarSInfo.Menu(FarSInfo.ModuleNumber, -1, -1, 0, 0, GetLocMsg(MSG_PLUGIN_NAME), NULL, NULL, NULL, NULL, MenuItems, nNumMenuItems);
@@ -1129,6 +1171,9 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 				break;
 			case 2:
 				RunValidateFiles(selectedFilePath.c_str(), false);
+				break;
+			case 3:
+				RunCompareWithClipboard(selectedFilePath);
 				break;
 		}
 	} // OpenFrom check
