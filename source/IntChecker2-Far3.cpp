@@ -4,6 +4,8 @@
 #include <far3/DlgBuilder.hpp>
 #include <far3/PluginSettings.hpp>
 
+#include <boost/bind.hpp>
+
 #include "version.h"
 #include "Utils.h"
 
@@ -11,6 +13,7 @@
 #include "Far3Guids.h"
 
 #include "FarCommon.h"
+#include "farhelpers/Far3Menu.hpp"
 
 // --------------------------------------- Service functions -------------------------------------------------
 
@@ -1017,34 +1020,19 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 			return NULL;
 		}
 
-		FarMenuItem MenuItems[] = {
-			{MIF_NONE, GetLocMsg(MSG_MENU_GENERATE), 0},
-			{MIF_NONE, GetLocMsg(MSG_MENU_COMPARE),  0},
-			{MIF_NONE, GetLocMsg(MSG_MENU_VALIDATE), 0}
-		};
+		FarMenu openMenu(&FarSInfo, &GUID_PLUGIN_MAIN, &GUID_DIALOG_MENU, GetLocMsg(MSG_PLUGIN_NAME));
+
+		openMenu.AddItemEx(GetLocMsg(MSG_MENU_GENERATE), RunGenerateHashes);
+		openMenu.AddItemEx(GetLocMsg(MSG_MENU_COMPARE), RunComparePanels);
 
 		wstring selectedFilePath;
-		int nNumMenuItems = 2;
-
-		if (optDetectHashFiles && (pi.SelectedItemsNumber == 1) && GetSelectedPanelItemPath(selectedFilePath))
+		if ((pi.SelectedItemsNumber == 1) && GetSelectedPanelItemPath(selectedFilePath) && IsFile(selectedFilePath.c_str()))
 		{
-			nNumMenuItems = IsFile(selectedFilePath.c_str()) ? 3 : 2;
+			//TODO: use optDetectHashFiles
+			openMenu.AddItemEx(GetLocMsg(MSG_MENU_VALIDATE), boost::bind(RunValidateFiles, selectedFilePath.c_str(), false));
 		}
 
-		intptr_t nMItem = FarSInfo.Menu(&GUID_PLUGIN_MAIN, &GUID_DIALOG_MENU, -1, -1, 0, 0, GetLocMsg(MSG_PLUGIN_NAME), NULL, NULL, NULL, NULL, MenuItems, nNumMenuItems);
-
-		switch (nMItem)
-		{
-		case 0:
-			RunGenerateHashes();
-			break;
-		case 1:
-			RunComparePanels();
-			break;
-		case 2:
-			RunValidateFiles(selectedFilePath.c_str(), false);
-			break;
-		}
+		openMenu.RunEx();
 	}
 
 	return NULL;
