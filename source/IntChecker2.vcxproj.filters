@@ -87,6 +87,9 @@
     <ClInclude Include="..\depends\farhelpers\Far3Menu.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\depends\farhelpers\Far2Menu.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <M4_Macro Include="Text\FILE_ID.DIZ.m4">

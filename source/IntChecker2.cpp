@@ -6,7 +6,10 @@
 #include "Utils.h"
 #include "RegistrySettings.h"
 
+#include <boost/bind.hpp>
+
 #include "FarCommon.h"
+#include "farhelpers/Far2Menu.hpp"
 
 // --------------------------------------- Service functions -------------------------------------------------
 
@@ -990,9 +993,22 @@ void RunCompareWithClipboard(std::wstring &selectedFile)
 		return;
 	}
 
-	//TODO: show menu for cases where more then 1 candidate
+	int selectedAlgoIndex = algoIndicies[0];
+	if (algoIndicies.size() > 1)
+	{
+		FarMenu algoMenu(&FarSInfo, L"Select algorithm");
+		for (size_t i = 0; i < algoIndicies.size(); i++)
+		{
+			algoMenu.AddItem(SupportedHashes[algoIndicies[i]].AlgoName.c_str());
+		}
+		int selItem = algoMenu.Run();
+		if (selItem < 0) return;
 
-	rhash_ids algo = SupportedHashes[algoIndicies[0]].AlgoId;
+		selectedAlgoIndex = algoIndicies[selItem];
+	}
+
+	rhash_ids algo = SupportedHashes[selectedAlgoIndex].AlgoId;
+
 	char szHashValueBuf[150] = {0};
 	bool fAborted = false, fSkipAllErrors = false;
 
@@ -1143,39 +1159,20 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 			return INVALID_HANDLE_VALUE;
 		}
 
-		FarMenuItem MenuItems[] = {
-			{GetLocMsg(MSG_MENU_GENERATE), 1, 0, 0},
-			{GetLocMsg(MSG_MENU_COMPARE),  0, 0, 0},
-			{GetLocMsg(MSG_MENU_VALIDATE), 0, 0, 0},
-			{GetLocMsg(MSG_MENU_COMPARE_CLIP), 0, 0, 0}
-		};
+		FarMenu openMenu(&FarSInfo, GetLocMsg(MSG_PLUGIN_NAME));
+
+		openMenu.AddItemEx(GetLocMsg(MSG_MENU_GENERATE), boost::bind(RunGenerateHashes));
+		openMenu.AddItemEx(GetLocMsg(MSG_MENU_COMPARE), boost::bind(RunComparePanels));
 
 		wstring selectedFilePath;
-		int nNumMenuItems = 2;
-		
-		//TODO: use optDetectHashFiles properly
-		if (optDetectHashFiles && (pi.SelectedItemsNumber == 1) && GetSelectedPanelItemPath(selectedFilePath))
+		if ((pi.SelectedItemsNumber == 1) && GetSelectedPanelItemPath(selectedFilePath) && IsFile(selectedFilePath.c_str()))
 		{
-			nNumMenuItems = IsFile(selectedFilePath.c_str()) ? 4 : 2;
+			//TODO: use optDetectHashFiles
+			openMenu.AddItemEx(GetLocMsg(MSG_MENU_VALIDATE), boost::bind(RunValidateFiles, selectedFilePath.c_str(), false));
+			openMenu.AddItemEx(GetLocMsg(MSG_MENU_COMPARE_CLIP), boost::bind(RunCompareWithClipboard, selectedFilePath));
 		}
 
-		int nMItem = FarSInfo.Menu(FarSInfo.ModuleNumber, -1, -1, 0, 0, GetLocMsg(MSG_PLUGIN_NAME), NULL, NULL, NULL, NULL, MenuItems, nNumMenuItems);
-		
-		switch (nMItem)
-		{
-			case 0:
-				RunGenerateHashes();
-				break;
-			case 1:
-				RunComparePanels();
-				break;
-			case 2:
-				RunValidateFiles(selectedFilePath.c_str(), false);
-				break;
-			case 3:
-				RunCompareWithClipboard(selectedFilePath);
-				break;
-		}
+		openMenu.RunEx();
 	} // OpenFrom check
 		
 	return INVALID_HANDLE_VALUE;

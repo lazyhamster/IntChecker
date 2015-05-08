@@ -409,6 +409,7 @@
     <None Include="version.m4i" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\depends\farhelpers\Far2Menu.hpp" />
     <ClInclude Include="..\depends\farhelpers\Far3Menu.hpp" />
     <ClInclude Include="Far3Guids.h" />
     <ClInclude Include="FarCommon.h" />
