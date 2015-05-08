@@ -187,6 +187,24 @@ bool CopyTextToClipboard( std::vector<std::wstring> &data )
 	return CopyTextToClipboard(sstr.str());
 }
 
+bool GetTextFromClipboard(std::string &data)
+{
+	if (!OpenClipboard(NULL)) return false;
+
+	bool ret = false;
+	HANDLE hData = GetClipboardData(CF_TEXT);
+	if (hData != NULL)
+	{
+		char* pText = (char*) GlobalLock(hData);
+		data = std::string(pText);
+		GlobalUnlock(hData);
+		ret = true;
+	}
+
+	CloseClipboard();
+	return ret;
+}
+
 std::wstring ExtractFileName( const std::wstring & fullPath )
 {
 	size_t pos = fullPath.find_last_of(L"/\\");
@@ -224,4 +242,12 @@ std::wstring ConvertToUnicode( std::string &str, int cp )
 	std::unique_ptr<wchar_t[]> tmpBuf(new wchar_t[numChars + 1]);
 	MultiByteToWideChar(cp, 0, str.c_str(), -1, tmpBuf.get(), numChars + 1);
 	return tmpBuf.get();
+}
+
+void TrimStr(std::string &str)
+{
+	while(str.length() > 0 && isspace(str.back()))
+		str.pop_back();
+	while(str.length() > 0 && isspace(str.front()))
+		str.erase(0, 1);
 }

@@ -6,6 +6,7 @@
 "&Generate Hashes"
 "Compare &Panels"
 "&Validate Files"
+"Compare With &Clipboard"
 
 "Configuration"
 "Use &prefix"
@@ -45,6 +46,10 @@
 "Only file panels are supported for comparison"
 "No mismatches found"
 "Can not compare panel to itself"
+"Text in clipboard doesn't look like valid hash"
+"Can not get text from clipboard"
+"File hash matches the clipboard"
+"File hash does not match the clipboard"
 
 "Generate"
 "Algorithm"

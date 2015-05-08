@@ -910,6 +910,46 @@ static void RunComparePanels()
 	}
 }
 
+void RunCompareWithClipboard(std::wstring &selectedFile)
+{
+	std::string clipText;
+	if (!GetTextFromClipboard(clipText))
+	{
+		DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_CLIP_ERROR), NULL, true, true);
+		return;
+	}
+
+	TrimStr(clipText);
+	
+	std::vector<int> algoIndicies = DetectHashAlgo(clipText);
+
+	if (algoIndicies.size() == 0)
+	{
+		DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_LOOKS_NO_HASH), NULL, true, true);
+		return;
+	}
+
+	//TODO: show menu for cases where more then 1 candidate
+
+	rhash_ids algo = SupportedHashes[algoIndicies[0]].AlgoId;
+	char szHashValueBuf[150] = {0};
+	bool fAborted = false, fSkipAllErrors = false;
+
+	ProgressContext progressCtx;
+	progressCtx.TotalFilesCount = 1;
+	progressCtx.TotalFilesSize = GetFileSize_i64(selectedFile.c_str());
+	progressCtx.TotalProcessedBytes = 0;
+	progressCtx.CurrentFileIndex = -1;
+
+	if (RunGeneration(selectedFile, algo, progressCtx, szHashValueBuf, fAborted, fSkipAllErrors))
+	{
+		if (_stricmp(szHashValueBuf, clipText.c_str()) == 0)
+			DisplayMessage(GetLocMsg(MSG_DLG_CALC_COMPLETE), GetLocMsg(MSG_DLG_FILE_CLIP_MATCH), NULL, false, true);
+		else
+			DisplayMessage(GetLocMsg(MSG_DLG_CALC_COMPLETE), GetLocMsg(MSG_DLG_FILE_CLIP_MISMATCH), NULL, true, true);
+	}
+}
+
 //-----------------------------------  Export functions ----------------------------------------
 
 void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
@@ -1030,6 +1070,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 		{
 			//TODO: use optDetectHashFiles
 			openMenu.AddItemEx(GetLocMsg(MSG_MENU_VALIDATE), boost::bind(RunValidateFiles, selectedFilePath.c_str(), false));
+			openMenu.AddItemEx(GetLocMsg(MSG_MENU_COMPARE_CLIP), boost::bind(RunCompareWithClipboard, selectedFilePath));
 		}
 
 		openMenu.RunEx();

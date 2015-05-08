@@ -5,12 +5,12 @@
 #include <boost/regex.hpp>
 
 HashAlgoInfo SupportedHashes[] = {
-	{RHASH_CRC32,     L"CRC32",     L".sfv",    "^(?<path>[^<>|?*\\n]+)\\s(?<hash>[A-Za-z\\d]{8})$"},
-	{RHASH_MD5,       L"MD5",       L".md5",    "^(?<hash>[A-Za-z\\d]{32})\\s{1,2}\\*?(?<path>[^<>|?*\\n]+)$"},
-	{RHASH_SHA1,      L"SHA1",      L".sha1",   "^(?<hash>[A-Za-z\\d]{40})\\s{1,2}\\*?(?<path>[^<>|?*\\n]+)$"},
-	{RHASH_SHA256,    L"SHA-256",   L".sha256", "^(?<hash>[A-Za-z\\d]{64})\\s{1,2}\\*?(?<path>[^<>|?*\\n]+)$"},
-	{RHASH_SHA512,    L"SHA-512",   L".sha512", "^(?<hash>[A-Za-z\\d]{128})\\s{1,2}\\*?(?<path>[^<>|?*\\n]+)$"},
-	{RHASH_WHIRLPOOL, L"Whirlpool", L".wrpl",   "^(?<hash>[A-Za-z\\d]{128})\\s{1,2}\\*?(?<path>[^<>|?*\\n]+)$"}
+	{RHASH_CRC32,     L"CRC32",     L".sfv",    "^(?<path>[^<>|?*\\n]+)\\s(?<hash>[A-Za-z\\d]{8})$",            8},
+	{RHASH_MD5,       L"MD5",       L".md5",    "^(?<hash>[A-Za-z\\d]{32})\\s{1,2}\\*?(?<path>[^<>|?*\\n]+)$",  32},
+	{RHASH_SHA1,      L"SHA1",      L".sha1",   "^(?<hash>[A-Za-z\\d]{40})\\s{1,2}\\*?(?<path>[^<>|?*\\n]+)$",  40},
+	{RHASH_SHA256,    L"SHA-256",   L".sha256", "^(?<hash>[A-Za-z\\d]{64})\\s{1,2}\\*?(?<path>[^<>|?*\\n]+)$",  64},
+	{RHASH_SHA512,    L"SHA-512",   L".sha512", "^(?<hash>[A-Za-z\\d]{128})\\s{1,2}\\*?(?<path>[^<>|?*\\n]+)$", 128},
+	{RHASH_WHIRLPOOL, L"Whirlpool", L".wrpl",   "^(?<hash>[A-Za-z\\d]{128})\\s{1,2}\\*?(?<path>[^<>|?*\\n]+)$", 128}
 };
 
 static bool CanBeHash(const char* msg, int msgSize)
@@ -379,4 +379,23 @@ int GenerateHash( const wchar_t* filePath, rhash_ids hashAlgo, char* result, boo
 	rhash_free(hashCtx);
 	CloseHandle(hFile);
 	return retVal;
+}
+
+std::vector<int> DetectHashAlgo(std::string &testStr)
+{
+	std::vector<int> algoIndicies;
+	
+	// Check if it can be hash at all
+	boost::regex rx("[A-Za-z\\d]+");
+	if (boost::regex_match(testStr, rx))
+	{
+		// Go through all hashes and check string size
+		for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
+		{
+			if (SupportedHashes[i].HashStrSize == testStr.length())
+				algoIndicies.push_back(i);
+		}
+	}
+	
+	return algoIndicies;
 }

@@ -16,6 +16,7 @@ struct HashAlgoInfo
 	std::wstring AlgoName;
 	std::wstring DefaultExt;
 	std::string ParseExpr;
+	short HashStrSize;
 };
 
 #define NUMBER_OF_SUPPORTED_HASHES 6
@@ -68,5 +69,8 @@ typedef bool (CALLBACK *HashingProgressFunc)(HANDLE, int64_t);
 int GenerateHash(const wchar_t* filePath, rhash_ids hashAlgo, char* result, bool useUppercase, HashingProgressFunc progressFunc, HANDLE progressContext);
 HashAlgoInfo* GetAlgoInfo(rhash_ids algoId);
 int GetAlgoIndex(rhash_ids algoId);
+
+// Returns list of algorithms that have matching hash pattern
+std::vector<int> DetectHashAlgo(std::string &testStr);
 
 #endif // hashing_h__
