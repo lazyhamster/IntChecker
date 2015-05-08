@@ -42,6 +42,8 @@
 "Missing Files (%d)"
 "Compare"
 "Can not calculate hash for"
+"Only file panels are supported for comparison"
+"No mismatches found"
 
 "Generate"
 "Algorithm"

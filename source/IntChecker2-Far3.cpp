@@ -254,7 +254,7 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 		// If everything is fine then just display simple message
 		static wchar_t wszGoodMessage[256];
 		if (numSkipped == 0)
-			wcscpy_s(wszGoodMessage, ARRAY_SIZE(wszGoodMessage), L"No mismatches found");
+			wcscpy_s(wszGoodMessage, ARRAY_SIZE(wszGoodMessage), GetLocMsg(MSG_DLG_NO_MISMATCHES));
 		else
 			swprintf_s(wszGoodMessage, ARRAY_SIZE(wszGoodMessage), L"No mismatches found (%d file(s) were skipped)", numSkipped);
 
@@ -807,7 +807,7 @@ static void RunComparePanels()
 
 	if (piActv.PanelType != PTYPE_FILEPANEL || piPasv.PanelType != PTYPE_FILEPANEL || piActv.PluginHandle || piPasv.PluginHandle)
 	{
-		DisplayMessage(L"Error", L"Only file panels are supported", NULL, true, true);
+		DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_FILE_PANEL_REQUIRED), NULL, true, true);
 		return;
 	}
 
@@ -826,7 +826,7 @@ static void RunComparePanels()
 
 	if (strActivePanelDir == strPassivePanelDir)
 	{
-		DisplayMessage(L"Error", L"Can not compare panel to itself", NULL, true, true);
+		DisplayMessage(GetLocMsg(MSG_DLG_ERROR), L"Can not compare panel to itself", NULL, true, true);
 		return;
 	}
 
