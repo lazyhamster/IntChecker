@@ -887,7 +887,7 @@ static void RunComparePanels()
 
 	if (strActivePanelDir == strPassivePanelDir)
 	{
-		DisplayMessage(GetLocMsg(MSG_DLG_ERROR), L"Can not compare panel to itself", NULL, true, true);
+		DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_NO_COMPARE_SELF), NULL, true, true);
 		return;
 	}
 

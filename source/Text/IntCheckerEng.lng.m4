@@ -44,6 +44,7 @@
 "Can not calculate hash for"
 "Only file panels are supported for comparison"
 "No mismatches found"
+"Can not compare panel to itself"
 
 "Generate"
 "Algorithm"

@@ -525,7 +525,7 @@ static void DisplayHashListOnScreen(const HashList &list)
 			nListWidth = min(maxLineWidth, farWidth - 20);
 	}
 	
-	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_RESULTS, MSG_GEN_TITLE, nullptr);
+	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_RESULTS, MSG_DLG_CALC_COMPLETE, nullptr);
 
 	dlgBuilder.AddListBox(NULL, nListWidth, 15, listBoxItems, list.GetCount(), DIF_LISTNOCLOSE | DIF_LISTNOBOX);
 	dlgBuilder.AddOKCancel(MSG_BTN_CLOSE, MSG_BTN_CLIPBOARD, -1, true);
@@ -826,7 +826,7 @@ static void RunComparePanels()
 
 	if (strActivePanelDir == strPassivePanelDir)
 	{
-		DisplayMessage(GetLocMsg(MSG_DLG_ERROR), L"Can not compare panel to itself", NULL, true, true);
+		DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_NO_COMPARE_SELF), NULL, true, true);
 		return;
 	}
 
