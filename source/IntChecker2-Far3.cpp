@@ -929,9 +929,21 @@ void RunCompareWithClipboard(std::wstring &selectedFile)
 		return;
 	}
 
-	//TODO: show menu for cases where more then 1 candidate
+	int selectedAlgoIndex = algoIndicies[0];
+	if (algoIndicies.size() > 1)
+	{
+		FarMenu algoMenu(&FarSInfo, &GUID_PLUGIN_MAIN, &GUID_DIALOG_MENU, L"Select algorithm");
+		for (size_t i = 0; i < algoIndicies.size(); i++)
+		{
+			algoMenu.AddItem(SupportedHashes[algoIndicies[i]].AlgoName.c_str());
+		}
+		int selItem = algoMenu.Run();
+		if (selItem < 0) return;
 
-	rhash_ids algo = SupportedHashes[algoIndicies[0]].AlgoId;
+		selectedAlgoIndex = algoIndicies[selItem];
+	}
+
+	rhash_ids algo = SupportedHashes[selectedAlgoIndex].AlgoId;
 	char szHashValueBuf[150] = {0};
 	bool fAborted = false, fSkipAllErrors = false;
 
