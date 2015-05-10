@@ -960,6 +960,9 @@ void RunCompareWithClipboard(std::wstring &selectedFile)
 		else
 			DisplayMessage(GetLocMsg(MSG_DLG_CALC_COMPLETE), GetLocMsg(MSG_DLG_FILE_CLIP_MISMATCH), NULL, true, true);
 	}
+
+	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);
+	FarAdvControl(ACTL_PROGRESSNOTIFY, 0, NULL);
 }
 
 //-----------------------------------  Export functions ----------------------------------------
