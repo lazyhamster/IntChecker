@@ -1157,7 +1157,7 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 		// We are from regular plug-ins menu
 
 		PanelInfo pi = {0};
-		if (!FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, (LONG_PTR)&pi) || (pi.PanelType != PTYPE_FILEPANEL) || (pi.Plugin != 0))
+		if (!FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, (LONG_PTR)&pi) || (pi.PanelType != PTYPE_FILEPANEL) || ((pi.Plugin != 0) && !(pi.Flags & PFLAGS_REALNAMES)))
 		{
 			return INVALID_HANDLE_VALUE;
 		}

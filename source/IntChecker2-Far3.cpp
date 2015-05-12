@@ -1070,7 +1070,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 	else if (OInfo->OpenFrom == OPEN_PLUGINSMENU)
 	{
 		PanelInfo pi = {sizeof(PanelInfo), 0};
-		if (!FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, &pi) || (pi.PanelType != PTYPE_FILEPANEL) || (pi.PluginHandle != NULL))
+		if (!FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, &pi) || (pi.PanelType != PTYPE_FILEPANEL) || ((pi.PluginHandle != NULL) && !(pi.Flags & PFLAGS_REALNAMES)))
 		{
 			return NULL;
 		}
