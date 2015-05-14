@@ -193,7 +193,7 @@ static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 		prCtx->TotalProgress = nTotalProgress;
 
 		static wchar_t szFileProgressLine[100] = {0};
-		swprintf_s(szFileProgressLine, ARRAY_SIZE(szFileProgressLine), L"File: %d / %d. Progress: %2d%% / %2d%%", prCtx->CurrentFileIndex + 1, prCtx->TotalFilesCount, nFileProgress, nTotalProgress);
+		swprintf_s(szFileProgressLine, ARRAY_SIZE(szFileProgressLine), GetLocMsg(MSG_DLG_PROGRESS), prCtx->CurrentFileIndex + 1, prCtx->TotalFilesCount, nFileProgress, nTotalProgress);
 
 		static const wchar_t* InfoLines[4];
 		InfoLines[0] = GetLocMsg(MSG_DLG_PROCESSING);
@@ -256,7 +256,7 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 		if (numSkipped == 0)
 			wcscpy_s(wszGoodMessage, ARRAY_SIZE(wszGoodMessage), GetLocMsg(MSG_DLG_NO_MISMATCHES));
 		else
-			swprintf_s(wszGoodMessage, ARRAY_SIZE(wszGoodMessage), L"No mismatches found (%d file(s) were skipped)", numSkipped);
+			swprintf_s(wszGoodMessage, ARRAY_SIZE(wszGoodMessage), L"%s (%d %s)", GetLocMsg(MSG_DLG_NO_MISMATCHES), numSkipped, GetLocMsg(MSG_DLG_NUM_SKIPPED));
 
 		DisplayMessage(GetLocMsg(MSG_DLG_VALIDATION_COMPLETE), wszGoodMessage, NULL, false, true);
 	}

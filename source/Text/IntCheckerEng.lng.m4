@@ -45,11 +45,13 @@
 "Can not calculate hash for"
 "Only file panels are supported for comparison"
 "No mismatches found"
+"file(s) were skipped"
 "Can not compare panel to itself"
 "Text in clipboard doesn't look like valid hash"
 "Can not get text from clipboard"
 "File hash matches the clipboard"
 "File hash does not match the clipboard"
+"File: %d / %d. Progress: %2d%% / %2d%%"
 
 "Generate"
 "Algorithm"
