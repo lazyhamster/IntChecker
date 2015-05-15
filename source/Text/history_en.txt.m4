@@ -1,5 +1,8 @@
 Changes history:
 
+2.3.1
+- Added Spanish localization.
+
 2.3.0
 - Added ability to compare file hash with clipboard content.
 - Now plugin works with panels that have PFLAGS_REALNAMES flag set (experimental).
