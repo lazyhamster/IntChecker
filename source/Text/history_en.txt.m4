@@ -1,7 +1,7 @@
 Changes history:
 
 2.3.1
-- Added Spanish localization.
+- Added Spanish localization (by Mauro72).
 
 2.3.0
 - Added ability to compare file hash with clipboard content.
