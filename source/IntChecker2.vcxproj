@@ -444,6 +444,7 @@
     <M4_Macro Include="Text\history_ru.txt.m4" />
     <M4_Macro Include="Text\IntCheckerEng.lng.m4" />
     <M4_Macro Include="Text\IntCheckerRus.lng.m4" />
+    <M4_Macro Include="Text\IntCheckerSpa.lng.m4" />
     <M4_Macro Include="Text\readme_ru.txt.m4" />
     <M4_Macro Include="version.h.m4">
       <OutputFile Condition="'$(Configuration)|$(Platform)'=='Debug-Far2|Win32'">$(ProjectDir)%(Filename)</OutputFile>
