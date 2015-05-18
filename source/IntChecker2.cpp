@@ -488,7 +488,7 @@ static LONG_PTR WINAPI HashParamsDlgProc(HANDLE hDlg, int Msg, int Param1, LONG_
 static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive, HashOutputTargets &outputTarget, wstring &outputFileName, int &storeAbsPaths)
 {
 	FarDialogItem DialogItems []={
-		/*0*/{DI_DOUBLEBOX,		3, 1, 41,20, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TITLE)},
+		/*0*/{DI_DOUBLEBOX,		3, 1, 45,20, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TITLE)},
 
 		/*1*/{DI_TEXT,			5, 2, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_ALGO), 0},
 		/*2*/{DI_RADIOBUTTON,	6, 3, 0, 0, 0, (selectedAlgo==RHASH_CRC32), DIF_GROUP, 0, GetLocMsg(MSG_ALGO_CRC)},
@@ -515,7 +515,7 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 	};
 	size_t numDialogItems = sizeof(DialogItems) / sizeof(DialogItems[0]);
 
-	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 45, 22, L"GenerateParams", DialogItems, (unsigned) numDialogItems, 0, 0, HashParamsDlgProc, 0);
+	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 49, 22, L"GenerateParams", DialogItems, (unsigned) numDialogItems, 0, 0, HashParamsDlgProc, 0);
 
 	bool retVal = false;
 	if (hDlg != INVALID_HANDLE_VALUE)
