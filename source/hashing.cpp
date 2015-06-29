@@ -148,14 +148,14 @@ bool HashList::SaveListSeparate( const wchar_t* baseDir )
 
 bool HashList::LoadList( const wchar_t* filepath )
 {
-	char readBuf[1024];
+	char readBuf[2048];
 	FILE* inputFile;
 
 	m_HashList.clear();
 
 	// Do not accept files larger then 10Mb
 	int64_t fileSize = GetFileSize_i64(filepath);
-	if ((fileSize <= 0) || (fileSize > 10 * 1024 * 1024)) return false;
+	if ((fileSize <= 0) || (fileSize > m_MaxListSize)) return false;
 	
 	if (_wfopen_s(&inputFile, filepath, L"r") != 0)
 		return false;
