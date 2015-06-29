@@ -728,6 +728,7 @@ static void RunGenerateHashes()
 	if (optRememberLastUsedAlgo)
 	{
 		optDefaultAlgo = genAlgo;
+		SaveSettings();
 	}
 
 	FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_REDRAWPANEL, 0, NULL);
@@ -919,6 +920,7 @@ static void RunComparePanels()
 	if (optRememberLastUsedAlgo)
 	{
 		optDefaultAlgo = cmpAlgo;
+		SaveSettings();
 	}
 }
 
