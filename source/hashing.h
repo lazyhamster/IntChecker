@@ -53,7 +53,7 @@ public:
 
 	bool SaveList(const wchar_t* filepath);
 	bool SaveListSeparate(const wchar_t* baseDir);
-	bool LoadList(const wchar_t* filepath);
+	bool LoadList(const wchar_t* filepath, bool merge);
 
 	void SetFileHash(const wchar_t* fileName, std::string hashVal, rhash_ids hashAlgo);
 	

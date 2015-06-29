@@ -146,12 +146,13 @@ bool HashList::SaveListSeparate( const wchar_t* baseDir )
 	return true;
 }
 
-bool HashList::LoadList( const wchar_t* filepath )
+bool HashList::LoadList( const wchar_t* filepath, bool merge )
 {
 	char readBuf[2048];
 	FILE* inputFile;
 
-	m_HashList.clear();
+	if (!merge)
+		m_HashList.clear();
 
 	// Do not accept files larger then 10Mb
 	int64_t fileSize = GetFileSize_i64(filepath);
