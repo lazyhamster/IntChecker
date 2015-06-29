@@ -1,5 +1,8 @@
 Changes history:
 
+2.3.2
+- Added option to save last used hash algorithm.
+
 2.3.1
 - Added Spanish localization (by Mauro72).
 

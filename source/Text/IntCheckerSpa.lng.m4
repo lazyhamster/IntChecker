@@ -15,6 +15,7 @@
 "Limpiar &selección al completar hashing"
 "Extensión automática de lista hash"
 "Guardar hashes en mayúsc&ulas"
+"Remember last used algorithm"
 
 "Aceptar"
 "Cancelar"

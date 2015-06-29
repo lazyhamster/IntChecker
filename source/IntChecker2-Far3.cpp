@@ -152,6 +152,7 @@ static void LoadSettings()
 	optUsePrefix				= ps.Get(0, L"UsePrefix", optUsePrefix);
 	optAutoExtension			= ps.Get(0, L"AutoExtension", optAutoExtension);
 	optHashUppercase			= ps.Get(0, L"HashInUppercase", optHashUppercase);
+	optHashUppercase			= ps.Get(0, L"RememberLastAlgorithm", optRememberLastUsedAlgo);
 
 	ps.Get(0, L"Prefix", optPrefix, ARRAY_SIZE(optPrefix));
 }
@@ -168,6 +169,7 @@ static void SaveSettings()
 	ps.Set(0, L"UsePrefix", optUsePrefix);
 	ps.Set(0, L"AutoExtension", optAutoExtension);
 	ps.Set(0, L"HashInUppercase", optHashUppercase);
+	ps.Set(0, L"RememberLastAlgorithm", optRememberLastUsedAlgo);
 }
 
 static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
@@ -723,6 +725,11 @@ static void RunGenerateHashes()
 			FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_CLEARSELECTION, i, NULL);
 	}
 
+	if (optRememberLastUsedAlgo)
+	{
+		optDefaultAlgo = genAlgo;
+	}
+
 	FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_REDRAWPANEL, 0, NULL);
 }
 
@@ -908,6 +915,11 @@ static void RunComparePanels()
 	{
 		DisplayValidationResults(vMismatches, vMissing, nFilesSkipped);
 	}
+
+	if (optRememberLastUsedAlgo)
+	{
+		optDefaultAlgo = cmpAlgo;
+	}
 }
 
 void RunCompareWithClipboard(std::wstring &selectedFile)
@@ -1027,6 +1039,7 @@ intptr_t WINAPI ConfigureW(const ConfigureInfo* Info)
 
 	dlgBuilder.AddText(MSG_CONFIG_DEFAULT_ALGO);
 	dlgBuilder.AddComboBox(&selectedAlgo, NULL, 15, algoList, NUMBER_OF_SUPPORTED_HASHES, DIF_DROPDOWNLIST);
+	dlgBuilder.AddCheckbox(MSG_CONFIG_REMEMBER_LAST_ALGO, (BOOL*) &optRememberLastUsedAlgo);
 
 	dlgBuilder.AddSeparator();
 	dlgBuilder.AddCheckbox(MSG_CONFIG_PREFIX, (BOOL*) &optUsePrefix);

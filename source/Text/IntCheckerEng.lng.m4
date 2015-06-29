@@ -15,6 +15,7 @@
 "Clear &selection on complete"
 "Automatic hashlist &extension"
 "Save hashes in &uppercase"
+"&Remember last used algorithm"
 
 "OK"
 "Cancel"
