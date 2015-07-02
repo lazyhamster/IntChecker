@@ -31,14 +31,11 @@ struct FileHashInfo
 	rhash_ids GetAlgo() const { return (HashAlgoIndex >= 0) ? SupportedHashes[HashAlgoIndex].AlgoId : RHASH_HASH_COUNT; }
 };
 
-#define DEFAULT_HASHLIST_SIZE_LIMIT 10 * 1024 * 1024
-
 class HashList
 {
 private:
 	std::vector<FileHashInfo> m_HashList;
 	int m_Codepage;
-	int64_t m_MaxListSize;
 
 	int GetFileRecordIndex(const wchar_t* fileName) const;
 	bool DumpStringToFile(const char* data, size_t dataSize, const wchar_t* filePath);
@@ -48,8 +45,8 @@ private:
 	bool TryParseSimple(const char* inputStr, int hashAlgoIndex, FileHashInfo &fileInfo);
 
 public:
-	HashList(int codePage) : m_Codepage(codePage), m_MaxListSize(DEFAULT_HASHLIST_SIZE_LIMIT) {}
-	HashList() : m_Codepage(CP_UTF8), m_MaxListSize(DEFAULT_HASHLIST_SIZE_LIMIT) {}
+	HashList(int codePage) : m_Codepage(codePage) {}
+	HashList() : m_Codepage(CP_UTF8) {}
 
 	bool SaveList(const wchar_t* filepath);
 	bool SaveListSeparate(const wchar_t* baseDir);
