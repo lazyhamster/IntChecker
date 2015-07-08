@@ -326,7 +326,7 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 {
 	HashList hashes;
-	if (!hashes.LoadList(hashListPath) || (hashes.GetCount() == 0))
+	if (!hashes.LoadList(hashListPath, false) || (hashes.GetCount() == 0))
 	{
 		if (!silent)
 			DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_NOTVALIDLIST), NULL, true, true);
