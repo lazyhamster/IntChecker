@@ -53,6 +53,7 @@
 "Hash de archivo coincide con portapapeles"
 "Hash de archivo no coincide con portapapeles"
 "Archivo: %d / %d. Progreso: %2d%% / %2d%%"
+"Can not save hashlist to file"
 
 "Generar"
 "Algoritmo"

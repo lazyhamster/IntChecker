@@ -707,6 +707,10 @@ static void RunGenerateHashes()
 	if (outputTarget == OT_SINGLEFILE)
 	{
 		saveSuccess = hashes.SaveList(outputFile.c_str());
+		if (!saveSuccess)
+		{
+			DisplayMessage(MSG_DLG_ERROR, MSG_DLG_CANT_SAVE_HASHLIST, outputFile.c_str(), true, true);
+		}
 	}
 	else if (outputTarget == OT_SEPARATEFILES)
 	{

@@ -53,6 +53,7 @@
 "File hash matches the clipboard"
 "File hash does not match the clipboard"
 "File: %d / %d. Progress: %2d%% / %2d%%"
+"Can not save hashlist to file"
 
 "Generate"
 "Algorithm"
