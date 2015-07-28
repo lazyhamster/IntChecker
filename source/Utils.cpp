@@ -79,6 +79,18 @@ bool IsFile( const wchar_t* path )
 	return false;
 }
 
+bool CanCreateFile(const wchar_t* path)
+{
+	HANDLE hf = CreateFile(path, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_TEMPORARY | FILE_FLAG_DELETE_ON_CLOSE, 0);
+	if (hf != INVALID_HANDLE_VALUE)
+	{
+		CloseHandle(hf);
+		return true;
+	}
+
+	return false;
+}
+
 void TrimRight( char* str )
 {
 	size_t strLen = strlen(str);

@@ -12,6 +12,7 @@ std::wstring ExtractFileExt(const std::wstring& path);
 int64_t GetFileSize_i64(const wchar_t* path);
 int64_t GetFileSize_i64(HANDLE hFile);
 bool IsFile(const wchar_t* path);
+bool CanCreateFile(const wchar_t* path);
 
 void TrimRight(char* str);
 void TrimStr(std::string &str);

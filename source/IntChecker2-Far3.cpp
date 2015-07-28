@@ -597,13 +597,21 @@ static void RunGenerateHashes()
 		outputFile = fullPath;
 
 		// Check if hash file already exists
-		if ((outputTarget == OT_SINGLEFILE) && IsFile(outputFile.c_str()))
+		if (outputTarget == OT_SINGLEFILE)
 		{
-			wchar_t wszMsgText[256] = {0};
-			swprintf_s(wszMsgText, ARRAY_SIZE(wszMsgText), GetLocMsg(MSG_DLG_OVERWRITE_FILE_TEXT), outputFile.c_str());
+			if (IsFile(outputFile.c_str()))
+			{
+				wchar_t wszMsgText[256] = {0};
+				swprintf_s(wszMsgText, ARRAY_SIZE(wszMsgText), GetLocMsg(MSG_DLG_OVERWRITE_FILE_TEXT), outputFile.c_str());
 
-			if (!ConfirmMessage(GetLocMsg(MSG_DLG_OVERWRITE_FILE), wszMsgText, true))
+				if (!ConfirmMessage(GetLocMsg(MSG_DLG_OVERWRITE_FILE), wszMsgText, true))
+					continue;
+			}
+			else if (!CanCreateFile(outputFile.c_str()))
+			{
+				DisplayMessage(MSG_DLG_ERROR, MSG_DLG_CANT_SAVE_HASHLIST, outputFile.c_str(), true, true);
 				continue;
+			}
 		}
 
 		break;
