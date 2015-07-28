@@ -757,7 +757,8 @@ static void RunGenerateHashes()
 	}
 	else if (outputTarget == OT_SEPARATEFILES)
 	{
-		saveSuccess = hashes.SaveListSeparate(strPanelDir.c_str());
+		int numGood, numBad;
+		saveSuccess = hashes.SaveListSeparate(strPanelDir.c_str(), numGood, numBad);
 	}
 	else
 	{

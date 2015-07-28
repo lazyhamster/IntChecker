@@ -49,7 +49,7 @@ public:
 	HashList() : m_Codepage(CP_UTF8) {}
 
 	bool SaveList(const wchar_t* filepath);
-	bool SaveListSeparate(const wchar_t* baseDir);
+	bool SaveListSeparate(const wchar_t* baseDir, int &successCount, int &failCount);
 	bool LoadList(const wchar_t* filepath, bool merge);
 
 	void SetFileHash(const wchar_t* fileName, std::string hashVal, rhash_ids hashAlgo);

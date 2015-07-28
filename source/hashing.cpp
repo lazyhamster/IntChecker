@@ -123,10 +123,13 @@ bool HashList::SaveList( const wchar_t* filepath )
 	return DumpStringToFile(strData.c_str(), strData.length(), filepath);
 }
 
-bool HashList::SaveListSeparate( const wchar_t* baseDir )
+bool HashList::SaveListSeparate( const wchar_t* baseDir, int &successCount, int &failCount )
 {
 	wstring dirName(baseDir);
 	IncludeTrailingPathDelim(dirName);
+
+	successCount = 0;
+	failCount = 0;
 
 	for (auto cit = m_HashList.cbegin(); cit != m_HashList.cend(); cit++)
 	{
@@ -139,11 +142,13 @@ bool HashList::SaveListSeparate( const wchar_t* baseDir )
 		sstr << endl;
 
 		string strData = sstr.str();
-		if (!DumpStringToFile(strData.c_str(), strData.length(), destFilePath.c_str()))
-			return false;
+		if (DumpStringToFile(strData.c_str(), strData.length(), destFilePath.c_str()))
+			successCount++;
+		else
+			failCount++;
 	}
 	
-	return true;
+	return (failCount == 0);
 }
 
 bool HashList::LoadList( const wchar_t* filepath, bool merge )
