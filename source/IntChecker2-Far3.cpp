@@ -596,9 +596,9 @@ static void RunGenerateHashes()
 		FSF.ConvertPath(CPM_FULL, outputFile.c_str(), fullPath, ARRAY_SIZE(fullPath));
 		outputFile = fullPath;
 
-		// Check if hash file already exists
 		if (outputTarget == OT_SINGLEFILE)
 		{
+			// Check if hash file already exists
 			if (IsFile(outputFile.c_str()))
 			{
 				wchar_t wszMsgText[256] = {0};
@@ -607,6 +607,7 @@ static void RunGenerateHashes()
 				if (!ConfirmMessage(GetLocMsg(MSG_DLG_OVERWRITE_FILE), wszMsgText, true))
 					continue;
 			}
+			// Check if we can write target file
 			else if (!CanCreateFile(outputFile.c_str()))
 			{
 				DisplayMessage(MSG_DLG_ERROR, MSG_DLG_CANT_SAVE_HASHLIST, outputFile.c_str(), true, true);
