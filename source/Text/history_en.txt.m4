@@ -1,5 +1,8 @@
 Changes history:
 
+2.3.4
+- Hash list display dialog became more adaptive in size.
+
 2.3.3
 - Added check if hash-file can be saved before generation.
 
