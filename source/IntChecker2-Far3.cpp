@@ -516,7 +516,7 @@ static void DisplayHashListOnScreen(const HashList &list)
 		maxLineWidth = max(maxLineWidth, (int) line.size());
 	}
 
-	int nListWidth = 60;
+	int nListWidth = 54;
 	int nListHeight = 15;
 
 	SMALL_RECT farRect;
@@ -526,7 +526,7 @@ static void DisplayHashListOnScreen(const HashList &list)
 		int farHeight = farRect.Bottom - farRect.Top + 1;
 
 		maxLineWidth += 2; // spaces on both sides of the text
-		if (maxLineWidth > nListWidth && farWidth > maxLineWidth + 20)
+		if (maxLineWidth > nListWidth)
 			nListWidth = min(maxLineWidth, farWidth - 20);
 		
 		int numLines = (int) list.GetCount();
