@@ -517,19 +517,26 @@ static void DisplayHashListOnScreen(const HashList &list)
 	}
 
 	int nListWidth = 60;
+	int nListHeight = 15;
 
 	SMALL_RECT farRect;
 	if (FarSInfo.AdvControl(&GUID_PLUGIN_MAIN, ACTL_GETFARRECT, 0, &farRect))
 	{
 		int farWidth = farRect.Right - farRect.Left + 1;
+		int farHeight = farRect.Bottom - farRect.Top + 1;
+
 		maxLineWidth += 2; // spaces on both sides of the text
 		if (maxLineWidth > nListWidth && farWidth > maxLineWidth + 20)
 			nListWidth = min(maxLineWidth, farWidth - 20);
+		
+		int numLines = (int) list.GetCount();
+		if (numLines > nListHeight)
+			nListHeight = min(numLines, farHeight - 12);
 	}
 	
 	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_RESULTS, MSG_DLG_CALC_COMPLETE, nullptr);
 
-	dlgBuilder.AddListBox(NULL, nListWidth, 15, listBoxItems, list.GetCount(), DIF_LISTNOCLOSE | DIF_LISTNOBOX);
+	dlgBuilder.AddListBox(NULL, nListWidth, nListHeight, listBoxItems, list.GetCount(), DIF_LISTNOCLOSE | DIF_LISTNOBOX);
 	dlgBuilder.AddOKCancel(MSG_BTN_CLOSE, MSG_BTN_CLIPBOARD, -1, true);
 	
 	intptr_t exitCode = dlgBuilder.ShowDialogEx();
