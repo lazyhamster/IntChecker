@@ -303,6 +303,9 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 			}
 		}
 
+		RectSize listSize(57, 14);
+		FindBestListBoxSize(displayStrings, GetFarWindowSize, listSize);
+
 		// Display dialog
 
 		PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_RESULTS, MSG_DLG_VALIDATION_COMPLETE, nullptr);
@@ -313,7 +316,7 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 			boxList[i] = displayStrings[i].c_str();
 		}
 
-		dlgBuilder.AddListBox(nullptr, 57, 14, boxList, displayStrings.size(), DIF_LISTNOBOX | DIF_LISTNOCLOSE);
+		dlgBuilder.AddListBox(nullptr, listSize.Width, listSize.Height, boxList, displayStrings.size(), DIF_LISTNOBOX | DIF_LISTNOCLOSE);
 		dlgBuilder.AddOKCancel(MSG_BTN_CLOSE, -1, -1, true);
 
 		dlgBuilder.ShowDialog();
