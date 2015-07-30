@@ -139,6 +139,18 @@ static void GetSelectedPanelFiles(PanelInfo &pi, wstring &panelDir, StringList &
 	}
 }
 
+static bool GetFarWindowSize(RectSize &size)
+{
+	SMALL_RECT farRect;
+	if (FarSInfo.AdvControl(&GUID_PLUGIN_MAIN, ACTL_GETFARRECT, 0, &farRect))
+	{
+		size.Assign(farRect);
+		return true;
+	}
+
+	return false;
+}
+
 // --------------------------------------- Local functions ---------------------------------------------------
 
 static void LoadSettings()
@@ -505,7 +517,6 @@ static void DisplayHashListOnScreen(const HashList &list)
 {
 	vector<wstring> listStrDump;
 	LPCWSTR *listBoxItems = new LPCWSTR[list.GetCount()];
-	int maxLineWidth = 0;
 
 	for (size_t i = 0; i < list.GetCount(); i++)
 	{
@@ -513,30 +524,14 @@ static void DisplayHashListOnScreen(const HashList &list)
 
 		wstring &line = listStrDump[i];
 		listBoxItems[i] = line.c_str();
-		maxLineWidth = max(maxLineWidth, (int) line.size());
 	}
 
-	int nListWidth = 54;
-	int nListHeight = 15;
-
-	SMALL_RECT farRect;
-	if (FarSInfo.AdvControl(&GUID_PLUGIN_MAIN, ACTL_GETFARRECT, 0, &farRect))
-	{
-		int farWidth = farRect.Right - farRect.Left + 1;
-		int farHeight = farRect.Bottom - farRect.Top + 1;
-
-		maxLineWidth += 2; // spaces on both sides of the text
-		if (maxLineWidth > nListWidth)
-			nListWidth = min(maxLineWidth, farWidth - 20);
-		
-		int numLines = (int) list.GetCount();
-		if (numLines > nListHeight)
-			nListHeight = min(numLines, farHeight - 12);
-	}
+	RectSize listSize(54, 15);
+	FindBestListBoxSize(listStrDump, GetFarWindowSize, listSize);
 	
 	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_RESULTS, MSG_DLG_CALC_COMPLETE, nullptr);
 
-	dlgBuilder.AddListBox(NULL, nListWidth, nListHeight, listBoxItems, list.GetCount(), DIF_LISTNOCLOSE | DIF_LISTNOBOX);
+	dlgBuilder.AddListBox(NULL, listSize.Width, listSize.Height, listBoxItems, list.GetCount(), DIF_LISTNOCLOSE | DIF_LISTNOBOX);
 	dlgBuilder.AddOKCancel(MSG_BTN_CLOSE, MSG_BTN_CLIPBOARD, -1, true);
 	
 	intptr_t exitCode = dlgBuilder.ShowDialogEx();

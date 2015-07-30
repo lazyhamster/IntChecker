@@ -73,4 +73,46 @@ public:
 	}
 };
 
+struct RectSize
+{
+	int Width;
+	int Height;
+
+	RectSize() : Width(0), Height(0) {}
+	RectSize(int aWidth, int aHeight) : Width(aWidth), Height(aHeight) {}
+
+	void Assign(SMALL_RECT sr)
+	{
+		Width = sr.Right - sr.Left + 1;
+		Height = sr.Bottom - sr.Top + 1;
+	}
+};
+
+typedef bool (*FARSIZECALLBACK)(RectSize &farSize);
+
+static bool FindBestListBoxSize(std::vector<std::wstring> listItems, FARSIZECALLBACK sizeFunc, RectSize &listBoxSize)
+{
+	int maxLineWidth = 0;
+	RectSize farSize;
+
+	if (!sizeFunc(farSize))
+		return false;
+
+	for (auto cit = listItems.cbegin(); cit != listItems.cend(); cit++)
+	{
+		const std::wstring &str = *cit;
+		maxLineWidth = max(maxLineWidth, (int) str.length());
+	}
+
+	maxLineWidth += 2; // spaces on both sides of the text
+	if (maxLineWidth > listBoxSize.Width)
+		listBoxSize.Width = min(maxLineWidth, farSize.Width - 20);
+
+	int numLines = (int) listItems.size();
+	if (numLines > listBoxSize.Height)
+		listBoxSize.Height = min(numLines, farSize.Height - 12);
+
+	return true;
+}
+
 #endif // FarCommon_h__

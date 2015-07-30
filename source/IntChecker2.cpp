@@ -164,6 +164,18 @@ static void GetSelectedPanelFiles(PanelInfo &pi, wstring &panelDir, StringList &
 	}
 }
 
+static bool GetFarWindowSize(RectSize &size)
+{
+	SMALL_RECT farRect;
+	if (FarSInfo.AdvControl(FarSInfo.ModuleNumber, ACTL_GETFARRECT, &farRect))
+	{
+		size.Assign(farRect);
+		return true;
+	}
+
+	return false;
+}
+
 // --------------------------------------- Local functions ---------------------------------------------------
 
 static void LoadSettings()
@@ -553,11 +565,7 @@ static void DisplayHashListOnScreen(HashList &list)
 	FarListItem* hashListItems = new FarListItem[numListItems];
 	FarList hashDump = {numListItems, hashListItems};
 
-	int nListWidth = 54;
-	int nListHeight = 15;
-	int maxLineWidth = 0;
-
-	vector<wstring> listStrDump;
+	std::vector<std::wstring> listStrDump;
 	for (size_t i = 0; i < list.GetCount(); i++)
 	{
 		listStrDump.push_back(list.FileInfoToString(i));
@@ -565,30 +573,17 @@ static void DisplayHashListOnScreen(HashList &list)
 		wstring &line = listStrDump[i];
 		memset(&hashListItems[i], 0, sizeof(FarListItem));
 		hashListItems[i].Text = line.c_str();
-		maxLineWidth = max(maxLineWidth, (int) line.size());
 	}
 
-	SMALL_RECT farRect;
-	if (FarSInfo.AdvControl(FarSInfo.ModuleNumber, ACTL_GETFARRECT, &farRect))
-	{
-		int farWidth = farRect.Right - farRect.Left + 1;
-		int farHeight = farRect.Bottom - farRect.Top + 1;
+	RectSize listSize(54, 15);
+	FindBestListBoxSize(listStrDump, GetFarWindowSize, listSize);
 
-		maxLineWidth += 2; // spaces on both sides of the text
-		if (maxLineWidth > nListWidth)
-			nListWidth = min(maxLineWidth, farWidth - 20);
-
-		int numLines = (int) list.GetCount();
-		if (numLines > nListHeight)
-			nListHeight = min(numLines, farHeight - 12);
-	}
-
-	int nDlgWidth = nListWidth + 11;
-	int nDlgHeight = nListHeight + 7;
+	int nDlgWidth = listSize.Width + 11;
+	int nDlgHeight = listSize.Height + 7;
 
 	FarDialogItem DialogItems []={
 		/*00*/ {DI_DOUBLEBOX, 3, 1,nDlgWidth-4,nDlgHeight-2, 0, 0, 0,0, GetLocMsg(MSG_DLG_CALC_COMPLETE), 0},
-		/*01*/ {DI_LISTBOX,   5, 2,nListWidth+5,nListHeight+2, 0, (DWORD_PTR)&hashDump, DIF_LISTNOCLOSE | DIF_LISTNOBOX, 0, NULL, 0},
+		/*01*/ {DI_LISTBOX,   5, 2,listSize.Width+5,listSize.Height+2, 0, (DWORD_PTR)&hashDump, DIF_LISTNOCLOSE | DIF_LISTNOBOX, 0, NULL, 0},
 		/*02*/ {DI_TEXT,	  3,nDlgHeight-4, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
 		/*03*/ {DI_BUTTON,	  0,nDlgHeight-3, 0, 0, 1, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_CLOSE), 0},
 		/*04*/ {DI_BUTTON,    0,nDlgHeight-3, 0, 0, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CLIPBOARD), 0},
