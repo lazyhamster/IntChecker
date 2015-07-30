@@ -29,34 +29,32 @@ struct FileHashInfo
 	int HashAlgoIndex;
 
 	rhash_ids GetAlgo() const { return (HashAlgoIndex >= 0) ? SupportedHashes[HashAlgoIndex].AlgoId : RHASH_HASH_COUNT; }
+	std::wstring ToString() const;
+	void Serialize(std::stringstream& dest, UINT codepage) const;
 };
 
 class HashList
 {
 private:
 	std::vector<FileHashInfo> m_HashList;
-	int m_Codepage;
 
 	int GetFileRecordIndex(const wchar_t* fileName) const;
 	bool DumpStringToFile(const char* data, size_t dataSize, const wchar_t* filePath);
-	void SerializeFileHash(const FileHashInfo& data, stringstream& dest) const;
-	bool DetectHashAlgo(const char* testStr, const wchar_t* filePath, int &foundAlgoIndex, HashListFormat &listFormat);
-	bool TryParseBSD(const char* inputStr, FileHashInfo &fileInfo);
-	bool TryParseSimple(const char* inputStr, int hashAlgoIndex, FileHashInfo &fileInfo);
+	bool DetectHashAlgo(const char* testStr, UINT codepage, const wchar_t* filePath, int &foundAlgoIndex, HashListFormat &listFormat);
+	bool TryParseBSD(const char* inputStr, UINT codepage, FileHashInfo &fileInfo);
+	bool TryParseSimple(const char* inputStr, UINT codepage, int hashAlgoIndex, FileHashInfo &fileInfo);
 
 public:
-	HashList(int codePage) : m_Codepage(codePage) {}
-	HashList() : m_Codepage(CP_UTF8) {}
+	HashList() {}
 
-	bool SaveList(const wchar_t* filepath);
-	bool SaveListSeparate(const wchar_t* baseDir, int &successCount, int &failCount);
-	bool LoadList(const wchar_t* filepath, bool merge);
+	bool SaveList(const wchar_t* filepath, UINT codepage);
+	bool SaveListSeparate(const wchar_t* baseDir, UINT codepage, int &successCount, int &failCount);
+	bool LoadList(const wchar_t* filepath, UINT codepage, bool merge);
 
 	void SetFileHash(const wchar_t* fileName, std::string hashVal, rhash_ids hashAlgo);
 	
 	size_t GetCount() const { return m_HashList.size(); }
-	FileHashInfo GetFileInfo(size_t index) { return m_HashList.at(index); }
-	std::wstring FileInfoToString(size_t index) const;
+	const FileHashInfo& GetFileInfo(size_t index) const { return m_HashList.at(index); }
 };
 
 // Params: context, processed bytes

@@ -341,7 +341,7 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 {
 	HashList hashes;
-	if (!hashes.LoadList(hashListPath, false) || (hashes.GetCount() == 0))
+	if (!hashes.LoadList(hashListPath, optListDefaultCodepage, false) || (hashes.GetCount() == 0))
 	{
 		if (!silent)
 			DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_NOTVALIDLIST), NULL, true, true);
@@ -368,7 +368,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 
 		for (size_t i = 0; i < hashes.GetCount(); i++)
 		{
-			FileHashInfo fileInfo = hashes.GetFileInfo(i);
+			const FileHashInfo& fileInfo = hashes.GetFileInfo(i);
 
 			wstring strFullFilePath = MakeAbsPath(fileInfo.Filename, workDir);
 			if (IsFile(strFullFilePath.c_str()))
@@ -392,7 +392,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 
 		for (size_t i = 0; i < existingFiles.size(); i++)
 		{
-			FileHashInfo fileInfo = hashes.GetFileInfo(existingFiles[i]);
+			const FileHashInfo& fileInfo = hashes.GetFileInfo(existingFiles[i]);
 			wstring strFullFilePath = MakeAbsPath(fileInfo.Filename, workDir);
 
 			progressCtx.FileName = fileInfo.Filename;
@@ -523,7 +523,7 @@ static void DisplayHashListOnScreen(const HashList &list)
 
 	for (size_t i = 0; i < list.GetCount(); i++)
 	{
-		listStrDump.push_back(list.FileInfoToString(i));
+		listStrDump.push_back(list.GetFileInfo(i).ToString());
 
 		wstring &line = listStrDump[i];
 		listBoxItems[i] = line.c_str();
@@ -575,6 +575,7 @@ static void RunGenerateHashes()
 	bool recursive = true;
 	HashOutputTargets outputTarget = OT_SINGLEFILE;
 	wstring outputFile(L"hashlist");
+	UINT outputFileCodepage = optListDefaultCodepage;
 	int storeAbsPaths = 0;
 
 	HashAlgoInfo *selectedHashInfo = GetAlgoInfo(genAlgo);
@@ -720,7 +721,7 @@ static void RunGenerateHashes()
 	bool saveSuccess = false;
 	if (outputTarget == OT_SINGLEFILE)
 	{
-		saveSuccess = hashes.SaveList(outputFile.c_str());
+		saveSuccess = hashes.SaveList(outputFile.c_str(), outputFileCodepage);
 		if (!saveSuccess)
 		{
 			DisplayMessage(MSG_DLG_ERROR, MSG_DLG_CANT_SAVE_HASHLIST, outputFile.c_str(), true, true);
@@ -729,7 +730,7 @@ static void RunGenerateHashes()
 	else if (outputTarget == OT_SEPARATEFILES)
 	{
 		int numGood, numBad;
-		saveSuccess = hashes.SaveListSeparate(strPanelDir.c_str(), numGood, numBad);
+		saveSuccess = hashes.SaveListSeparate(strPanelDir.c_str(), outputFileCodepage, numGood, numBad);
 	}
 	else
 	{
