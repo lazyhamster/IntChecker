@@ -3,6 +3,7 @@ Changes history:
 2.3.4
 - New settings option: default codepage for hash lists.
 - Hash list display dialog became adaptive to Far window size.
+- Minor changes.
 
 2.3.3
 - Added check if hash-file can be saved before generation.

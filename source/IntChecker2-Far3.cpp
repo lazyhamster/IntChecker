@@ -233,9 +233,9 @@ static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 	return true;
 }
 
-static void SelectFilesOnPanel(HANDLE hPanel, vector<wstring> &fileNames, bool isSelected)
+static void SelectFilesOnPanel(HANDLE hPanel, vector<wstring> &fileNames, bool exclusive)
 {
-	if (fileNames.size() == 0) return;
+	if (!exclusive && (fileNames.size() == 0)) return;
 
 	PanelInfo pi = {sizeof(PanelInfo), 0};
 	if (!FarSInfo.PanelControl(hPanel, FCTL_GETPANELINFO, 0, &pi))
@@ -251,9 +251,10 @@ static void SelectFilesOnPanel(HANDLE hPanel, vector<wstring> &fileNames, bool i
 		{
 			FarGetPluginPanelItem gppi = {sizeof(FarGetPluginPanelItem), nSize, PPI};
 			FarSInfo.PanelControl(hPanel, FCTL_GETPANELITEM, i, &gppi);
-			if (std::find(fileNames.begin(), fileNames.end(), PPI->FileName) != fileNames.end())
+			bool isNameInList = std::find(fileNames.begin(), fileNames.end(), PPI->FileName) != fileNames.end();
+			if (isNameInList || exclusive)
 			{
-				FarSInfo.PanelControl(hPanel, FCTL_SETSELECTION, i, (void*) (isSelected ? TRUE : FALSE));
+				FarSInfo.PanelControl(hPanel, FCTL_SETSELECTION, i, (void*) (isNameInList ? TRUE : FALSE));
 			}
 			free(PPI);
 		}

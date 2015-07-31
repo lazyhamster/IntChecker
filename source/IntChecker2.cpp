@@ -260,9 +260,9 @@ static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 	return true;
 }
 
-static void SelectFilesOnPanel(HANDLE hPanel, vector<wstring> &fileNames, bool isSelected)
+static void SelectFilesOnPanel(HANDLE hPanel, vector<wstring> &fileNames, bool exclusive)
 {
-	if (fileNames.size() == 0) return;
+	if (!exclusive && (fileNames.size() == 0)) return;
 	
 	PanelInfo pi = {0};
 	FarSInfo.Control(hPanel, FCTL_GETPANELINFO, 0, (LONG_PTR)&pi);
@@ -274,9 +274,10 @@ static void SelectFilesOnPanel(HANDLE hPanel, vector<wstring> &fileNames, bool i
 		if (PPI)
 		{
 			FarSInfo.Control(hPanel, FCTL_GETPANELITEM, i, (LONG_PTR)PPI);
-			if (std::find(fileNames.begin(), fileNames.end(), PPI->FindData.lpwszFileName) != fileNames.end())
+			bool isNameInList = std::find(fileNames.begin(), fileNames.end(), PPI->FindData.lpwszFileName) != fileNames.end();
+			if (isNameInList || exclusive)
 			{
-				FarSInfo.Control(hPanel, FCTL_SETSELECTION, i, isSelected ? TRUE : FALSE);
+				FarSInfo.Control(hPanel, FCTL_SETSELECTION, i, isNameInList ? TRUE : FALSE);
 			}
 			free(PPI);
 		}
@@ -301,15 +302,46 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 	else
 	{
 		// Otherwise display proper list of invalid/missing files
+
+		vector<wstring> displayStrings;
+
+		size_t nListIndex = 0;
+		if (vMismatchList.size() > 0)
+		{
+			displayStrings.push_back(FormatString(GetLocMsg(MSG_DLG_MISMATCHED_FILES), vMismatchList.size()));
+
+			for (size_t i = 0; i < vMismatchList.size(); i++)
+			{
+				wstring &nextFile = vMismatchList[i];
+				displayStrings.push_back(FormatString(L"\t\t%s", nextFile.c_str()));
+			}
+		}
+		if (vMissingList.size() > 0)
+		{
+			displayStrings.push_back(FormatString(GetLocMsg(MSG_DLG_MISSING_FILES), vMissingList.size()));
+
+			for (size_t i = 0; i < vMissingList.size(); i++)
+			{
+				wstring &nextFile = vMissingList[i];
+				displayStrings.push_back(FormatString(L"\t\t%s", nextFile.c_str()));
+			}
+		}
 		
-		size_t nNumListItems = (vMismatchList.size() > 0 ? vMismatchList.size() + 1 : 0)
-			+ (vMissingList.size() > 0 ? vMissingList.size() + 1 : 0);
+		size_t nNumListItems = displayStrings.size();
 		FarListItem* mmListItems = (FarListItem*) malloc(nNumListItems * sizeof(FarListItem));
 		FarList mmList = {(int)nNumListItems, mmListItems};
 		memset(mmListItems, 0, nNumListItems * sizeof(FarListItem));
 
-		int nDlgWidth = 68;
-		int nDlgHeight = 21;
+		RectSize listSize(57, 14);
+		FindBestListBoxSize(displayStrings, GetFarWindowSize, listSize);
+
+		for (size_t i = 0; i < nNumListItems; i++)
+		{
+			mmListItems[i].Text = displayStrings[i].c_str();
+		}
+
+		int nDlgWidth = listSize.Width + 11;
+		int nDlgHeight = listSize.Height + 7;
 
 		FarDialogItem DialogItems []={
 			/*00*/ {DI_DOUBLEBOX, 3, 1,nDlgWidth-4,nDlgHeight-2, 0, 0, 0,0, GetLocMsg(MSG_DLG_VALIDATION_COMPLETE), 0},
@@ -320,35 +352,6 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 
 		HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, nDlgWidth, nDlgHeight, NULL,
 			DialogItems, sizeof(DialogItems) / sizeof(DialogItems[0]), 0, 0, FarSInfo.DefDlgProc, 0);
-
-		size_t nListIndex = 0;
-		wchar_t wszMismatchHeader[64] = {0};
-		wchar_t wszMissingHeader[64] = {0};
-
-		if (vMismatchList.size() > 0)
-		{
-			swprintf_s(wszMismatchHeader, GetLocMsg(MSG_DLG_MISMATCHED_FILES), vMismatchList.size());
-			
-			mmListItems[nListIndex++].Text = wszMismatchHeader;
-			for (size_t i = 0; i < vMismatchList.size(); i++)
-			{
-				wstring &nextFile = vMismatchList[i];
-				nextFile.insert(0, L"\t\t");
-				mmListItems[nListIndex++].Text = nextFile.c_str();
-			}
-		}
-		if (vMissingList.size() > 0)
-		{
-			swprintf_s(wszMissingHeader, GetLocMsg(MSG_DLG_MISSING_FILES), vMissingList.size());
-			
-			mmListItems[nListIndex++].Text = wszMissingHeader;
-			for (size_t i = 0; i < vMissingList.size(); i++)
-			{
-				wstring &nextFile = vMissingList[i];
-				nextFile.insert(0, L"\t\t");
-				mmListItems[nListIndex++].Text = nextFile.c_str();
-			}
-		}
 		
 		FarSInfo.DialogRun(hDlg);
 		FarSInfo.DialogFree(hDlg);
