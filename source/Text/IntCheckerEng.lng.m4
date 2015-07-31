@@ -16,6 +16,7 @@
 "Automatic hashlist &extension"
 "Save hashes in &uppercase"
 "&Remember last used algorithm"
+"Default hashlist codepage"
 
 "OK"
 "Cancel"

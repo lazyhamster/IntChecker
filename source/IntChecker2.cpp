@@ -192,6 +192,7 @@ static void LoadSettings()
 		regOpts.GetValue(L"AutoExtension", optAutoExtension);
 		regOpts.GetValue(L"HashInUppercase", optHashUppercase);
 		regOpts.GetValue(L"RememberLastAlgorithm", optRememberLastUsedAlgo);
+		regOpts.GetValue(L"DefaultListCodepage", optListDefaultCodepage);
 	}
 }
 
@@ -209,6 +210,7 @@ static void SaveSettings()
 		regOpts.SetValue(L"AutoExtension", optAutoExtension);
 		regOpts.SetValue(L"HashInUppercase", optHashUppercase);
 		regOpts.SetValue(L"RememberLastAlgorithm", optRememberLastUsedAlgo);
+		regOpts.SetValue(L"DefaultListCodepage", optListDefaultCodepage);
 	}
 }
 

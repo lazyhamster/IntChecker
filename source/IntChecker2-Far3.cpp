@@ -165,6 +165,7 @@ static void LoadSettings()
 	optAutoExtension			= ps.Get(0, L"AutoExtension", optAutoExtension);
 	optHashUppercase			= ps.Get(0, L"HashInUppercase", optHashUppercase);
 	optHashUppercase			= ps.Get(0, L"RememberLastAlgorithm", optRememberLastUsedAlgo);
+	optListDefaultCodepage		= ps.Get(0, L"DefaultListCodepage", optListDefaultCodepage);
 
 	ps.Get(0, L"Prefix", optPrefix, ARRAY_SIZE(optPrefix));
 }
@@ -182,6 +183,7 @@ static void SaveSettings()
 	ps.Set(0, L"AutoExtension", optAutoExtension);
 	ps.Set(0, L"HashInUppercase", optHashUppercase);
 	ps.Set(0, L"RememberLastAlgorithm", optRememberLastUsedAlgo);
+	ps.Set(0, L"DefaultListCodepage", optListDefaultCodepage);
 }
 
 static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
@@ -1057,6 +1059,15 @@ intptr_t WINAPI ConfigureW(const ConfigureInfo* Info)
 			selectedAlgo = i;
 	}
 
+	const wchar_t* codePageNames[] = {L"UTF-8", L"ANSI", L"OEM"};
+	const UINT codePageValues[] = {CP_UTF8, CP_ACP, CP_OEMCP};
+	int selectedCP = 0;
+	for (int i = 0; i < ARRAY_SIZE(codePageValues); i++)
+	{
+		if (codePageValues[i] == optListDefaultCodepage)
+			selectedCP = i;
+	}
+
 	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_CONFIG, GetLocMsg(MSG_CONFIG_TITLE), L"IntCheckerConfig");
 
 	dlgBuilder.AddText(MSG_CONFIG_DEFAULT_ALGO);
@@ -1073,12 +1084,15 @@ intptr_t WINAPI ConfigureW(const ConfigureInfo* Info)
 	dlgBuilder.AddCheckbox(MSG_CONFIG_CLEAR_SELECTION, (BOOL*) &optClearSelectionOnComplete);
 	dlgBuilder.AddCheckbox(MSG_CONFIG_AUTOEXT, (BOOL*) &optAutoExtension);
 	dlgBuilder.AddCheckbox(MSG_CONFIG_UPPERCASE, (BOOL*) &optHashUppercase);
+	auto cpBox = dlgBuilder.AddComboBox(&selectedCP, NULL, 8, codePageNames, ARRAY_SIZE(codePageNames), DIF_DROPDOWNLIST);
+	dlgBuilder.AddTextBefore(cpBox, MSG_CONFUG_DEFAULT_CP);
 
 	dlgBuilder.AddOKCancel(MSG_BTN_OK, MSG_BTN_CANCEL, -1, true);
 
 	if (dlgBuilder.ShowDialog())
 	{
 		optDefaultAlgo = SupportedHashes[selectedAlgo].AlgoId;
+		optListDefaultCodepage = codePageValues[selectedCP];
 		
 		SaveSettings();
 		return TRUE;

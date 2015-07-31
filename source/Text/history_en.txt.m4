@@ -1,13 +1,14 @@
 Changes history:
 
 2.3.4
+- New settings option: default codepage for hash lists.
 - Hash list display dialog became adaptive to Far window size.
 
 2.3.3
 - Added check if hash-file can be saved before generation.
 
 2.3.2
-- Added option to save last used hash algorithm.
+- Added settings option to save last used hash algorithm.
 - Removed limit for hash-files size.
 
 2.3.1

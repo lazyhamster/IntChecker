@@ -16,6 +16,7 @@
 "Extensión automática de lista hash"
 "Guardar hashes en mayúsc&ulas"
 "Remember last used algorithm"
+"Default hashlist codepage"
 
 "Aceptar"
 "Cancelar"
