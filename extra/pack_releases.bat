@@ -49,9 +49,14 @@ if NOT ERRORLEVEL == 0 GOTO PACK_ERROR
 :Far3x64
 ECHO Building version for Far 3 x64
 %DEVENV_EXE_PATH% /Rebuild "Release-Far3|x64" "..\IntChecker2.VS2010.sln"
-IF NOT EXIST ..\bin\Release-Far3-x64\ GOTO Done
+IF NOT EXIST ..\bin\Release-Far3-x64\ GOTO Src
 ECHO Packing
 %PACKER_CMD% -- ..\bin\IntChecker2_Far3_x64_%1.rar "..\bin\Release-Far3-x64\*" > nul
+if NOT ERRORLEVEL == 0 GOTO PACK_ERROR
+
+:Src
+ECHO Packing source code
+%PACKER_CMD% -xipch "-x*\ipch" "-x*\ipch\*" -x*.suo -x*.sdf -x*.opensdf -- ..\bin\IntChecker2_%1_src.rar "..\source" "..\depends" "..\extra" "..\*.sln" > nul
 if NOT ERRORLEVEL == 0 GOTO PACK_ERROR
 
 :Done
