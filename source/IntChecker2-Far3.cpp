@@ -1086,7 +1086,7 @@ intptr_t WINAPI ConfigureW(const ConfigureInfo* Info)
 	dlgBuilder.AddCheckbox(MSG_CONFIG_AUTOEXT, (BOOL*) &optAutoExtension);
 	dlgBuilder.AddCheckbox(MSG_CONFIG_UPPERCASE, (BOOL*) &optHashUppercase);
 	auto cpBox = dlgBuilder.AddComboBox(&selectedCP, NULL, 8, codePageNames, ARRAY_SIZE(codePageNames), DIF_DROPDOWNLIST);
-	dlgBuilder.AddTextBefore(cpBox, MSG_CONFUG_DEFAULT_CP);
+	dlgBuilder.AddTextBefore(cpBox, MSG_CONFIG_DEFAULT_CP);
 
 	dlgBuilder.AddOKCancel(MSG_BTN_OK, MSG_BTN_CANCEL, -1, true);
 
