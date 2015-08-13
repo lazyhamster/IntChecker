@@ -15,8 +15,8 @@
 "Limpiar &selección al completar hashing"
 "Extensión automática de lista hash"
 "Guardar hashes en mayúsc&ulas"
-"Remember last used algorithm"
-"Default hashlist codepage"
+"Recordar último algoritmo utilizado"
+"Página de códigos predeterminada para lista hash"
 
 "Aceptar"
 "Cancelar"
@@ -54,7 +54,7 @@
 "Hash de archivo coincide con portapapeles"
 "Hash de archivo no coincide con portapapeles"
 "Archivo: %d / %d. Progreso: %2d%% / %2d%%"
-"Can not save hashlist to file"
+"No se puede guardar lista hash al archivo"
 
 "Generar"
 "Algoritmo"
