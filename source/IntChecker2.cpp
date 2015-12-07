@@ -348,12 +348,17 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 			/*01*/ {DI_LISTBOX,   5, 2,nDlgWidth-6,nDlgHeight-5, 0, (DWORD_PTR) &mmList, DIF_LISTNOCLOSE | DIF_LISTNOBOX, 0, NULL, 0},
 			/*02*/ {DI_TEXT,	  3,nDlgHeight-4, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
 			/*03*/ {DI_BUTTON,	  0,nDlgHeight-3, 0, 0, 1, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_CLOSE), 0},
+			/*04*/ {DI_BUTTON,    0,nDlgHeight-3, 0, 0, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CLIPBOARD), 0},
 		};
 
 		HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, nDlgWidth, nDlgHeight, NULL,
 			DialogItems, sizeof(DialogItems) / sizeof(DialogItems[0]), 0, 0, FarSInfo.DefDlgProc, 0);
 		
-		FarSInfo.DialogRun(hDlg);
+		int ExitCode = FarSInfo.DialogRun(hDlg);
+		if (ExitCode == 4) // clipboard
+		{
+			CopyTextToClipboard(displayStrings);
+		}
 		FarSInfo.DialogFree(hDlg);
 
 		// Select mismatched files that are in the same folder

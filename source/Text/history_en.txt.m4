@@ -2,6 +2,7 @@ Changes history:
 
 2.3.5
 - Fixed issue with network shares.
+- Added possibility to copy file verification results to clipboard.
 
 2.3.4
 - New settings option: default codepage for hash lists.

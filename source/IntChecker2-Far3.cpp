@@ -320,9 +320,13 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 		}
 
 		dlgBuilder.AddListBox(nullptr, listSize.Width, listSize.Height, boxList, displayStrings.size(), DIF_LISTNOBOX | DIF_LISTNOCLOSE);
-		dlgBuilder.AddOKCancel(MSG_BTN_CLOSE, -1, -1, true);
+		dlgBuilder.AddOKCancel(MSG_BTN_CLOSE, MSG_BTN_CLIPBOARD, -1, true);
 
-		dlgBuilder.ShowDialog();
+		intptr_t exitCode = dlgBuilder.ShowDialogEx();
+		if (exitCode == 1)
+		{
+			CopyTextToClipboard(displayStrings);
+		}
 
 		delete [] boxList;
 
