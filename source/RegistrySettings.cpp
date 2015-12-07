@@ -14,6 +14,8 @@ static wstring ConvertString(const char* Input)
 
 //////////////////////////////////////////////////////////////////////////
 
+#define SETTINGS_KEY_REGISTRY L"IntChecker"
+
 RegistrySettings::RegistrySettings( const wchar_t* RootKey )
 {
 	m_strRegKeyName = RootKey;
