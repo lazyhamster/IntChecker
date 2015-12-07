@@ -27,4 +27,3 @@ using namespace std;
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))
 #define SETTINGS_KEY_REGISTRY L"IntChecker"
 #define PATH_BUFFER_SIZE 4096
-#define PATH_EXTRALONG_PREFIX L"\\\\?\\"

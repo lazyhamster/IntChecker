@@ -338,8 +338,7 @@ void FileHashInfo::Serialize( std::stringstream& dest, UINT codepage ) const
 
 int GenerateHash( const wchar_t* filePath, rhash_ids hashAlgo, char* result, bool useUppercase, HashingProgressFunc progressFunc, HANDLE progressContext )
 {
-	wstring strUniPath(PATH_EXTRALONG_PREFIX);
-	strUniPath.append(filePath);
+	wstring strUniPath = PrependLongPrefix(filePath);
 	
 	HANDLE hFile = CreateFile(strUniPath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, 0);
 	if (hFile == INVALID_HANDLE_VALUE) return GENERATE_ERROR;

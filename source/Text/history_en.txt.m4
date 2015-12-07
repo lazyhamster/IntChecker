@@ -1,5 +1,8 @@
 Changes history:
 
+2.3.5
+- Fixed issue with network shares.
+
 2.3.4
 - New settings option: default codepage for hash lists.
 - Hash list display dialog became adaptive to Far window size.

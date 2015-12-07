@@ -65,8 +65,7 @@ int64_t GetFileSize_i64(HANDLE hFile)
 
 bool IsFile( const wchar_t* path )
 {
-	wstring strSearchPath(PATH_EXTRALONG_PREFIX);
-	strSearchPath.append(path);
+	wstring strSearchPath = PrependLongPrefix(path);
 
 	WIN32_FIND_DATA fd = {0};
 	HANDLE hFind = FindFirstFile(strSearchPath.c_str(), &fd);
@@ -117,8 +116,9 @@ static wstring GetFullPath(const wchar_t* path)
 
 static int EnumFiles(const wstring& baseAbsPath, const wstring& pathPrefix, StringList &destList, int64_t &totalSize, bool recursive)
 {
-	wstring strBasePath(PATH_EXTRALONG_PREFIX);
-	strBasePath.append(baseAbsPath).append(L"*.*");
+	wstring strBasePath = PrependLongPrefix(baseAbsPath.c_str());
+	IncludeTrailingPathDelim(strBasePath);
+	strBasePath.append(L"*.*");
 
 	WIN32_FIND_DATA fd;
 	HANDLE hFind;
@@ -262,4 +262,15 @@ void TrimStr(std::string &str)
 		str.pop_back();
 	while(str.length() > 0 && isspace(str.front()))
 		str.erase(0, 1);
+}
+
+std::wstring PrependLongPrefix(const wchar_t* basePath)
+{
+	wstring finalPath(basePath);
+	
+	// If path is network path (starts with \\) then prefix is not needed
+	if ((finalPath.size() > 2) && (finalPath[0] != '\\' || finalPath[1] != '\\'))
+		finalPath.insert(0, L"\\\\?\\");
+
+	return finalPath;
 }
