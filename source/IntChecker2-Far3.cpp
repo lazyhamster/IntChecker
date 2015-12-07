@@ -292,7 +292,7 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 			for (size_t i = 0; i < vMismatchList.size(); i++)
 			{
 				wstring &nextFile = vMismatchList[i];
-				displayStrings.push_back(FormatString(L"\t\t%s", nextFile.c_str()));
+				displayStrings.push_back(FormatString(L"  %s", nextFile.c_str()));
 			}
 		}
 		if (vMissingList.size() > 0)
@@ -302,7 +302,7 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 			for (size_t i = 0; i < vMissingList.size(); i++)
 			{
 				wstring &nextFile = vMissingList[i];
-				displayStrings.push_back(FormatString(L"\t\t%s", nextFile.c_str()));
+				displayStrings.push_back(FormatString(L"  %s", nextFile.c_str()));
 			}
 		}
 
