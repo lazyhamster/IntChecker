@@ -431,15 +431,19 @@ class DialogBuilderBase
 		}
 
 		// Добавляет группу радиокнопок.
-		void AddRadioButtons(int *Value, int OptionCount, const int MessageIDs[], bool FocusOnSelected=false)
+		T* AddRadioButtons(int *Value, int OptionCount, const int MessageIDs[], bool FocusOnSelected=false)
 		{
+			T* firstButton = nullptr;
 			for(int i=0; i<OptionCount; i++)
 			{
 				T *Item = AddDialogItem(DI_RADIOBUTTON, GetLangString(MessageIDs[i]));
 				SetNextY(Item);
 				Item->X2 = Item->X1 + ItemWidth(*Item);
 				if (!i)
+				{
 					Item->Flags |= DIF_GROUP;
+					firstButton = Item;
+				}
 				if (*Value == i)
 				{
 					Item->Selected = TRUE;
@@ -448,23 +452,7 @@ class DialogBuilderBase
 				}
 				SetLastItemBinding(CreateRadioButtonBinding(Value));
 			}
-		}
-
-		T* AddRadioButton(int *Value, int MessageId, bool StartGroup, bool Selected, bool FocusOnSelected=false)
-		{
-			T *Item = AddDialogItem(DI_RADIOBUTTON, GetLangString(MessageId));
-			SetNextY(Item);
-			Item->X2 = Item->X1 + ItemWidth(*Item);
-			if (StartGroup)
-				Item->Flags |= DIF_GROUP;
-			if (Selected)
-			{
-				Item->Selected = TRUE;
-				if (FocusOnSelected)
-					Item->Flags |= DIF_FOCUS;
-			}
-			SetLastItemBinding(CreateRadioButtonBinding(Value));
-			return Item;
+			return firstButton;
 		}
 
 		// Добавляет поле типа DI_FIXEDIT для редактирования указанного числового значения.

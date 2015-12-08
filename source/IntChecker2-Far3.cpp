@@ -543,9 +543,10 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 	dlgBuilder.AddSeparator();
 	dlgBuilder.AddText(MSG_GEN_TARGET);
 	
-	dlgBuilder.AddRadioButton(&targetIndex, MSG_GEN_TO_FILE, true, true);
-	dlgBuilder.AddRadioButton(&targetIndex, MSG_GEN_TO_SEPARATE, false, false)->Y1++;
-	dlgBuilder.AddRadioButton(&targetIndex, MSG_GEN_TO_SCREEN, false, false)->Y1++;
+	int radioMsgIds[] = {MSG_GEN_TO_FILE, MSG_GEN_TO_SEPARATE, MSG_GEN_TO_SCREEN};
+	auto firstRadio = dlgBuilder.AddRadioButtons(&targetIndex, ARRAY_SIZE(radioMsgIds), radioMsgIds);
+	firstRadio[1].Y1++;
+	firstRadio[2].Y1++;
 	
 	auto editFileName = dlgBuilder.AddEditField(outputFileBuf, MAX_PATH, 30);
 	editFileName->Flags = DIF_EDITEXPAND|DIF_EDITPATH|DIF_FOCUS;
