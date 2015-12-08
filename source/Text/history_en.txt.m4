@@ -1,5 +1,8 @@
 Changes history:
 
+2.4.0
+- Added support for file filters in hash generation (Far3 only).
+
 2.3.5
 - Fixed issue with network shares.
 - Added possibility to copy file verification results to clipboard.

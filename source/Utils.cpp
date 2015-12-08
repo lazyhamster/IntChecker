@@ -114,7 +114,7 @@ static wstring GetFullPath(const wchar_t* path)
 	return tmpBuf;
 }
 
-static int EnumFiles(const wstring& baseAbsPath, const wstring& pathPrefix, StringList &destList, int64_t &totalSize, bool recursive)
+static int EnumFiles(const wstring& baseAbsPath, const wstring& pathPrefix, StringList &destList, int64_t &totalSize, bool recursive, FilterCompareProc filterProc, HANDLE filterData)
 {
 	wstring strBasePath = PrependLongPrefix(baseAbsPath.c_str());
 	IncludeTrailingPathDelim(strBasePath);
@@ -132,6 +132,9 @@ static int EnumFiles(const wstring& baseAbsPath, const wstring& pathPrefix, Stri
 		if (wcscmp(fd.cFileName, L".") == 0 || wcscmp(fd.cFileName, L"..") == 0)
 			continue;
 
+		if (filterProc && !filterProc(&fd, filterData))
+			continue;
+
 		if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
 		{
 			// Is a file
@@ -147,7 +150,7 @@ static int EnumFiles(const wstring& baseAbsPath, const wstring& pathPrefix, Stri
 			wstring strNextPrefix = pathPrefix + fd.cFileName;
 			strNextPrefix += L"\\";
 
-			numFound += EnumFiles(strNexBasePath, strNextPrefix, destList, totalSize, recursive);
+			numFound += EnumFiles(strNexBasePath, strNextPrefix, destList, totalSize, recursive, filterProc, filterData);
 		}
 
 	} while (FindNextFile(hFind, &fd));
@@ -156,7 +159,7 @@ static int EnumFiles(const wstring& baseAbsPath, const wstring& pathPrefix, Stri
 	return numFound;
 }
 
-int PrepareFilesList(const wchar_t* basePath, const wchar_t* basePrefix, StringList &destList, int64_t &totalSize, bool recursive)
+int PrepareFilesList(const wchar_t* basePath, const wchar_t* basePrefix, StringList &destList, int64_t &totalSize, bool recursive, FilterCompareProc filterProc, HANDLE filterData)
 {
 	wstring strBasePath = GetFullPath(basePath);
 	wstring strStartPrefix(basePrefix);
@@ -164,7 +167,7 @@ int PrepareFilesList(const wchar_t* basePath, const wchar_t* basePrefix, StringL
 	IncludeTrailingPathDelim(strBasePath);
 	IncludeTrailingPathDelim(strStartPrefix);
 
-	return EnumFiles(strBasePath, strStartPrefix, destList, totalSize, recursive);
+	return EnumFiles(strBasePath, strStartPrefix, destList, totalSize, recursive, filterProc, filterData);
 }
 
 bool CopyTextToClipboard( std::wstring &data )

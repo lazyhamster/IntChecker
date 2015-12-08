@@ -619,7 +619,7 @@ class DialogBuilderBase
 		}
 
 		// Добавляет линейку кнопок.
-		void AddButtons(int ButtonCount, const int* MessageIDs, int defaultButtonIndex = 0, int cancelButtonIndex = -1)
+		T* AddButtons(int ButtonCount, const int* MessageIDs, int defaultButtonIndex = 0, int cancelButtonIndex = -1)
 		{
 			int LineY = m_NextY++;
 			T *PrevButton = nullptr;
@@ -649,6 +649,8 @@ class DialogBuilderBase
 
 				PrevButton = NewButton;
 			}
+
+			return (m_FirstButtonID >= 0) ? &m_DialogItems[m_FirstButtonID] : nullptr;
 		}
 
 		intptr_t ShowDialogEx()

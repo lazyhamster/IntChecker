@@ -18,7 +18,8 @@ bool CanCreateFile(const wchar_t* path);
 void TrimRight(char* str);
 void TrimStr(std::string &str);
 
-int PrepareFilesList(const wchar_t* basePath, const wchar_t* basePrefix, StringList &destList, int64_t &totalSize, bool recursive);
+typedef bool (CALLBACK *FilterCompareProc)(const WIN32_FIND_DATA*, HANDLE);
+int PrepareFilesList(const wchar_t* basePath, const wchar_t* basePrefix, StringList &destList, int64_t &totalSize, bool recursive, FilterCompareProc filterProc, HANDLE filterData);
 
 bool CopyTextToClipboard(std::wstring &data);
 bool CopyTextToClipboard(std::vector<std::wstring> &data);

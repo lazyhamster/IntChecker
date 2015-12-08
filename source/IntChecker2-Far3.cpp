@@ -111,8 +111,36 @@ static bool GetSelectedPanelItemPath(wstring& nameStr)
 		return (nameStr.size() > 0);
 }
 
-static void GetSelectedPanelFiles(PanelInfo &pi, wstring &panelDir, StringList &vDest, int64_t &totalSize, bool recursive)
+static bool PathMatchFileFilter(const PluginPanelItem* item, HANDLE fileFilter)
 {
+	if (fileFilter != INVALID_HANDLE_VALUE)
+	{
+		return FarSInfo.FileFilterControl(fileFilter, FFCTL_ISFILEINFILTER, 0, (void *) item) != FALSE;
+	}
+	return true;
+}
+
+static bool CALLBACK FindMatchFileFilter(const WIN32_FIND_DATA* data, HANDLE fileFilter)
+{
+	if (fileFilter != INVALID_HANDLE_VALUE)
+	{
+		PluginPanelItem item = {0};
+		item.FileName = data->cFileName;
+		item.AlternateFileName = data->cAlternateFileName;
+		item.FileSize = data->nFileSizeLow + ((unsigned long long)data->nFileSizeHigh << 32);
+		item.FileAttributes = data->dwFileAttributes;
+		item.CreationTime = data->ftCreationTime;
+		item.LastWriteTime = data->ftLastWriteTime;
+		item.LastAccessTime = data->ftLastAccessTime;
+
+		return PathMatchFileFilter(&item, fileFilter);
+	}
+	return true;
+}
+
+static void GetSelectedPanelFiles(PanelInfo &pi, wstring &panelDir, StringList &vDest, int64_t &totalSize, bool recursive, HANDLE fileFilter)
+{
+	
 	for (size_t i = 0; i < pi.SelectedItemsNumber; i++)
 	{
 		size_t requiredBytes = FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETSELECTEDPANELITEM, i, NULL);
@@ -121,7 +149,7 @@ static void GetSelectedPanelFiles(PanelInfo &pi, wstring &panelDir, StringList &
 		{
 			FarGetPluginPanelItem FGPPI = {sizeof(FarGetPluginPanelItem), requiredBytes, PPI};
 			FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETSELECTEDPANELITEM, i, &FGPPI);
-			if (wcscmp(PPI->FileName, L"..") && wcscmp(PPI->FileName, L"."))
+			if (wcscmp(PPI->FileName, L"..") && wcscmp(PPI->FileName, L".") && PathMatchFileFilter(PPI, fileFilter))
 			{
 				if ((PPI->FileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
 				{
@@ -131,7 +159,7 @@ static void GetSelectedPanelFiles(PanelInfo &pi, wstring &panelDir, StringList &
 				else
 				{
 					wstring strSelectedDir = panelDir + PPI->FileName;
-					PrepareFilesList(strSelectedDir.c_str(), PPI->FileName, vDest, totalSize, recursive);
+					PrepareFilesList(strSelectedDir.c_str(), PPI->FileName, vDest, totalSize, recursive, FindMatchFileFilter, fileFilter);
 				}
 			}
 			free(PPI);
@@ -445,6 +473,8 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 static intptr_t WINAPI HashParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t Param1, void* Param2)
 {
 	const int nTextBoxIndex = 13;
+	const int nUseFilterBoxIndex = 17;
+	const int nFilterButtonIndex = 20;
 
 	if (Msg == DN_BTNCLICK && optAutoExtension)
 	{
@@ -474,17 +504,34 @@ static intptr_t WINAPI HashParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t Par
 
 			return TRUE;
 		}
+		else if (Param1 == nUseFilterBoxIndex)
+		{
+			FarSInfo.SendDlgMessage(hDlg, DM_ENABLE, nFilterButtonIndex, (void*) (Param2 ? TRUE : FALSE));
+		}
+		else if (Param1 == nFilterButtonIndex)
+		{
+			intptr_t userData = FarSInfo.SendDlgMessage(hDlg, DM_GETITEMDATA, nFilterButtonIndex, nullptr);
+			if (userData)
+			{
+				FarSInfo.FileFilterControl((HANDLE) userData, FFCTL_OPENFILTERSMENU, 0, nullptr);
+			}
+			return TRUE;
+		}
 	}
 
 	return FarSInfo.DefDlgProc(hDlg, Msg, Param1, Param2);
 }
 
-static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive, HashOutputTargets &outputTarget, wstring &outputFileName, int &storeAbsPaths)
+static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive, HashOutputTargets &outputTarget, wstring &outputFileName, int &storeAbsPaths, HANDLE &fileFilter)
 {
 	int algoIndex = GetAlgoIndex(selectedAlgo);
 	int algoNames[] = {MSG_ALGO_CRC, MSG_ALGO_MD5, MSG_ALGO_SHA1, MSG_ALGO_SHA256, MSG_ALGO_SHA512, MSG_ALGO_WHIRLPOOL};
 	int targetIndex = outputTarget;
 	int doRecurse = recursive;
+	
+	int useFilter = 0;
+	HANDLE hFilter = INVALID_HANDLE_VALUE;
+	FarSInfo.FileFilterControl(PANEL_NONE, FFCTL_CREATEFILEFILTER, FFT_CUSTOM, &hFilter);
 	
 	wchar_t outputFileBuf[MAX_PATH] = {0};
 	wcscpy_s(outputFileBuf, ARRAY_SIZE(outputFileBuf), outputFileName.c_str());
@@ -508,7 +555,13 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 	dlgBuilder.AddSeparator();
 	dlgBuilder.AddCheckbox(MSG_GEN_RECURSE, &doRecurse, 0, false);
 	dlgBuilder.AddCheckbox(MSG_GEN_ABSPATH, &storeAbsPaths);
-	dlgBuilder.AddOKCancel(MSG_BTN_RUN, MSG_BTN_CANCEL, -1, true);
+	dlgBuilder.AddCheckbox(MSG_DLG_USE_FILTER, &useFilter);
+
+	dlgBuilder.AddSeparator();
+	int btnMsgIDs[] = { MSG_BTN_RUN, MSG_BTN_FILTER, MSG_BTN_CANCEL };
+	auto firstButtonPtr = dlgBuilder.AddButtons(3, btnMsgIDs, 0, 2);
+	firstButtonPtr[1].Flags |= DIF_DISABLE;  // Disable filter button by default
+	firstButtonPtr[1].UserData = (intptr_t) hFilter;
 
 	if (dlgBuilder.ShowDialog())
 	{
@@ -516,10 +569,21 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 		selectedAlgo = SupportedHashes[algoIndex].AlgoId;
 		outputTarget = (HashOutputTargets) targetIndex;
 		outputFileName = outputFileBuf;
+
+		if (useFilter)
+		{
+			fileFilter = hFilter;
+		}
+		else
+		{
+			fileFilter = INVALID_HANDLE_VALUE;
+			FarSInfo.FileFilterControl(hFilter, FFCTL_FREEFILEFILTER, 0, nullptr);
+		}
 		
 		return true;
 	}
-		
+
+	FarSInfo.FileFilterControl(hFilter, FFCTL_FREEFILEFILTER, 0, nullptr);
 	return false;
 }
 
@@ -584,6 +648,7 @@ static void RunGenerateHashes()
 	wstring outputFile(L"hashlist");
 	UINT outputFileCodepage = optListDefaultCodepage;
 	int storeAbsPaths = 0;
+	HANDLE fileFilter = INVALID_HANDLE_VALUE;
 
 	HashAlgoInfo *selectedHashInfo = GetAlgoInfo(genAlgo);
 	if (!selectedHashInfo) return;
@@ -602,7 +667,7 @@ static void RunGenerateHashes()
 
 	while(true)
 	{
-		if (!AskForHashGenerationParams(genAlgo, recursive, outputTarget, outputFile, storeAbsPaths))
+		if (!AskForHashGenerationParams(genAlgo, recursive, outputTarget, outputFile, storeAbsPaths, fileFilter))
 			return;
 
 		wchar_t fullPath[PATH_BUFFER_SIZE];
@@ -645,7 +710,7 @@ static void RunGenerateHashes()
 		DisplayMessage(GetLocMsg(MSG_DLG_PROCESSING), GetLocMsg(MSG_DLG_PREPARE_LIST), NULL, false, false);
 
 		GetPanelDir(PANEL_ACTIVE, strPanelDir);
-		GetSelectedPanelFiles(pi, strPanelDir, filesToProcess, totalFilesSize, recursive);
+		GetSelectedPanelFiles(pi, strPanelDir, filesToProcess, totalFilesSize, recursive, fileFilter);
 	}
 
 	// Perform hashing
@@ -721,6 +786,9 @@ static void RunGenerateHashes()
 
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);
 	FarAdvControl(ACTL_PROGRESSNOTIFY, 0, NULL);
+
+	if (fileFilter != INVALID_HANDLE_VALUE)
+		FarSInfo.FileFilterControl(fileFilter, FFCTL_FREEFILEFILTER, 0, nullptr);
 
 	if (!continueSave) return;
 
@@ -875,7 +943,8 @@ static void RunComparePanels()
 		FarScreenSave screen;
 		DisplayMessage(GetLocMsg(MSG_DLG_PROCESSING), GetLocMsg(MSG_DLG_PREPARE_LIST), NULL, false, false);
 
-		GetSelectedPanelFiles(piActv, strActivePanelDir, vSelectedFiles, totalFilesSize, true);
+		//TODO: implement filters for this dialog also
+		GetSelectedPanelFiles(piActv, strActivePanelDir, vSelectedFiles, totalFilesSize, true, INVALID_HANDLE_VALUE);
 	}
 
 	// No suitable items selected for comparison
