@@ -156,7 +156,7 @@ static void GetSelectedPanelFiles(PanelInfo &pi, wstring &panelDir, StringList &
 				else
 				{
 					wstring strSelectedDir = panelDir + PPI->FindData.lpwszFileName;
-					PrepareFilesList(strSelectedDir.c_str(), PPI->FindData.lpwszFileName, vDest, totalSize, recursive);
+					PrepareFilesList(strSelectedDir.c_str(), PPI->FindData.lpwszFileName, vDest, totalSize, recursive, nullptr, INVALID_HANDLE_VALUE);
 				}
 			}
 			free(PPI);
