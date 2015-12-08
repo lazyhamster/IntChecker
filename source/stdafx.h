@@ -17,6 +17,7 @@
 #include <vector>
 #include <sstream>
 #include <algorithm>
+#include <memory>
 
 typedef std::vector<std::wstring> StringList;
 
