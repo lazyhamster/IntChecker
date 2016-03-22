@@ -297,6 +297,8 @@ static void SelectFilesOnPanel(HANDLE hPanel, vector<wstring> &fileNames, bool e
 
 static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, std::vector<std::wstring> &vMissingList, int numSkipped)
 {
+	vector<wstring> vSameFolderFiles;
+
 	if (vMismatchList.size() == 0 && vMissingList.size() == 0)
 	{
 		// If everything is fine then just display simple message
@@ -362,17 +364,15 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 		delete [] boxList;
 
 		// Select mismatched files that are in the same folder
-		
-		vector<wstring> vSameFolderFiles;
 		for (size_t i = 0; i < vMismatchList.size(); i++)
 		{
 			wstring &nextFile = vMismatchList[i];
 			if (nextFile.find_first_of(L"\\/") == wstring::npos)
 				vSameFolderFiles.push_back(nextFile);
 		}
-		
-		SelectFilesOnPanel(PANEL_ACTIVE, vSameFolderFiles, true);
 	}
+
+	SelectFilesOnPanel(PANEL_ACTIVE, vSameFolderFiles, true);
 }
 
 // Returns true if file is recognized as hash list
