@@ -295,6 +295,20 @@ static void SelectFilesOnPanel(HANDLE hPanel, vector<wstring> &fileNames, bool e
 	FarSInfo.PanelControl(hPanel, FCTL_REDRAWPANEL, 0, NULL);
 }
 
+static int DisplayHashGenerateError(const wstring& fileName)
+{
+	static const wchar_t* DlgLines[7];
+	DlgLines[0] = GetLocMsg(MSG_DLG_ERROR);
+	DlgLines[1] = GetLocMsg(MSG_DLG_FILE_ERROR);
+	DlgLines[2] = fileName.c_str();
+	DlgLines[3] = GetLocMsg(MSG_BTN_SKIP);
+	DlgLines[4] = GetLocMsg(MSG_BTN_SKIPALL);
+	DlgLines[5] = GetLocMsg(MSG_BTN_RETRY);
+	DlgLines[6] = GetLocMsg(MSG_BTN_CANCEL);
+
+	return (int) FarSInfo.Message(&GUID_PLUGIN_MAIN, &GUID_MESSAGE_BOX, FMSG_WARNING, NULL, DlgLines, ARRAY_SIZE(DlgLines), 4);
+}
+
 static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, std::vector<std::wstring> &vMissingList, int numSkipped)
 {
 	vector<wstring> vSameFolderFiles;
@@ -428,10 +442,13 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 		progressCtx.TotalFilesSize = totalFilesSize;
 		progressCtx.CurrentFileIndex = -1;
 
+		bool fAutoSkipErrors = false;
+		bool fAborted = false;
 		for (size_t i = 0; i < existingFiles.size(); i++)
 		{
 			const FileHashInfo& fileInfo = hashes.GetFileInfo(existingFiles[i]);
 			wstring strFullFilePath = MakeAbsPath(fileInfo.Filename, workDir);
+			bool fSkipFile = false;
 
 			progressCtx.FileName = fileInfo.Filename;
 			progressCtx.CurrentFileIndex++;
@@ -442,26 +459,45 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 
 			{
 				FarScreenSave screen;
-				int genRetVal = GenerateHash(strFullFilePath.c_str(), fileInfo.GetAlgo(), hashValueBuf, false, FileHashingProgress, &progressCtx);
-
-				if (genRetVal == GENERATE_ABORTED)
+				while (true)
 				{
-					// Exit silently
-					break;
-				}
-				else if (genRetVal == GENERATE_ERROR)
-				{
-					//TODO: offer retry
-					DisplayMessage(L"Error", L"Error during hash generation", fileInfo.Filename.c_str(), true, true);
-					break;
-				}
+					int genRetVal = GenerateHash(strFullFilePath.c_str(), fileInfo.GetAlgo(), hashValueBuf, false, FileHashingProgress, &progressCtx);
 
-				if (_stricmp(fileInfo.HashStr.c_str(), hashValueBuf) != 0)
+					if (genRetVal == GENERATE_ABORTED)
+					{
+						fAborted = true;
+					}
+					else if (genRetVal == GENERATE_ERROR)
+					{
+						int resp = fAutoSkipErrors ? EDR_SKIP : DisplayHashGenerateError(fileInfo.Filename);
+						if (resp == EDR_RETRY)
+							continue;
+						else if (resp == EDR_SKIP)
+							fSkipFile = true;
+						else if (resp == EDR_SKIPALL)
+						{
+							fSkipFile = true;
+							fAutoSkipErrors = true;
+						}
+						else
+							fAborted = true;
+					}
+
+					// Always break if not said otherwise
+					break;
+				} // while
+				
+				if (fAborted) break;
+
+				if (fSkipFile)
+					nFilesSkipped++;
+				else if (_stricmp(fileInfo.HashStr.c_str(), hashValueBuf) != 0)
 					vMismatches.push_back(fileInfo.Filename);
 			}
-		}
+		} // for
 
-		DisplayValidationResults(vMismatches, vMissing, nFilesSkipped);
+		if (!fAborted)
+			DisplayValidationResults(vMismatches, vMissing, nFilesSkipped);
 	}
 	else
 	{
@@ -620,20 +656,6 @@ static void DisplayHashListOnScreen(const HashList &list)
 	}
 
 	delete [] listBoxItems;
-}
-
-static int DisplayHashGenerateError(const wstring& fileName)
-{
-	static const wchar_t* DlgLines[7];
-	DlgLines[0] = GetLocMsg(MSG_DLG_ERROR);
-	DlgLines[1] = GetLocMsg(MSG_DLG_FILE_ERROR);
-	DlgLines[2] = fileName.c_str();
-	DlgLines[3] = GetLocMsg(MSG_BTN_SKIP);
-	DlgLines[4] = GetLocMsg(MSG_BTN_SKIPALL);
-	DlgLines[5] = GetLocMsg(MSG_BTN_RETRY);
-	DlgLines[6] = GetLocMsg(MSG_BTN_CANCEL);
-
-	return (int) FarSInfo.Message(&GUID_PLUGIN_MAIN, &GUID_MESSAGE_BOX, FMSG_WARNING, NULL, DlgLines, ARRAY_SIZE(DlgLines), 4);
 }
 
 static void RunGenerateHashes()
