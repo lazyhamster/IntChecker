@@ -480,10 +480,9 @@ static intptr_t WINAPI HashParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t Par
 	const int nUseFilterBoxIndex = 17;
 	const int nFilterButtonIndex = 20;
 
-	//TODO: fixme
-	if (Msg == DN_BTNCLICK && optAutoExtension)
+	if (Msg == DN_BTNCLICK)
 	{
-		if (Param2 && (Param1 >= 2) && (Param1 <= 2 + NUMBER_OF_SUPPORTED_HASHES))
+		if (optAutoExtension && Param2 && (Param1 >= 2) && (Param1 <= 2 + NUMBER_OF_SUPPORTED_HASHES))
 		{
 			int selectedHashIndex = (int) Param1 - 2;
 			wchar_t wszHashFileName[MAX_PATH];
