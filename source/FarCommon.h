@@ -40,7 +40,8 @@ struct ProgressContext
 		TotalProcessedBytes(0), CurrentFileProcessedBytes(0), FileProgress(0), TotalProgress(0)
 	{}
 
-	wstring FileName;
+	std::wstring FileName;
+	std::wstring HashAlgoName;
 
 	int64_t TotalFilesSize;
 	int TotalFilesCount;

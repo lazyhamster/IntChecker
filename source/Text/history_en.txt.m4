@@ -2,6 +2,7 @@ Changes history:
 
 2.4.0
 - Added support for file filters in hash generation (Far3 only).
+- Minor changes.
 
 2.3.5
 - Fixed issue with network shares.

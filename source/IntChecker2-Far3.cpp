@@ -236,12 +236,15 @@ static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 		prCtx->FileProgress = nFileProgress;
 		prCtx->TotalProgress = nTotalProgress;
 
+		static wchar_t szGeneratingLine[100] = {0};
+		swprintf_s(szGeneratingLine, ARRAY_SIZE(szGeneratingLine), GetLocMsg(MSG_DLG_GENERATING), prCtx->HashAlgoName.c_str());
+
 		static wchar_t szFileProgressLine[100] = {0};
 		swprintf_s(szFileProgressLine, ARRAY_SIZE(szFileProgressLine), GetLocMsg(MSG_DLG_PROGRESS), prCtx->CurrentFileIndex + 1, prCtx->TotalFilesCount, nFileProgress, nTotalProgress);
 
 		static const wchar_t* InfoLines[4];
 		InfoLines[0] = GetLocMsg(MSG_DLG_PROCESSING);
-		InfoLines[1] = GetLocMsg(MSG_DLG_GENERATING);
+		InfoLines[1] = szGeneratingLine;
 		InfoLines[2] = szFileProgressLine;
 		InfoLines[3] = prCtx->FileName.c_str();
 
@@ -435,6 +438,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
 			progressCtx.CurrentFileProcessedBytes = 0;
 			progressCtx.CurrentFileSize = GetFileSize_i64(strFullFilePath.c_str());
 			progressCtx.FileProgress = 0;
+			progressCtx.HashAlgoName = GetAlgoInfo(fileInfo.GetAlgo())->AlgoName;
 
 			{
 				FarScreenSave screen;
@@ -721,6 +725,7 @@ static void RunGenerateHashes()
 	progressCtx.TotalFilesSize = totalFilesSize;
 	progressCtx.TotalProcessedBytes = 0;
 	progressCtx.CurrentFileIndex = -1;
+	progressCtx.HashAlgoName = GetAlgoInfo(genAlgo)->AlgoName;
 
 	bool continueSave = true;
 	bool fAutoSkipErrors = false;
@@ -862,6 +867,7 @@ static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, ProgressC
 	progressCtx.FileName = filePath;
 	progressCtx.CurrentFileIndex++;
 	progressCtx.CurrentFileSize = GetFileSize_i64(filePath.c_str());
+	progressCtx.HashAlgoName = GetAlgoInfo(hashAlgo)->AlgoName;
 
 	int nOldTotalProgress = progressCtx.TotalProgress;
 	int64_t nOldTotalBytes = progressCtx.TotalProcessedBytes;

@@ -38,7 +38,7 @@
 "No hay archivos seleccionados"
 "No hay archivos"
 "No hay archivos existentes de la lista hash"
-"Generando hash"
+"Generando hash (%s)"
 "Interrumpir cálculo?"
 "Completado"
 "Cálculo completado"
