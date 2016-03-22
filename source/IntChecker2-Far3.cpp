@@ -480,6 +480,7 @@ static intptr_t WINAPI HashParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t Par
 	const int nUseFilterBoxIndex = 17;
 	const int nFilterButtonIndex = 20;
 
+	//TODO: fixme
 	if (Msg == DN_BTNCLICK && optAutoExtension)
 	{
 		if (Param2 && (Param1 >= 2) && (Param1 <= 2 + NUMBER_OF_SUPPORTED_HASHES))
@@ -835,24 +836,69 @@ static void RunGenerateHashes()
 	FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_REDRAWPANEL, 0, NULL);
 }
 
-static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive)
+static intptr_t WINAPI CompareParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t Param1, void* Param2)
+{
+	const int nUseFilterBoxIndex = 10;
+	const int nFilterButtonIndex = 13;
+
+	if (Msg == DN_BTNCLICK)
+	{
+		if (Param1 == nUseFilterBoxIndex)
+		{
+			FarSInfo.SendDlgMessage(hDlg, DM_ENABLE, nFilterButtonIndex, (void*) (Param2 ? TRUE : FALSE));
+		}
+		else if (Param1 == nFilterButtonIndex)
+		{
+			intptr_t userData = FarSInfo.SendDlgMessage(hDlg, DM_GETITEMDATA, nFilterButtonIndex, nullptr);
+			if (userData)
+			{
+				FarSInfo.FileFilterControl((HANDLE) userData, FFCTL_OPENFILTERSMENU, 0, nullptr);
+			}
+			return TRUE;
+		}
+	}
+
+	return FarSInfo.DefDlgProc(hDlg, Msg, Param1, Param2);
+}
+
+static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive, HANDLE &fileFilter)
 {
 	int doRecurse = recursive;
 	int algoIndex = GetAlgoIndex(selectedAlgo);
 	int algoNames[] = {MSG_ALGO_CRC, MSG_ALGO_MD5, MSG_ALGO_SHA1, MSG_ALGO_SHA256, MSG_ALGO_SHA512, MSG_ALGO_WHIRLPOOL};
+
+	int useFilter = 0;
+	HANDLE hFilter = INVALID_HANDLE_VALUE;
+	FarSInfo.FileFilterControl(PANEL_NONE, FFCTL_CREATEFILEFILTER, FFT_CUSTOM, &hFilter);
 	
-	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_PARAMS, MSG_DLG_COMPARE, NULL);
+	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_PARAMS, MSG_DLG_COMPARE, nullptr, CompareParamsDlgProc);
 
 	dlgBuilder.AddText(MSG_GEN_ALGO);
 	dlgBuilder.AddRadioButtons(&algoIndex, ARRAY_SIZE(algoNames), algoNames, false);
 	dlgBuilder.AddSeparator();
 	dlgBuilder.AddCheckbox(MSG_GEN_RECURSE, &doRecurse, 0, false);
-	dlgBuilder.AddOKCancel(MSG_BTN_RUN, MSG_BTN_CANCEL, -1, true);
+	dlgBuilder.AddCheckbox(MSG_DLG_USE_FILTER, &useFilter);
+	dlgBuilder.AddSeparator();
+
+	int btnMsgIDs[] = { MSG_BTN_RUN, MSG_BTN_FILTER, MSG_BTN_CANCEL };
+	auto firstButtonPtr = dlgBuilder.AddButtons(3, btnMsgIDs, 0, 2);
+	firstButtonPtr[1].Flags |= DIF_DISABLE;  // Disable filter button by default
+	firstButtonPtr[1].UserData = (intptr_t) hFilter;
 
 	if (dlgBuilder.ShowDialog())
 	{
 		recursive = doRecurse != 0;
 		selectedAlgo = SupportedHashes[algoIndex].AlgoId;
+
+		if (useFilter)
+		{
+			fileFilter = hFilter;
+		}
+		else
+		{
+			fileFilter = INVALID_HANDLE_VALUE;
+			FarSInfo.FileFilterControl(hFilter, FFCTL_FREEFILEFILTER, 0, nullptr);
+		}
 		
 		return true;
 	}
@@ -925,12 +971,7 @@ static void RunComparePanels()
 	if (piActv.SelectedItemsNumber == 0) return;
 
 	wstring strActivePanelDir, strPassivePanelDir;
-	StringList vSelectedFiles;
-	int64_t totalFilesSize = 0;
-
-	rhash_ids cmpAlgo = (rhash_ids) optDefaultAlgo;
-	bool recursive = true;
-
+		
 	GetPanelDir(PANEL_ACTIVE, strActivePanelDir);
 	GetPanelDir(PANEL_PASSIVE, strPassivePanelDir);
 
@@ -940,7 +981,14 @@ static void RunComparePanels()
 		return;
 	}
 
-	if (!AskForCompareParams(cmpAlgo, recursive))
+	rhash_ids cmpAlgo = (rhash_ids) optDefaultAlgo;
+	bool recursive = true;
+	HANDLE fileFilter = INVALID_HANDLE_VALUE;
+
+	StringList vSelectedFiles;
+	int64_t totalFilesSize = 0;
+
+	if (!AskForCompareParams(cmpAlgo, recursive, fileFilter))
 		return;
 
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_INDETERMINATE, NULL);
@@ -950,9 +998,11 @@ static void RunComparePanels()
 		FarScreenSave screen;
 		DisplayMessage(GetLocMsg(MSG_DLG_PROCESSING), GetLocMsg(MSG_DLG_PREPARE_LIST), NULL, false, false);
 
-		//TODO: implement filters for this dialog also
-		GetSelectedPanelFiles(piActv, strActivePanelDir, vSelectedFiles, totalFilesSize, true, INVALID_HANDLE_VALUE);
+		GetSelectedPanelFiles(piActv, strActivePanelDir, vSelectedFiles, totalFilesSize, true, fileFilter);
 	}
+
+	if (fileFilter != INVALID_HANDLE_VALUE)
+		FarSInfo.FileFilterControl(fileFilter, FFCTL_FREEFILEFILTER, 0, nullptr);
 
 	// No suitable items selected for comparison
 	if (vSelectedFiles.size() == 0) return;
