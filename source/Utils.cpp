@@ -1,6 +1,8 @@
 #include "StdAfx.h"
 #include "Utils.h"
 
+#include <boost/filesystem.hpp>
+
 ///////////////////////////////////////////////////////////////////////////////
 //							 Various routines								 //
 ///////////////////////////////////////////////////////////////////////////////
@@ -22,9 +24,13 @@ bool CheckEsc()
 		return false;
 }
 
-std::wstring MakeAbsPath(const std::wstring path, const std::wstring refDir)
+std::wstring MakeAbsPath(const std::wstring sPath, const std::wstring refDir)
 {
-	return PathIsRelative(path.c_str()) ? refDir + path : path;
+	auto pathAbs = boost::filesystem::absolute(sPath, refDir);
+	auto pathCanon = boost::filesystem::weakly_canonical(pathAbs).native();
+	std::replace(pathCanon.begin(), pathCanon.end(), L'/', L'\\');
+	
+	return pathCanon;
 }
 
 void IncludeTrailingPathDelim(wchar_t *pathBuf, size_t bufMaxSize)
@@ -107,7 +113,7 @@ void TrimRight( char* str )
 	}
 }
 
-static wstring GetFullPath(const wchar_t* path)
+static std::wstring GetFullPath(const wchar_t* path)
 {
 	wchar_t tmpBuf[PATH_BUFFER_SIZE];
 	GetFullPathName(path, ARRAY_SIZE(tmpBuf), tmpBuf, NULL);
