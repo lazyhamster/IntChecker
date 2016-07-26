@@ -89,6 +89,30 @@ struct RectSize
 	}
 };
 
+struct HashGenerationParams
+{
+	rhash_ids Algorithm;
+	bool Recursive;
+	HashOutputTargets OutputTarget;
+	bool StoreAbsPaths;
+	HANDLE FileFilter;
+
+	std::wstring OutputFileName;
+	UINT OutputFileCodepage;
+	
+	HashGenerationParams()
+	{
+		Algorithm = (rhash_ids) optDefaultAlgo;
+		Recursive = true;
+		OutputTarget = OT_SINGLEFILE;
+		StoreAbsPaths = false;
+		FileFilter = INVALID_HANDLE_VALUE;
+		
+		OutputFileName = L"hashlist";
+		OutputFileCodepage = optListDefaultCodepage;
+	}
+};
+
 typedef bool (*FARSIZECALLBACK)(RectSize &farSize);
 
 static bool FindBestListBoxSize(std::vector<std::wstring> listItems, FARSIZECALLBACK sizeFunc, RectSize &listBoxSize)

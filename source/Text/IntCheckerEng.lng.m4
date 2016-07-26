@@ -66,6 +66,7 @@
 "Single &File"
 "&Separate hash files"
 "&Display"
+"File Encoding"
 
 "&1. CRC32"
 "&2. MD5"

@@ -566,19 +566,29 @@ static intptr_t WINAPI HashParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t Par
 	return FarSInfo.DefDlgProc(hDlg, Msg, Param1, Param2);
 }
 
-static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive, HashOutputTargets &outputTarget, wstring &outputFileName, int &storeAbsPaths, HANDLE &fileFilter)
+static bool AskForHashGenerationParams(HashGenerationParams& genParams)
 {
-	int algoIndex = GetAlgoIndex(selectedAlgo);
+	int algoIndex = GetAlgoIndex(genParams.Algorithm);
 	int algoNames[] = {MSG_ALGO_CRC, MSG_ALGO_MD5, MSG_ALGO_SHA1, MSG_ALGO_SHA256, MSG_ALGO_SHA512, MSG_ALGO_WHIRLPOOL};
-	int targetIndex = outputTarget;
-	int doRecurse = recursive;
+	int targetIndex = genParams.OutputTarget;
+	int doRecurse = genParams.Recursive;
+	int doStoreAbsPath = genParams.StoreAbsPaths;
 	
 	int useFilter = 0;
 	HANDLE hFilter = INVALID_HANDLE_VALUE;
 	FarSInfo.FileFilterControl(PANEL_NONE, FFCTL_CREATEFILEFILTER, FFT_CUSTOM, &hFilter);
 	
 	wchar_t outputFileBuf[MAX_PATH] = {0};
-	wcscpy_s(outputFileBuf, ARRAY_SIZE(outputFileBuf), outputFileName.c_str());
+	wcscpy_s(outputFileBuf, ARRAY_SIZE(outputFileBuf), genParams.OutputFileName.c_str());
+
+	const wchar_t* codePageNames[] = {L"UTF-8", L"ANSI", L"OEM"};
+	const UINT codePageValues[] = {CP_UTF8, CP_ACP, CP_OEMCP};
+	int selectedCP = 0;
+	for (int i = 0; i < ARRAY_SIZE(codePageValues); i++)
+	{
+		if (codePageValues[i] == optListDefaultCodepage)
+			selectedCP = i;
+	}
 		
 	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_PARAMS, MSG_GEN_TITLE, L"GenerateParams", HashParamsDlgProc);
 
@@ -599,8 +609,11 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 	
 	dlgBuilder.AddSeparator();
 	dlgBuilder.AddCheckbox(MSG_GEN_RECURSE, &doRecurse, 0, false);
-	dlgBuilder.AddCheckbox(MSG_GEN_ABSPATH, &storeAbsPaths);
+	dlgBuilder.AddCheckbox(MSG_GEN_ABSPATH, &doStoreAbsPath);
 	dlgBuilder.AddCheckbox(MSG_DLG_USE_FILTER, &useFilter);
+
+	auto cpBox = dlgBuilder.AddComboBox(&selectedCP, NULL, 8, codePageNames, ARRAY_SIZE(codePageNames), DIF_DROPDOWNLIST);
+	dlgBuilder.AddTextBefore(cpBox, MSG_GEN_CODEPAGE);
 
 	dlgBuilder.AddSeparator();
 	int btnMsgIDs[] = { MSG_BTN_RUN, MSG_BTN_FILTER, MSG_BTN_CANCEL };
@@ -610,18 +623,20 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 
 	if (dlgBuilder.ShowDialog())
 	{
-		recursive = doRecurse != 0;
-		selectedAlgo = SupportedHashes[algoIndex].AlgoId;
-		outputTarget = (HashOutputTargets) targetIndex;
-		outputFileName = outputFileBuf;
+		genParams.Recursive = doRecurse != 0;
+		genParams.StoreAbsPaths = doStoreAbsPath != 0;
+		genParams.Algorithm = SupportedHashes[algoIndex].AlgoId;
+		genParams.OutputTarget = (HashOutputTargets) targetIndex;
+		genParams.OutputFileName = outputFileBuf;
+		genParams.OutputFileCodepage = codePageValues[selectedCP];
 
 		if (useFilter)
 		{
-			fileFilter = hFilter;
+			genParams.FileFilter = hFilter;
 		}
 		else
 		{
-			fileFilter = INVALID_HANDLE_VALUE;
+			genParams.FileFilter = INVALID_HANDLE_VALUE;
 			FarSInfo.FileFilterControl(hFilter, FFCTL_FREEFILEFILTER, 0, nullptr);
 		}
 		
@@ -673,18 +688,12 @@ static void RunGenerateHashes()
 	}
 
 	// Generation params
-	rhash_ids genAlgo = (rhash_ids) optDefaultAlgo;
-	bool recursive = true;
-	HashOutputTargets outputTarget = OT_SINGLEFILE;
-	wstring outputFile(L"hashlist");
-	UINT outputFileCodepage = optListDefaultCodepage;
-	int storeAbsPaths = 0;
-	HANDLE fileFilter = INVALID_HANDLE_VALUE;
+	HashGenerationParams genParams;
 
-	HashAlgoInfo *selectedHashInfo = GetAlgoInfo(genAlgo);
+	HashAlgoInfo *selectedHashInfo = GetAlgoInfo(genParams.Algorithm);
 	if (!selectedHashInfo) return;
 
-	if (optAutoExtension) outputFile += selectedHashInfo->DefaultExt;
+	if (optAutoExtension) genParams.OutputFileName += selectedHashInfo->DefaultExt;
 
 	// If only one file is selected then offer it's name as base for hash file name
 	if (pi.SelectedItemsNumber == 1)
@@ -692,34 +701,34 @@ static void RunGenerateHashes()
 		wstring strSelectedFile;
 		if (GetSelectedPanelItemPath(strSelectedFile) && (strSelectedFile != L".."))
 		{
-			outputFile = ExtractFileName(strSelectedFile) + selectedHashInfo->DefaultExt;
+			genParams.OutputFileName = ExtractFileName(strSelectedFile) + selectedHashInfo->DefaultExt;
 		}
 	}
 
 	while(true)
 	{
-		if (!AskForHashGenerationParams(genAlgo, recursive, outputTarget, outputFile, storeAbsPaths, fileFilter))
+		if (!AskForHashGenerationParams(genParams))
 			return;
 
 		wchar_t fullPath[PATH_BUFFER_SIZE];
-		FSF.ConvertPath(CPM_FULL, outputFile.c_str(), fullPath, ARRAY_SIZE(fullPath));
-		outputFile = fullPath;
+		FSF.ConvertPath(CPM_FULL, genParams.OutputFileName.c_str(), fullPath, ARRAY_SIZE(fullPath));
+		genParams.OutputFileName = fullPath;
 
-		if (outputTarget == OT_SINGLEFILE)
+		if (genParams.OutputTarget == OT_SINGLEFILE)
 		{
 			// Check if hash file already exists
-			if (IsFile(outputFile.c_str()))
+			if (IsFile(genParams.OutputFileName.c_str()))
 			{
 				wchar_t wszMsgText[256] = {0};
-				swprintf_s(wszMsgText, ARRAY_SIZE(wszMsgText), GetLocMsg(MSG_DLG_OVERWRITE_FILE_TEXT), outputFile.c_str());
+				swprintf_s(wszMsgText, ARRAY_SIZE(wszMsgText), GetLocMsg(MSG_DLG_OVERWRITE_FILE_TEXT), genParams.OutputFileName.c_str());
 
 				if (!ConfirmMessage(GetLocMsg(MSG_DLG_OVERWRITE_FILE), wszMsgText, true))
 					continue;
 			}
 			// Check if we can write target file
-			else if (!CanCreateFile(outputFile.c_str()))
+			else if (!CanCreateFile(genParams.OutputFileName.c_str()))
 			{
-				DisplayMessage(MSG_DLG_ERROR, MSG_DLG_CANT_SAVE_HASHLIST, outputFile.c_str(), true, true);
+				DisplayMessage(MSG_DLG_ERROR, MSG_DLG_CANT_SAVE_HASHLIST, genParams.OutputFileName.c_str(), true, true);
 				continue;
 			}
 		}
@@ -741,7 +750,7 @@ static void RunGenerateHashes()
 		DisplayMessage(GetLocMsg(MSG_DLG_PROCESSING), GetLocMsg(MSG_DLG_PREPARE_LIST), NULL, false, false);
 
 		GetPanelDir(PANEL_ACTIVE, strPanelDir);
-		GetSelectedPanelFiles(pi, strPanelDir, filesToProcess, totalFilesSize, recursive, fileFilter);
+		GetSelectedPanelFiles(pi, strPanelDir, filesToProcess, totalFilesSize, genParams.Recursive, genParams.FileFilter);
 	}
 
 	// Perform hashing
@@ -751,7 +760,7 @@ static void RunGenerateHashes()
 	progressCtx.TotalFilesSize = totalFilesSize;
 	progressCtx.TotalProcessedBytes = 0;
 	progressCtx.CurrentFileIndex = -1;
-	progressCtx.HashAlgoName = GetAlgoInfo(genAlgo)->AlgoName;
+	progressCtx.HashAlgoName = GetAlgoInfo(genParams.Algorithm)->AlgoName;
 
 	bool continueSave = true;
 	bool fAutoSkipErrors = false;
@@ -780,7 +789,7 @@ static void RunGenerateHashes()
 
 				fSaveHash = true;
 
-				int genRetVal = GenerateHash(strFullPath.c_str(), genAlgo, hashValueBuf, optHashUppercase != 0, FileHashingProgress, &progressCtx);
+				int genRetVal = GenerateHash(strFullPath.c_str(), genParams.Algorithm, hashValueBuf, optHashUppercase != 0, FileHashingProgress, &progressCtx);
 
 				if (genRetVal == GENERATE_ABORTED)
 				{
@@ -812,32 +821,32 @@ static void RunGenerateHashes()
 
 		if (fSaveHash)
 		{
-			hashes.SetFileHash(storeAbsPaths ? strFullPath.c_str() : strNextFile.c_str(), hashValueBuf, genAlgo);
+			hashes.SetFileHash(genParams.StoreAbsPaths ? strFullPath.c_str() : strNextFile.c_str(), hashValueBuf, genParams.Algorithm);
 		}
 	}
 
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);
 	FarAdvControl(ACTL_PROGRESSNOTIFY, 0, NULL);
 
-	if (fileFilter != INVALID_HANDLE_VALUE)
-		FarSInfo.FileFilterControl(fileFilter, FFCTL_FREEFILEFILTER, 0, nullptr);
+	if (genParams.FileFilter != INVALID_HANDLE_VALUE)
+		FarSInfo.FileFilterControl(genParams.FileFilter, FFCTL_FREEFILEFILTER, 0, nullptr);
 
 	if (!continueSave) return;
 
 	// Display/save hash list
 	bool saveSuccess = false;
-	if (outputTarget == OT_SINGLEFILE)
+	if (genParams.OutputTarget == OT_SINGLEFILE)
 	{
-		saveSuccess = hashes.SaveList(outputFile.c_str(), outputFileCodepage);
+		saveSuccess = hashes.SaveList(genParams.OutputFileName.c_str(), genParams.OutputFileCodepage);
 		if (!saveSuccess)
 		{
-			DisplayMessage(MSG_DLG_ERROR, MSG_DLG_CANT_SAVE_HASHLIST, outputFile.c_str(), true, true);
+			DisplayMessage(MSG_DLG_ERROR, MSG_DLG_CANT_SAVE_HASHLIST, genParams.OutputFileName.c_str(), true, true);
 		}
 	}
-	else if (outputTarget == OT_SEPARATEFILES)
+	else if (genParams.OutputTarget == OT_SEPARATEFILES)
 	{
 		int numGood, numBad;
-		saveSuccess = hashes.SaveListSeparate(strPanelDir.c_str(), outputFileCodepage, numGood, numBad);
+		saveSuccess = hashes.SaveListSeparate(strPanelDir.c_str(), genParams.OutputFileCodepage, numGood, numBad);
 	}
 	else
 	{
@@ -854,7 +863,7 @@ static void RunGenerateHashes()
 
 	if (optRememberLastUsedAlgo)
 	{
-		optDefaultAlgo = genAlgo;
+		optDefaultAlgo = genParams.Algorithm;
 		SaveSettings();
 	}
 
