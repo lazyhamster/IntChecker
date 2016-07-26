@@ -195,7 +195,11 @@ static void LoadSettings()
 	optHashUppercase			= ps.Get(0, L"RememberLastAlgorithm", optRememberLastUsedAlgo);
 	optListDefaultCodepage		= ps.Get(0, L"DefaultListCodepage", optListDefaultCodepage);
 
-	ps.Get(0, L"Prefix", optPrefix, ARRAY_SIZE(optPrefix));
+	const wchar_t* prefixVal = ps.Get(0, L"Prefix", optPrefix);
+	if (prefixVal != optPrefix)
+	{
+		wcscpy_s(optPrefix, ARRAY_SIZE(optPrefix), prefixVal);
+	}
 }
 
 static void SaveSettings()

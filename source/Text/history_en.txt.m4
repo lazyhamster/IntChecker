@@ -2,6 +2,7 @@ Changes history:
 
 2.4.1
 - Fixed processing of Linux-style paths in hash files.
+- Fixed prefix corruption issue in Far3 x64.
 
 2.4.0
 - Added support for file filters in hash generation (Far3 only).
