@@ -127,7 +127,7 @@
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug-Far3|Win32'">$(SolutionDir)\obj\$(Configuration)\$(ProjectName)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug-Far3|Win32'">true</LinkIncremental>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug-Far3|Win32'">false</GenerateManifest>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug-Far3|x64'">$(SolutionDir)\bin\$(Configuration)-$(Platform)\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug-Far3|x64'">C:\Tools\Far-DBG\Far3-x64\Plugins\!Personal\$(ProjectName)\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug-Far3|x64'">$(SolutionDir)\obj\$(Configuration)-$(Platform)\$(ProjectName)\</IntDir>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Debug-Far3|x64'">true</LinkIncremental>
     <GenerateManifest Condition="'$(Configuration)|$(Platform)'=='Debug-Far3|x64'">false</GenerateManifest>
@@ -389,6 +389,7 @@
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug-Far3|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release-Far3|Win32'">true</ExcludedFromBuild>
       <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Release-Far3|x64'">true</ExcludedFromBuild>
+      <ExcludedFromBuild Condition="'$(Configuration)|$(Platform)'=='Debug-Far3|x64'">true</ExcludedFromBuild>
     </ClCompile>
     <ClCompile Include="RegistrySettings.cpp" />
     <ClCompile Include="stdafx.cpp">

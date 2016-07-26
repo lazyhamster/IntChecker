@@ -8,4 +8,8 @@
     <LocalDebuggerCommand>C:\Tools\Far-DBG\Far3\Far.exe</LocalDebuggerCommand>
     <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
   </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug-Far3|x64'">
+    <LocalDebuggerCommand>C:\Tools\Far-DBG\Far3-x64\Far.exe</LocalDebuggerCommand>
+    <DebuggerFlavor>WindowsLocalDebugger</DebuggerFlavor>
+  </PropertyGroup>
 </Project>

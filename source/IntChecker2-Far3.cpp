@@ -1125,7 +1125,7 @@ void RunCompareWithClipboard(std::wstring &selectedFile)
 		{
 			algoMenu.AddItem(SupportedHashes[algoIndicies[i]].AlgoName.c_str());
 		}
-		int selItem = algoMenu.Run();
+		intptr_t selItem = algoMenu.Run();
 		if (selItem < 0) return;
 
 		selectedAlgoIndex = algoIndicies[selItem];
