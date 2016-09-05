@@ -1,5 +1,8 @@
 Changes history:
 
+2.4.2
+- Fixed assert for some Cyrillic filenames.
+
 2.4.1
 - Fixed processing of Linux-style paths in hash files.
 - Fixed prefix corruption issue in Far3 x64.

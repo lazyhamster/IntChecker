@@ -102,7 +102,7 @@ void TrimRight( char* str )
 	while (strLen > 0)
 	{
 		char lastChar = str[strLen - 1];
-		if (isspace(lastChar) || (lastChar == '\n') || (lastChar == '\r'))
+		if ((lastChar == '\n') || (lastChar == '\r') || ((lastChar > 0) && isspace(lastChar)))
 		{
 			str[strLen - 1] = 0;
 			strLen--;

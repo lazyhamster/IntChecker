@@ -169,10 +169,10 @@ bool HashList::LoadList( const wchar_t* filepath, UINT codepage, bool merge )
 
 	while (fgets(readBuf, sizeof(readBuf), inputFile))
 	{
-		TrimRight(readBuf);
-
 		// Just skipping comments and empty lines
 		if (!readBuf[0] || IsComment(readBuf)) continue;
+
+		TrimRight(readBuf);
 		
 		if (listAlgoIndex < 0)
 		{
