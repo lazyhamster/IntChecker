@@ -27,10 +27,19 @@ bool CheckEsc()
 std::wstring MakeAbsPath(const std::wstring sPath, const std::wstring refDir)
 {
 	auto pathAbs = boost::filesystem::absolute(sPath, refDir);
-	auto pathCanon = boost::filesystem::weakly_canonical(pathAbs).native();
-	std::replace(pathCanon.begin(), pathCanon.end(), L'/', L'\\');
-	
-	return pathCanon;
+	std::wstring strPathCanon;
+	try
+	{
+		strPathCanon = boost::filesystem::weakly_canonical(pathAbs).native();
+	}
+	catch (std::exception&)
+	{
+		// weakly_canonical can crash when path contains directory junction
+		strPathCanon = pathAbs.native();
+	}
+
+	std::replace(strPathCanon.begin(), strPathCanon.end(), L'/', L'\\');
+	return strPathCanon;
 }
 
 void IncludeTrailingPathDelim(wchar_t *pathBuf, size_t bufMaxSize)

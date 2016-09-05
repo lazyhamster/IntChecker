@@ -1,6 +1,7 @@
 Changes history:
 
 2.4.2
+- Fixed crash when validating files with directory junction in path.
 - Fixed assert for some Cyrillic filenames.
 
 2.4.1
