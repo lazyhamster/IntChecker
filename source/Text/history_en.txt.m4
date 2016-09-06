@@ -3,6 +3,7 @@ Changes history:
 2.4.2
 - Fixed crash when validating files with directory junction in path.
 - Fixed assert for some Cyrillic filenames.
+- Added ability to select codepage of hash file for validation.
 
 2.4.1
 - Fixed processing of Linux-style paths in hash files.

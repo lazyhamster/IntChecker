@@ -393,11 +393,43 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 	SelectFilesOnPanel(PANEL_ACTIVE, vSameFolderFiles, true);
 }
 
-// Returns true if file is recognized as hash list
-static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
+static bool AskValidationFileParams(UINT &codepage)
 {
+	const wchar_t* codePageNames[] = {L"UTF-8", L"ANSI", L"OEM"};
+	const UINT codePageValues[] = {CP_UTF8, CP_ACP, CP_OEMCP};
+	int selectedCP = 0;
+	for (int i = 0; i < ARRAY_SIZE(codePageValues); i++)
+	{
+		if (codePageValues[i] == optListDefaultCodepage)
+			selectedCP = i;
+	}
+
+	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_PARAMS, MSG_MENU_VALIDATE, L"ValidateParams");
+
+	auto cpBox = dlgBuilder.AddComboBox(&selectedCP, NULL, 8, codePageNames, ARRAY_SIZE(codePageNames), DIF_DROPDOWNLIST);
+	dlgBuilder.AddTextBefore(cpBox, MSG_GEN_CODEPAGE);
+	dlgBuilder.AddOKCancel(MSG_BTN_RUN, MSG_BTN_CANCEL);
+
+	if (dlgBuilder.ShowDialog())
+	{
+		codepage = codePageValues[selectedCP];
+
+		return true;
+	}
+
+	return false;
+}
+
+// Returns true if file is recognized as hash list
+static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool showParamsDialog)
+{
+	UINT fileCodepage = optListDefaultCodepage;
+
+	if (!silent && showParamsDialog && !AskValidationFileParams(fileCodepage))
+		return false;
+	
 	HashList hashes;
-	if (!hashes.LoadList(hashListPath, optListDefaultCodepage, false) || (hashes.GetCount() == 0))
+	if (!hashes.LoadList(hashListPath, fileCodepage, false) || (hashes.GetCount() == 0))
 	{
 		if (!silent)
 			DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_NOTVALIDLIST), NULL, true, true);
@@ -1278,7 +1310,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 		FSF.Unquote(wszLocalNameBuffer);
 		FSF.ConvertPath(CPM_FULL, wszLocalNameBuffer, wszLocalNameBuffer, ARRAY_SIZE(wszLocalNameBuffer));
 		
-		if (!RunValidateFiles(wszLocalNameBuffer, true))
+		if (!RunValidateFiles(wszLocalNameBuffer, true, false))
 			DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_NOTVALIDLIST), NULL, true, true);
 	}
 	else if (OInfo->OpenFrom == OPEN_PLUGINSMENU)
@@ -1298,7 +1330,8 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 		if ((pi.SelectedItemsNumber == 1) && GetSelectedPanelItemPath(selectedFilePath) && IsFile(selectedFilePath.c_str()))
 		{
 			//TODO: use optDetectHashFiles
-			openMenu.AddItemEx(GetLocMsg(MSG_MENU_VALIDATE), boost::bind(RunValidateFiles, selectedFilePath.c_str(), false));
+			openMenu.AddItemEx(GetLocMsg(MSG_MENU_VALIDATE), boost::bind(RunValidateFiles, selectedFilePath.c_str(), false, false));
+			openMenu.AddItemEx(GetLocMsg(MSG_MENU_VALIDATE_WITH_PARAMS), boost::bind(RunValidateFiles, selectedFilePath.c_str(), false, true));
 			openMenu.AddItemEx(GetLocMsg(MSG_MENU_COMPARE_CLIP), boost::bind(RunCompareWithClipboard, selectedFilePath));
 		}
 

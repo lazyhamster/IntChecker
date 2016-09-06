@@ -6,6 +6,7 @@
 "&Generar Hashes"
 "Comparar &Paneles"
 "&Validar Archivos"
+"Validar Archivos (parámetros)"
 "&Comparar con Portapapeles"
 
 "Configuración"

@@ -6,6 +6,7 @@
 "&Generate Hashes"
 "Compare &Panels"
 "&Validate Files"
+"Validate Files (params)"
 "Compare With &Clipboard"
 
 "Configuration"
