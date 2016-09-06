@@ -176,6 +176,35 @@ static bool GetFarWindowSize(RectSize &size)
 	return false;
 }
 
+static int AdjustDialogBorder(FarDialogItem *DialogItems, int NumItems)
+{
+	// Expand right border of the dialog if text is too long to fit
+	int borderX2 = DialogItems[0].X2;
+	for (int i = 1; i < NumItems; i++)
+	{
+		if (DialogItems[i].Type == DI_CHECKBOX)
+		{
+			int itemRigthBorder = DialogItems[i].X1 + 4 + wcslen(DialogItems[i].PtrData) + 1;
+			if (itemRigthBorder > borderX2)
+			{
+				borderX2 = itemRigthBorder;
+				DialogItems[0].X2 = itemRigthBorder;
+			}
+		}
+		else if (DialogItems[i].Type == DI_COMBOBOX)
+		{
+			int rightBorder = DialogItems[i].X2 + 2;
+			if (rightBorder > borderX2)
+			{
+				borderX2 = rightBorder;
+				DialogItems[0].X2 = rightBorder;
+			}
+		}
+	}
+
+	return borderX2;
+}
+
 // --------------------------------------- Local functions ---------------------------------------------------
 
 static void LoadSettings()
@@ -379,11 +408,68 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 	SelectFilesOnPanel(PANEL_ACTIVE, vSameFolderFiles, true);
 }
 
-// Returns true if file is recognized as hash list
-static bool RunValidateFiles(const wchar_t* hashListPath, bool silent)
+static bool AskValidationFileParams(UINT &codepage)
 {
+	const wchar_t* codePageNames[] = {L"UTF-8", L"ANSI", L"OEM"};
+	const UINT codePageValues[] = {CP_UTF8, CP_ACP, CP_OEMCP};
+
+	FarListItem cpListItems[ARRAY_SIZE(codePageNames)] = {0};
+	FarList cpDlgList = {ARRAY_SIZE(codePageNames), cpListItems};
+
+	FarDialogItem DialogItems []={
+		/*00*/ {DI_DOUBLEBOX, 3, 1,30, 5, 0, 0, 0,0, GetLocMsg(MSG_MENU_VALIDATE), 0},
+		/*01*/ {DI_TEXT,	  5, 2, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_CODEPAGE), 0},
+		/*02*/ {DI_COMBOBOX,  5, 2, 0, 0, 0, (DWORD_PTR)&cpDlgList, DIF_DROPDOWNLIST, 0, NULL, 0},
+		/*03*/ {DI_TEXT,	  3, 3, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
+		/*04*/ {DI_BUTTON,	  0, 4, 0, 0, 1, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_RUN), 0},
+		/*05*/ {DI_BUTTON,    0, 4, 0, 0, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
+	};
+
+	for (int i = 0; i < ARRAY_SIZE(codePageValues); i++)
+	{
+		cpListItems[i].Text = codePageNames[i];
+		if (codePageValues[i] == optListDefaultCodepage)
+			cpListItems[i].Flags = LIF_SELECTED;
+	}
+
+	// Set proper location for codepage combobox
+	DialogItems[2].X1 += wcslen(DialogItems[1].PtrData) + 1;
+	DialogItems[2].X2 += DialogItems[2].X1 + 6;
+
+	// Expand right border of the dialog if text is too long to fit
+	int borderX2 = AdjustDialogBorder(DialogItems, ARRAY_SIZE(DialogItems));
+
+	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, borderX2 + 4, 7, L"ValidationParams",
+		DialogItems, sizeof(DialogItems) / sizeof(DialogItems[0]), 0, 0, FarSInfo.DefDlgProc, 0);
+
+	int nOkID = ARRAY_SIZE(DialogItems) - 2;
+
+	if (hDlg != INVALID_HANDLE_VALUE)
+	{
+		int ExitCode = FarSInfo.DialogRun(hDlg);
+		if (ExitCode == nOkID) // OK was pressed
+		{
+			int selectedCodepage = (int) DlgList_GetCurPos(FarSInfo, hDlg, 2);
+			codepage = codePageValues[selectedCodepage];
+		}
+		FarSInfo.DialogFree(hDlg);
+
+		if (ExitCode == nOkID) return true;
+	}
+
+	return false;
+}
+
+// Returns true if file is recognized as hash list
+static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool showParamsDialog)
+{
+	UINT fileCodepage = optListDefaultCodepage;
+
+	if (!silent && showParamsDialog && !AskValidationFileParams(fileCodepage))
+		return false;
+	
 	HashList hashes;
-	if (!hashes.LoadList(hashListPath, optListDefaultCodepage, false) || (hashes.GetCount() == 0))
+	if (!hashes.LoadList(hashListPath, fileCodepage, false) || (hashes.GetCount() == 0))
 	{
 		if (!silent)
 			DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_NOTVALIDLIST), NULL, true, true);
@@ -1172,32 +1258,11 @@ int WINAPI ConfigureW(int ItemNumber)
 	}
 
 	// Set proper location for codepage combobox
-	DialogItems[12].X1 += wcslen(DialogItems[11].PtrData);
+	DialogItems[12].X1 += wcslen(DialogItems[11].PtrData) + 1;
 	DialogItems[12].X2 += DialogItems[12].X1 + 6;
 
 	// Expand right border of the dialog if test is too long to fit
-	int borderX2 = DialogItems[0].X2;
-	for (int i = 1; i < ARRAY_SIZE(DialogItems); i++)
-	{
-		if (DialogItems[i].Type == DI_CHECKBOX)
-		{
-			int itemRigthBorder = DialogItems[i].X1 + 4 + wcslen(DialogItems[i].PtrData) + 1;
-			if (itemRigthBorder > borderX2)
-			{
-				borderX2 = itemRigthBorder;
-				DialogItems[0].X2 = itemRigthBorder;
-			}
-		}
-		else if (DialogItems[i].Type == DI_COMBOBOX)
-		{
-			int rightBorder = DialogItems[i].X2 + 2;
-			if (rightBorder > borderX2)
-			{
-				borderX2 = rightBorder;
-				DialogItems[0].X2 = rightBorder;
-			}
-		}
-	}
+	int borderX2 = AdjustDialogBorder(DialogItems, ARRAY_SIZE(DialogItems));
 
 	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, borderX2 + 4, 17, L"IntCheckerConfig",
 		DialogItems, sizeof(DialogItems) / sizeof(DialogItems[0]), 0, 0, FarSInfo.DefDlgProc, 0);
@@ -1240,7 +1305,7 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 		if (optUsePrefix)
 		{
 			// We are from prefix
-			if (!RunValidateFiles((wchar_t*) Item, true))
+			if (!RunValidateFiles((wchar_t*) Item, true, false))
 				DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_NOTVALIDLIST), NULL, true, true);
 		}
 	}
@@ -1263,7 +1328,8 @@ HANDLE WINAPI OpenPluginW(int OpenFrom, INT_PTR Item)
 		if ((pi.SelectedItemsNumber == 1) && GetSelectedPanelItemPath(selectedFilePath) && IsFile(selectedFilePath.c_str()))
 		{
 			//TODO: use optDetectHashFiles
-			openMenu.AddItemEx(GetLocMsg(MSG_MENU_VALIDATE), boost::bind(RunValidateFiles, selectedFilePath.c_str(), false));
+			openMenu.AddItemEx(GetLocMsg(MSG_MENU_VALIDATE), boost::bind(RunValidateFiles, selectedFilePath.c_str(), false, false));
+			openMenu.AddItemEx(GetLocMsg(MSG_MENU_VALIDATE_WITH_PARAMS), boost::bind(RunValidateFiles, selectedFilePath.c_str(), false, true));
 			openMenu.AddItemEx(GetLocMsg(MSG_MENU_COMPARE_CLIP), boost::bind(RunCompareWithClipboard, selectedFilePath));
 		}
 
