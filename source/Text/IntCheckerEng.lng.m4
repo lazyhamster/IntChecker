@@ -18,6 +18,10 @@
 "Save hashes in &uppercase"
 "&Remember last used algorithm"
 "Default hashlist codepage"
+"Default output to"
+"Single File"
+"Separate hash files"
+"Display"
 
 "OK"
 "Cancel"

@@ -194,6 +194,7 @@ static void LoadSettings()
 	optHashUppercase			= ps.Get(0, L"HashInUppercase", optHashUppercase);
 	optHashUppercase			= ps.Get(0, L"RememberLastAlgorithm", optRememberLastUsedAlgo);
 	optListDefaultCodepage		= ps.Get(0, L"DefaultListCodepage", optListDefaultCodepage);
+	optDefaultOutputTarget		= ps.Get(0, L"DefaultOutput", optDefaultAlgo);
 
 	const wchar_t* prefixVal = ps.Get(0, L"Prefix", optPrefix);
 	if (prefixVal != optPrefix)
@@ -216,6 +217,7 @@ static void SaveSettings()
 	ps.Set(0, L"HashInUppercase", optHashUppercase);
 	ps.Set(0, L"RememberLastAlgorithm", optRememberLastUsedAlgo);
 	ps.Set(0, L"DefaultListCodepage", optListDefaultCodepage);
+	ps.Set(0, L"DefaultOutput", optDefaultOutputTarget);
 }
 
 static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
@@ -1265,11 +1267,24 @@ intptr_t WINAPI ConfigureW(const ConfigureInfo* Info)
 			selectedCP = i;
 	}
 
+	const int outputTargetNames[] = {MSG_CONFIG_OUTPUT_SINGLE_FILE, MSG_CONFIG_OUTPUT_SEPARATE_FILE, MSG_CONFIG_OUTPUT_DISPLAY};
+	const int outputTargetValues[] = {OT_SINGLEFILE, OT_SEPARATEFILES, OT_DISPLAY};
+	int selectedOutput = 0;
+	for (int i = 0; i < ARRAY_SIZE(outputTargetNames); i++)
+	{
+		if (outputTargetValues[i] == optDefaultOutputTarget)
+			selectedOutput = i;
+	}
+
 	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_CONFIG, GetLocMsg(MSG_CONFIG_TITLE), L"IntCheckerConfig");
 
 	dlgBuilder.AddText(MSG_CONFIG_DEFAULT_ALGO);
 	dlgBuilder.AddComboBox(&selectedAlgo, NULL, 15, algoList, NUMBER_OF_SUPPORTED_HASHES, DIF_DROPDOWNLIST);
 	dlgBuilder.AddCheckbox(MSG_CONFIG_REMEMBER_LAST_ALGO, (BOOL*) &optRememberLastUsedAlgo);
+
+	dlgBuilder.AddSeparator();
+	dlgBuilder.AddText(MSG_CONFIG_DEFAULT_OUTPUT);
+	dlgBuilder.AddComboBox(&selectedOutput, NULL, 28, outputTargetNames, ARRAY_SIZE(outputTargetNames), DIF_DROPDOWNLIST);
 
 	dlgBuilder.AddSeparator();
 	dlgBuilder.AddCheckbox(MSG_CONFIG_PREFIX, (BOOL*) &optUsePrefix);
@@ -1290,6 +1305,7 @@ intptr_t WINAPI ConfigureW(const ConfigureInfo* Info)
 	{
 		optDefaultAlgo = SupportedHashes[selectedAlgo].AlgoId;
 		optListDefaultCodepage = codePageValues[selectedCP];
+		optDefaultOutputTarget = outputTargetValues[selectedOutput];
 		
 		SaveSettings();
 		return TRUE;

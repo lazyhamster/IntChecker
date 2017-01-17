@@ -7,12 +7,20 @@
 PluginStartupInfo FarSInfo;
 static FARSTANDARDFUNCTIONS FSF;
 
+enum HashOutputTargets
+{
+	OT_SINGLEFILE = 0,
+	OT_SEPARATEFILES = 1,
+	OT_DISPLAY = 2
+};
+
 // Plugin settings
 static int optDetectHashFiles = TRUE;
 static int optClearSelectionOnComplete = TRUE;
 static int optConfirmAbort = TRUE;
 static int optAutoExtension = TRUE;
 static int optDefaultAlgo = RHASH_MD5;
+static int optDefaultOutputTarget = OT_SINGLEFILE;
 static int optUsePrefix = TRUE;
 static int optHashUppercase = FALSE;
 static int optListDefaultCodepage = CP_UTF8;
@@ -20,13 +28,6 @@ static int optRememberLastUsedAlgo = FALSE;
 static wchar_t optPrefix[32] = L"check";
 
 static rhash_ids s_SupportedAlgos[] = {RHASH_CRC32, RHASH_MD5, RHASH_SHA1, RHASH_SHA256, RHASH_SHA512, RHASH_WHIRLPOOL};
-
-enum HashOutputTargets
-{
-	OT_SINGLEFILE,
-	OT_SEPARATEFILES,
-	OT_DISPLAY
-};
 
 #define EDR_SKIP 0
 #define EDR_SKIPALL 1
@@ -104,7 +105,7 @@ struct HashGenerationParams
 	{
 		Algorithm = (rhash_ids) optDefaultAlgo;
 		Recursive = true;
-		OutputTarget = OT_SINGLEFILE;
+		OutputTarget = (HashOutputTargets) optDefaultOutputTarget;
 		StoreAbsPaths = false;
 		FileFilter = INVALID_HANDLE_VALUE;
 		

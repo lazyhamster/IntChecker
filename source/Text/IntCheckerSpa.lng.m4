@@ -18,6 +18,10 @@
 "Guardar hashes en mayúsc&ulas"
 "Recordar último algoritmo utilizado"
 "Página de códigos predeterminada para lista hash"
+"*Default output to*"
+"Archivo Simple"
+"Archivos hash separados"
+"Visualización"
 
 "Aceptar"
 "Cancelar"
@@ -67,6 +71,7 @@
 "&Archivo Simple"
 "Archivos hash &separados"
 "&Visualización"
+"*File Encoding*"
 
 "&1. CRC32"
 "&2. MD5"
