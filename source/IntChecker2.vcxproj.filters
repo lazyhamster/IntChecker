@@ -18,6 +18,15 @@
       <Extensions>*.lng</Extensions>
       <ParseFiles>false</ParseFiles>
     </Filter>
+    <Filter Include="Header Files\depends">
+      <UniqueIdentifier>{a0861177-bc27-4bc6-83b5-a66e453a5b41}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\depends\far3">
+      <UniqueIdentifier>{0bf826ca-3f08-433c-9726-e0f229583c8e}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Header Files\depends\helpers">
+      <UniqueIdentifier>{6fe6f40c-e0ca-452b-9a99-a491c299b67d}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="dllmain.cpp">
@@ -84,11 +93,23 @@
     <ClInclude Include="resource.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="..\depends\farhelpers\Far3Menu.hpp">
-      <Filter>Header Files</Filter>
+    <ClInclude Include="..\depends\far3\DlgBuilder.hpp">
+      <Filter>Header Files\depends\far3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\depends\far3\farcolor.hpp">
+      <Filter>Header Files\depends\far3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\depends\far3\plugin.hpp">
+      <Filter>Header Files\depends\far3</Filter>
+    </ClInclude>
+    <ClInclude Include="..\depends\far3\PluginSettings.hpp">
+      <Filter>Header Files\depends\far3</Filter>
     </ClInclude>
     <ClInclude Include="..\depends\farhelpers\Far2Menu.hpp">
-      <Filter>Header Files</Filter>
+      <Filter>Header Files\depends\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="..\depends\farhelpers\Far3Menu.hpp">
+      <Filter>Header Files\depends\helpers</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
