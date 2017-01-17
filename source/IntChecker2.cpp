@@ -222,6 +222,7 @@ static void LoadSettings()
 		regOpts.GetValue(L"HashInUppercase", optHashUppercase);
 		regOpts.GetValue(L"RememberLastAlgorithm", optRememberLastUsedAlgo);
 		regOpts.GetValue(L"DefaultListCodepage", optListDefaultCodepage);
+		regOpts.GetValue(L"DefaultOutput", optDefaultOutputTarget);
 	}
 }
 
@@ -240,6 +241,7 @@ static void SaveSettings()
 		regOpts.SetValue(L"HashInUppercase", optHashUppercase);
 		regOpts.SetValue(L"RememberLastAlgorithm", optRememberLastUsedAlgo);
 		regOpts.SetValue(L"DefaultListCodepage", optListDefaultCodepage);
+		regOpts.SetValue(L"DefaultOutput", optDefaultOutputTarget);
 	}
 }
 
@@ -1242,6 +1244,7 @@ int WINAPI ConfigureW(int ItemNumber)
 		/*14*/ {DI_BUTTON,	  0,14, 0, 0, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_OK), 0},
 		/*15*/ {DI_BUTTON,    0,14, 0, 0, 1, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
 	};
+	int DialogItemsCount = ARRAY_SIZE(DialogItems);
 
 	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
 	{
@@ -1262,12 +1265,11 @@ int WINAPI ConfigureW(int ItemNumber)
 	DialogItems[12].X2 += DialogItems[12].X1 + 6;
 
 	// Expand right border of the dialog if test is too long to fit
-	int borderX2 = AdjustDialogBorder(DialogItems, ARRAY_SIZE(DialogItems));
+	int borderX2 = AdjustDialogBorder(DialogItems, DialogItemsCount);
 
-	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, borderX2 + 4, 17, L"IntCheckerConfig",
-		DialogItems, sizeof(DialogItems) / sizeof(DialogItems[0]), 0, 0, FarSInfo.DefDlgProc, 0);
+	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, borderX2 + 4, DialogItemsCount + 1, L"IntCheckerConfig", DialogItems, DialogItemsCount, 0, 0, FarSInfo.DefDlgProc, 0);
 
-	int nOkID = ARRAY_SIZE(DialogItems) - 2;
+	int nOkID = DialogItemsCount - 2;
 
 	if (hDlg != INVALID_HANDLE_VALUE)
 	{
