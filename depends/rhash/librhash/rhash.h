@@ -128,7 +128,7 @@ typedef struct rhash_info
 /* information functions */
 RHASH_API int  rhash_count(void); /* number of supported hashes */
 RHASH_API int  rhash_get_digest_size(unsigned hash_id); /* size of binary message digest */
-RHASH_API int  rhash_get_hash_length(unsigned hash_id); /* length of formated hash string */
+RHASH_API int  rhash_get_hash_length(unsigned hash_id); /* length of formatted hash string */
 RHASH_API int  rhash_is_base32(unsigned hash_id); /* default digest output format */
 RHASH_API const char* rhash_get_name(unsigned hash_id); /* get hash function name */
 RHASH_API const char* rhash_get_magnet_name(unsigned hash_id); /* get name part of magnet urn */
@@ -183,7 +183,9 @@ RHASH_API size_t rhash_print_magnet(char* output, const char* filepath,
 /* macros for message API */
 
 /** The type of an unsigned integer large enough to hold a pointer */
-#if defined(_LP64) || defined(__LP64__) || defined(__x86_64) || \
+#if defined(UINTPTR_MAX)
+typedef uintptr_t rhash_uptr_t;
+#elif defined(_LP64) || defined(__LP64__) || defined(__x86_64) || \
 	defined(__x86_64__) || defined(_M_AMD64) || defined(_M_X64)
 typedef unsigned long long rhash_uptr_t;
 #else
@@ -247,13 +249,13 @@ RHASH_API rhash_uptr_t rhash_transmit(
  * turns off loading of the OpenSSL dynamic library.
  * This call works if the LibRHash was compiled with OpenSSL support.
  */
-#define rhash_set_openssl_mask(mask) rhash_transmit(RMSG_SET_OPENSSL_MASK, NULL, mask, 0);
+#define rhash_set_openssl_mask(mask) rhash_transmit(RMSG_SET_OPENSSL_MASK, NULL, mask, 0)
 
 /**
  * Return current bit-mask of hash algorithms selected to be calculated
  * by OpenSSL library.
  */
-#define rhash_get_openssl_mask() rhash_transmit(RMSG_GET_OPENSSL_MASK, NULL, 0, 0);
+#define rhash_get_openssl_mask() rhash_transmit(RMSG_GET_OPENSSL_MASK, NULL, 0, 0)
 
 /** The bit mask of hash algorithms implemented by OpenSSL */
 #if defined(USE_OPENSSL) || defined(OPENSSL_RUNTIME)
