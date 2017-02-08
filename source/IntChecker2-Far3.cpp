@@ -192,7 +192,7 @@ static void LoadSettings()
 	optUsePrefix				= ps.Get(0, L"UsePrefix", optUsePrefix);
 	optAutoExtension			= ps.Get(0, L"AutoExtension", optAutoExtension);
 	optHashUppercase			= ps.Get(0, L"HashInUppercase", optHashUppercase);
-	optHashUppercase			= ps.Get(0, L"RememberLastAlgorithm", optRememberLastUsedAlgo);
+	optRememberLastUsedAlgo		= ps.Get(0, L"RememberLastAlgorithm", optRememberLastUsedAlgo);
 	optListDefaultCodepage		= ps.Get(0, L"DefaultListCodepage", optListDefaultCodepage);
 	optDefaultOutputTarget		= ps.Get(0, L"DefaultOutput", optDefaultAlgo);
 

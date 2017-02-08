@@ -2,6 +2,7 @@ Changes history:
 
 2.4.3
 - Added new settings option to select default output target in hash generation dialog.
+- Fixed issue with invalid reading of some settings on start.
 
 2.4.2
 - Fixed crash when validating files with directory junction in path.
