@@ -1,5 +1,8 @@
 Changes history:
 
+2.5.0
+- Fixed Filter button enabling/disabling in hash generation dialog.
+
 2.4.3
 - Added new settings option to select default output target in hash generation dialog.
 - Fixed issue with invalid reading of some settings on start.

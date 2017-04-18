@@ -552,7 +552,7 @@ static intptr_t WINAPI HashParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t Par
 {
 	const int nTextBoxIndex = 13;
 	const int nUseFilterBoxIndex = 17;
-	const int nFilterButtonIndex = 20;
+	const int nFilterButtonIndex = 22;
 
 	if (Msg == DN_BTNCLICK)
 	{
