@@ -550,9 +550,9 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 
 static intptr_t WINAPI HashParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t Param1, void* Param2)
 {
-	const int nTextBoxIndex = 13;
-	const int nUseFilterBoxIndex = 17;
-	const int nFilterButtonIndex = 22;
+	const int nTextBoxIndex = 14;
+	const int nUseFilterBoxIndex = 18;
+	const int nFilterButtonIndex = 23;
 
 	if (Msg == DN_BTNCLICK)
 	{
@@ -603,7 +603,7 @@ static intptr_t WINAPI HashParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t Par
 static bool AskForHashGenerationParams(HashGenerationParams& genParams)
 {
 	int algoIndex = GetAlgoIndex(genParams.Algorithm);
-	int algoNames[] = {MSG_ALGO_CRC, MSG_ALGO_MD5, MSG_ALGO_SHA1, MSG_ALGO_SHA256, MSG_ALGO_SHA512, MSG_ALGO_WHIRLPOOL};
+	int algoNames[] = {MSG_ALGO_CRC, MSG_ALGO_MD5, MSG_ALGO_SHA1, MSG_ALGO_SHA256, MSG_ALGO_SHA512, MSG_ALGO_SHA3_512, MSG_ALGO_WHIRLPOOL};
 	int targetIndex = genParams.OutputTarget;
 	int doRecurse = genParams.Recursive;
 	int doStoreAbsPath = genParams.StoreAbsPaths;
@@ -933,7 +933,7 @@ static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive, HANDLE
 {
 	int doRecurse = recursive;
 	int algoIndex = GetAlgoIndex(selectedAlgo);
-	int algoNames[] = {MSG_ALGO_CRC, MSG_ALGO_MD5, MSG_ALGO_SHA1, MSG_ALGO_SHA256, MSG_ALGO_SHA512, MSG_ALGO_WHIRLPOOL};
+	int algoNames[] = { MSG_ALGO_CRC, MSG_ALGO_MD5, MSG_ALGO_SHA1, MSG_ALGO_SHA256, MSG_ALGO_SHA512, MSG_ALGO_SHA3_512, MSG_ALGO_WHIRLPOOL };
 
 	int useFilter = 0;
 	HANDLE hFilter = INVALID_HANDLE_VALUE;

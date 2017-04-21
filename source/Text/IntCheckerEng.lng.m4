@@ -78,4 +78,5 @@
 "&3. SHA1"
 "&4. SHA-256"
 "&5. SHA-512"
-"&6. Whirlpool"
+"&6. SHA3"
+"&7. Whirlpool"

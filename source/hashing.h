@@ -19,7 +19,7 @@ struct HashAlgoInfo
 	short HashStrSize;
 };
 
-#define NUMBER_OF_SUPPORTED_HASHES 6
+#define NUMBER_OF_SUPPORTED_HASHES 7
 extern HashAlgoInfo SupportedHashes[NUMBER_OF_SUPPORTED_HASHES];
 
 struct FileHashInfo

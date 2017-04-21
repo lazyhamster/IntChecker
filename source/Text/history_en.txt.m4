@@ -1,6 +1,7 @@
 Changes history:
 
 2.5.0
+- Added ability to use SHA3-512 algorithm.
 - Fixed Filter button enabling/disabling in hash generation dialog.
 
 2.4.3
