@@ -27,8 +27,6 @@ static int optListDefaultCodepage = CP_UTF8;
 static int optRememberLastUsedAlgo = FALSE;
 static wchar_t optPrefix[32] = L"check";
 
-static rhash_ids s_SupportedAlgos[] = {RHASH_CRC32, RHASH_MD5, RHASH_SHA1, RHASH_SHA256, RHASH_SHA512, RHASH_WHIRLPOOL};
-
 #define EDR_SKIP 0
 #define EDR_SKIPALL 1
 #define EDR_RETRY 2

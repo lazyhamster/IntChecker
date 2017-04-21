@@ -5,12 +5,12 @@
 #include <boost/regex.hpp>
 
 HashAlgoInfo SupportedHashes[] = {
-	{RHASH_CRC32,     L"CRC32",     L".sfv",    "^(?<path>[^<>|?*\\n]+)\\s(?<hash>[A-Za-z\\d]{8})$",            8},
-	{RHASH_MD5,       L"MD5",       L".md5",    "^(?<hash>[A-Za-z\\d]{32})\\s{1,2}\\*?(?<path>[^<>|?*\\n]+)$",  32},
-	{RHASH_SHA1,      L"SHA1",      L".sha1",   "^(?<hash>[A-Za-z\\d]{40})\\s{1,2}\\*?(?<path>[^<>|?*\\n]+)$",  40},
-	{RHASH_SHA256,    L"SHA-256",   L".sha256", "^(?<hash>[A-Za-z\\d]{64})\\s{1,2}\\*?(?<path>[^<>|?*\\n]+)$",  64},
-	{RHASH_SHA512,    L"SHA-512",   L".sha512", "^(?<hash>[A-Za-z\\d]{128})\\s{1,2}\\*?(?<path>[^<>|?*\\n]+)$", 128},
-	{RHASH_WHIRLPOOL, L"Whirlpool", L".wrpl",   "^(?<hash>[A-Za-z\\d]{128})\\s{1,2}\\*?(?<path>[^<>|?*\\n]+)$", 128}
+	{RHASH_CRC32,     L"CRC32",     L".sfv",    "^(?<path>[^<>|?*\\n]+)\\s(?<hash>[A-Za-z\\d]{8})$",         8},
+	{RHASH_MD5,       L"MD5",       L".md5",    "^(?<hash>[A-Za-z\\d]{32})\\s[\\s*](?<path>[^<>|?*\\n]+)$",  32},
+	{RHASH_SHA1,      L"SHA1",      L".sha1",   "^(?<hash>[A-Za-z\\d]{40})\\s[\\s*](?<path>[^<>|?*\\n]+)$",  40},
+	{RHASH_SHA256,    L"SHA-256",   L".sha256", "^(?<hash>[A-Za-z\\d]{64})\\s[\\s*](?<path>[^<>|?*\\n]+)$",  64},
+	{RHASH_SHA512,    L"SHA-512",   L".sha512", "^(?<hash>[A-Za-z\\d]{128})\\s[\\s*](?<path>[^<>|?*\\n]+)$", 128},
+	{RHASH_WHIRLPOOL, L"Whirlpool", L".wrpl",   "^(?<hash>[A-Za-z\\d]{128})\\s[\\s*](?<path>[^<>|?*\\n]+)$", 128}
 };
 
 static bool CanBeHash(const char* msg, int msgSize)
