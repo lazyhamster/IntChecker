@@ -337,15 +337,16 @@ void FileHashInfo::Serialize( std::stringstream& dest, UINT codepage ) const
 
 //////////////////////////////////////////////////////////////////////////
 
+size_t FileReadBufferSize = 32 * 1024;
+
 int GenerateHash( const wchar_t* filePath, rhash_ids hashAlgo, char* result, bool useUppercase, HashingProgressFunc progressFunc, HANDLE progressContext )
 {
 	wstring strUniPath = PrependLongPrefix(filePath);
 	
-	HANDLE hFile = CreateFile(strUniPath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, 0);
+	HANDLE hFile = CreateFile(strUniPath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, 0);
 	if (hFile == INVALID_HANDLE_VALUE) return GENERATE_ERROR;
 
-	const size_t readBufSize = 32 * 1024;
-	char readBuf[32 * 1024];
+	char *readBuf = (char*) malloc(FileReadBufferSize);
 	DWORD numReadBytes;
 
 	int retVal = GENERATE_SUCCESS;
@@ -354,7 +355,7 @@ int GenerateHash( const wchar_t* filePath, rhash_ids hashAlgo, char* result, boo
 	rhash hashCtx = rhash_init(hashAlgo);
 	while (retVal == GENERATE_SUCCESS && totalBytes > 0)
 	{
-		if (!ReadFile(hFile, readBuf, readBufSize, &numReadBytes, NULL) || !numReadBytes)
+		if (!ReadFile(hFile, readBuf, (DWORD) FileReadBufferSize, &numReadBytes, NULL) || !numReadBytes)
 		{
 			retVal = GENERATE_ERROR;
 			break;
@@ -381,6 +382,8 @@ int GenerateHash( const wchar_t* filePath, rhash_ids hashAlgo, char* result, boo
 
 	rhash_free(hashCtx);
 	CloseHandle(hFile);
+	free(readBuf);
+
 	return retVal;
 }
 
