@@ -492,7 +492,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 			progressCtx.CurrentFileIndex++;
 			progressCtx.CurrentFileProcessedBytes = 0;
 			progressCtx.CurrentFileSize = GetFileSize_i64(strFullFilePath.c_str());
-			progressCtx.FileProgress = 0;
+			progressCtx.FileProgress = -1;
 			progressCtx.HashAlgoName = GetAlgoInfo(fileInfo.GetAlgo())->AlgoName;
 
 			{
@@ -816,7 +816,7 @@ static void RunGenerateHashes()
 
 			while(true)
 			{
-				progressCtx.FileProgress = 0;
+				progressCtx.FileProgress = -1;
 				progressCtx.CurrentFileProcessedBytes = 0;
 				progressCtx.TotalProgress = nOldTotalProgress;
 				progressCtx.TotalProcessedBytes = nOldTotalBytes;
