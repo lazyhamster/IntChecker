@@ -31,7 +31,7 @@
 "Reiterar"
 "Saltar"
 "Saltar Todo"
-"*Filter*"
+"Filtro"
 
 "Error"
 "Confirmar"
@@ -61,7 +61,8 @@
 "Hash de archivo no coincide con portapapeles"
 "Archivo: %d / %d. Progreso: %2d%% / %2d%%"
 "No se puede guardar lista hash al archivo"
-"*Use filter*"
+"Utilizar filtro"
+"Seleccionar algoritmo"
 
 "Generar"
 "Algoritmo"

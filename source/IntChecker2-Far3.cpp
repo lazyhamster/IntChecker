@@ -798,7 +798,7 @@ static void RunGenerateHashes()
 
 	bool continueSave = true;
 	bool fAutoSkipErrors = false;
-	for (StringList::const_iterator cit = filesToProcess.begin(); cit != filesToProcess.end(); cit++)
+	for (auto cit = filesToProcess.begin(); cit != filesToProcess.end(); cit++)
 	{
 		wstring strNextFile = *cit;
 		wstring strFullPath = strPanelDir + strNextFile;
@@ -1088,7 +1088,7 @@ static void RunComparePanels()
 	progressCtx.TotalProcessedBytes = 0;
 	progressCtx.CurrentFileIndex = -1;
 
-	for (StringList::const_iterator cit = vSelectedFiles.begin(); cit != vSelectedFiles.end(); cit++)
+	for (auto cit = vSelectedFiles.begin(); cit != vSelectedFiles.end(); cit++)
 	{
 		wstring strNextFile = *cit;
 
@@ -1167,7 +1167,7 @@ void RunCompareWithClipboard(std::wstring &selectedFile)
 	int selectedAlgoIndex = algoIndicies[0];
 	if (algoIndicies.size() > 1)
 	{
-		FarMenu algoMenu(&FarSInfo, &GUID_PLUGIN_MAIN, &GUID_DIALOG_MENU, L"Select algorithm");
+		FarMenu algoMenu(&FarSInfo, &GUID_PLUGIN_MAIN, &GUID_DIALOG_MENU, GetLocMsg(MSG_DLG_SELECT_ALGORITHM));
 		for (size_t i = 0; i < algoIndicies.size(); i++)
 		{
 			algoMenu.AddItem(SupportedHashes[algoIndicies[i]].AlgoName.c_str());

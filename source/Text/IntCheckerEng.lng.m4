@@ -62,6 +62,7 @@
 "File: %d / %d. Progress: %2d%% / %2d%%"
 "Can not save hashlist to file"
 "&Use filter"
+"Select algorithm"
 
 "Generate"
 "Algorithm"
