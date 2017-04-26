@@ -990,7 +990,7 @@ static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, ProgressC
 
 	while (true)
 	{
-		progressCtx.FileProgress = 0;
+		progressCtx.FileProgress = -1;
 		progressCtx.CurrentFileProcessedBytes = 0;
 		progressCtx.TotalProgress = nOldTotalProgress;
 		progressCtx.TotalProcessedBytes = nOldTotalBytes;
