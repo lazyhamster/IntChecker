@@ -43,7 +43,7 @@
 "No files selected"
 "No files"
 "No files from hash list exists"
-"Generating hash (%s)"
+"Calculating hash (%s)"
 "Abort calculations?"
 "Complete"
 "Calculation complete"
