@@ -13,6 +13,7 @@ Supported algorithms:
 - SHA1
 - SHA-256
 - SHA-512
+- SHA3-512
 - Whirlpool
 
 (c) 2014-2017, Ariman
