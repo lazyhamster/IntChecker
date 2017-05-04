@@ -268,7 +268,7 @@ static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 		prCtx->TotalProgress = nTotalProgress;
 
 		static wchar_t szGeneratingLine[100] = {0};
-		swprintf_s(szGeneratingLine, ARRAY_SIZE(szGeneratingLine), GetLocMsg(MSG_DLG_GENERATING), prCtx->HashAlgoName.c_str());
+		swprintf_s(szGeneratingLine, ARRAY_SIZE(szGeneratingLine), GetLocMsg(MSG_DLG_CALCULATING), prCtx->HashAlgoName.c_str());
 
 		static wchar_t szFileProgressLine[100] = {0};
 		swprintf_s(szFileProgressLine, ARRAY_SIZE(szFileProgressLine), GetLocMsg(MSG_DLG_PROGRESS), prCtx->CurrentFileIndex + 1, prCtx->TotalFilesCount, nFileProgress, nTotalProgress);
@@ -568,6 +568,8 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 
 static LONG_PTR WINAPI HashParamsDlgProc(HANDLE hDlg, int Msg, int Param1, LONG_PTR Param2)
 {
+	const int nFileNameBoxIndex = 14;
+	
 	if (Msg == DN_BTNCLICK && optAutoExtension)
 	{
 		if (Param2 && (Param1 >= 2) && (Param1 <= 2 + NUMBER_OF_SUPPORTED_HASHES))
@@ -575,7 +577,7 @@ static LONG_PTR WINAPI HashParamsDlgProc(HANDLE hDlg, int Msg, int Param1, LONG_
 			int selectedHashIndex = Param1 - 2;
 			wchar_t wszHashFileName[MAX_PATH];
 
-			DlgHlp_GetEditBoxText(hDlg, 13, wszHashFileName, ARRAY_SIZE(wszHashFileName));
+			DlgHlp_GetEditBoxText(hDlg, nFileNameBoxIndex, wszHashFileName, ARRAY_SIZE(wszHashFileName));
 			
 			// We should only replace extensions if it exists and is one of auto-extensions
 			// this way custom names will not be touched when user switch algorithms
@@ -587,7 +589,7 @@ static LONG_PTR WINAPI HashParamsDlgProc(HANDLE hDlg, int Msg, int Param1, LONG_
 					if ((i != selectedHashIndex) && (SupportedHashes[i].DefaultExt == extPtr))
 					{
 						wcscpy_s(extPtr, MAX_PATH - (extPtr - wszHashFileName), SupportedHashes[selectedHashIndex].DefaultExt.c_str());
-						FarSInfo.SendDlgMessage(hDlg, DM_SETTEXTPTR, 13, (LONG_PTR) wszHashFileName);
+						FarSInfo.SendDlgMessage(hDlg, DM_SETTEXTPTR, nFileNameBoxIndex, (LONG_PTR)wszHashFileName);
 						break;
 					}
 				}
@@ -603,34 +605,35 @@ static LONG_PTR WINAPI HashParamsDlgProc(HANDLE hDlg, int Msg, int Param1, LONG_
 static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive, HashOutputTargets &outputTarget, wstring &outputFileName, int &storeAbsPaths)
 {
 	FarDialogItem DialogItems []={
-		/*0*/{DI_DOUBLEBOX,		3, 1, 45,20, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TITLE)},
+		/*0*/{DI_DOUBLEBOX,		3, 1, 45,21, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TITLE)},
 
 		/*1*/{DI_TEXT,			5, 2, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_ALGO), 0},
-		/*2*/{DI_RADIOBUTTON,	6, 3, 0, 0, 0, (selectedAlgo==RHASH_CRC32), DIF_GROUP, 0, GetLocMsg(MSG_ALGO_CRC)},
-		/*3*/{DI_RADIOBUTTON,	6, 4, 0, 0, 0, (selectedAlgo==RHASH_MD5), 0, 0, GetLocMsg(MSG_ALGO_MD5)},
-		/*4*/{DI_RADIOBUTTON,	6, 5, 0, 0, 0, (selectedAlgo==RHASH_SHA1), 0, 0, GetLocMsg(MSG_ALGO_SHA1)},
-		/*5*/{DI_RADIOBUTTON,	6, 6, 0, 0, 0, (selectedAlgo==RHASH_SHA256), 0, 0, GetLocMsg(MSG_ALGO_SHA256)},
-		/*6*/{DI_RADIOBUTTON,	6, 7, 0, 0, 0, (selectedAlgo==RHASH_SHA512), 0, 0, GetLocMsg(MSG_ALGO_SHA512)},
-		/*7*/{DI_RADIOBUTTON,	6, 8, 0, 0, 0, (selectedAlgo==RHASH_WHIRLPOOL), 0, 0, GetLocMsg(MSG_ALGO_WHIRLPOOL)},
+		/*2*/{DI_RADIOBUTTON,	6, 3, 0, 0, 0, (selectedAlgo == RHASH_CRC32), DIF_GROUP, 0, GetLocMsg(MSG_ALGO_CRC)},
+		/*3*/{DI_RADIOBUTTON,	6, 4, 0, 0, 0, (selectedAlgo == RHASH_MD5), 0, 0, GetLocMsg(MSG_ALGO_MD5)},
+		/*4*/{DI_RADIOBUTTON,	6, 5, 0, 0, 0, (selectedAlgo == RHASH_SHA1), 0, 0, GetLocMsg(MSG_ALGO_SHA1)},
+		/*5*/{DI_RADIOBUTTON,	6, 6, 0, 0, 0, (selectedAlgo == RHASH_SHA256), 0, 0, GetLocMsg(MSG_ALGO_SHA256)},
+		/*6*/{DI_RADIOBUTTON,	6, 7, 0, 0, 0, (selectedAlgo == RHASH_SHA512), 0, 0, GetLocMsg(MSG_ALGO_SHA512)},
+		/*7*/{DI_RADIOBUTTON,   6, 8, 0, 0, 0, (selectedAlgo == RHASH_SHA3_512), 0, 0, GetLocMsg(MSG_ALGO_SHA3_512) },
+		/*8*/{DI_RADIOBUTTON,	6, 9, 0, 0, 0, (selectedAlgo == RHASH_WHIRLPOOL), 0, 0, GetLocMsg(MSG_ALGO_WHIRLPOOL)},
 		
-		/*8*/{DI_TEXT,			3, 9, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
-		/*9*/{DI_TEXT,			5,10, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TARGET), 0},
-		/*10*/{DI_RADIOBUTTON,	6,11, 0, 0, 0, 1, DIF_GROUP, 0, GetLocMsg(MSG_GEN_TO_FILE)},
-		/*11*/{DI_RADIOBUTTON,	6,13, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TO_SEPARATE)},
-		/*12*/{DI_RADIOBUTTON,	6,14, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TO_SCREEN)},
-		/*13*/{DI_EDIT,		   10,12,38, 0, 1, 0, DIF_EDITEXPAND|DIF_EDITPATH,0, outputFileName.c_str(), 0},
+		/*9*/{DI_TEXT,			3,10, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
+		/*10*/{DI_TEXT,			5,11, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TARGET), 0},
+		/*11*/{DI_RADIOBUTTON,	6,12, 0, 0, 0, 1, DIF_GROUP, 0, GetLocMsg(MSG_GEN_TO_FILE)},
+		/*12*/{DI_RADIOBUTTON,	6,14, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TO_SEPARATE)},
+		/*13*/{DI_RADIOBUTTON,	6,15, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_TO_SCREEN)},
+		/*14*/{DI_EDIT,		   10,13,38, 0, 1, 0, DIF_EDITEXPAND|DIF_EDITPATH,0, outputFileName.c_str(), 0},
 		
-		/*14*/{DI_TEXT,			3,15, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
-		/*15*/{DI_CHECKBOX,		5,16, 0, 0, 0, recursive, 0, 0, GetLocMsg(MSG_GEN_RECURSE)},
-		/*16*/{DI_CHECKBOX,		5,17, 0, 0, 0, storeAbsPaths, 0, 0, GetLocMsg(MSG_GEN_ABSPATH)},
+		/*15*/{DI_TEXT,			3,16, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
+		/*16*/{DI_CHECKBOX,		5,17, 0, 0, 0, recursive, 0, 0, GetLocMsg(MSG_GEN_RECURSE)},
+		/*17*/{DI_CHECKBOX,		5,18, 0, 0, 0, storeAbsPaths, 0, 0, GetLocMsg(MSG_GEN_ABSPATH)},
 		
-		/*17*/{DI_TEXT,			3,18, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
-		/*18*/{DI_BUTTON,		0,19, 0,13, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_RUN), 0},
-		/*19*/{DI_BUTTON,		0,19, 0,13, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
+		/*18*/{DI_TEXT,			3,19, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
+		/*19*/{DI_BUTTON,		0,20, 0,13, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_RUN), 0},
+		/*20*/{DI_BUTTON,		0,20, 0,13, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
 	};
 	size_t numDialogItems = sizeof(DialogItems) / sizeof(DialogItems[0]);
 
-	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 49, 22, L"GenerateParams", DialogItems, (unsigned) numDialogItems, 0, 0, HashParamsDlgProc, 0);
+	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 49, 23, L"GenerateParams", DialogItems, (unsigned) numDialogItems, 0, 0, HashParamsDlgProc, 0);
 
 	bool retVal = false;
 	if (hDlg != INVALID_HANDLE_VALUE)
@@ -638,9 +641,9 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 		int ExitCode = FarSInfo.DialogRun(hDlg);
 		if (ExitCode == numDialogItems - 2) // OK was pressed
 		{
-			recursive = DlgHlp_GetSelectionState(hDlg, 15) != 0;
-			storeAbsPaths = DlgHlp_GetSelectionState(hDlg, 16);
-			DlgHlp_GetEditBoxText(hDlg, 13, outputFileName);
+			recursive = DlgHlp_GetSelectionState(hDlg, 16) != 0;
+			storeAbsPaths = DlgHlp_GetSelectionState(hDlg, 17);
+			DlgHlp_GetEditBoxText(hDlg, 14, outputFileName);
 
 			for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
 			{
@@ -649,9 +652,9 @@ static bool AskForHashGenerationParams(rhash_ids &selectedAlgo, bool &recursive,
 					selectedAlgo = SupportedHashes[i].AlgoId;
 			}
 
-			if (DlgHlp_GetSelectionState(hDlg, 10)) outputTarget = OT_SINGLEFILE;
-			else if (DlgHlp_GetSelectionState(hDlg, 11)) outputTarget = OT_SEPARATEFILES;
-			else if (DlgHlp_GetSelectionState(hDlg, 12)) outputTarget = OT_DISPLAY;
+			if (DlgHlp_GetSelectionState(hDlg, 11)) outputTarget = OT_SINGLEFILE;
+			else if (DlgHlp_GetSelectionState(hDlg, 12)) outputTarget = OT_SEPARATEFILES;
+			else if (DlgHlp_GetSelectionState(hDlg, 13)) outputTarget = OT_DISPLAY;
 			
 			retVal = true;
 		}
@@ -912,26 +915,27 @@ static void RunGenerateHashes()
 static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive)
 {
 	FarDialogItem DialogItems []={
-		/*0*/{DI_DOUBLEBOX,		3, 1, 41,13, 0, 0, 0, 0, GetLocMsg(MSG_DLG_COMPARE)},
+		/*0*/{DI_DOUBLEBOX,		3, 1, 41,14, 0, 0, 0, 0, GetLocMsg(MSG_DLG_COMPARE)},
 
 		/*1*/{DI_TEXT,			5, 2, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_ALGO), 0},
-		/*2*/{DI_RADIOBUTTON,	6, 3, 0, 0, 0, (selectedAlgo==RHASH_CRC32), DIF_GROUP, 0, L"&1. CRC32"},
-		/*3*/{DI_RADIOBUTTON,	6, 4, 0, 0, 0, (selectedAlgo==RHASH_MD5), 0, 0, L"&2. MD5"},
-		/*4*/{DI_RADIOBUTTON,	6, 5, 0, 0, 0, (selectedAlgo==RHASH_SHA1), 0, 0, L"&3. SHA1"},
-		/*5*/{DI_RADIOBUTTON,	6, 6, 0, 0, 0, (selectedAlgo==RHASH_SHA256), 0, 0, L"&4. SHA256"},
-		/*6*/{DI_RADIOBUTTON,	6, 7, 0, 0, 0, (selectedAlgo==RHASH_SHA512), 0, 0, L"&5. SHA512"},
-		/*7*/{DI_RADIOBUTTON,	6, 8, 0, 0, 0, (selectedAlgo==RHASH_WHIRLPOOL), 0, 0, L"&6. Whirlpool"},
+		/*2*/{ DI_RADIOBUTTON, 6, 3, 0, 0, 0, (selectedAlgo == RHASH_CRC32), DIF_GROUP, 0, GetLocMsg(MSG_ALGO_CRC) },
+		/*3*/{ DI_RADIOBUTTON, 6, 4, 0, 0, 0, (selectedAlgo == RHASH_MD5), 0, 0, GetLocMsg(MSG_ALGO_MD5) },
+		/*4*/{ DI_RADIOBUTTON, 6, 5, 0, 0, 0, (selectedAlgo == RHASH_SHA1), 0, 0, GetLocMsg(MSG_ALGO_SHA1) },
+		/*5*/{ DI_RADIOBUTTON, 6, 6, 0, 0, 0, (selectedAlgo == RHASH_SHA256), 0, 0, GetLocMsg(MSG_ALGO_SHA256) },
+		/*6*/{ DI_RADIOBUTTON, 6, 7, 0, 0, 0, (selectedAlgo == RHASH_SHA512), 0, 0, GetLocMsg(MSG_ALGO_SHA512) },
+		/*7*/{ DI_RADIOBUTTON, 6, 8, 0, 0, 0, (selectedAlgo == RHASH_SHA3_512), 0, 0, GetLocMsg(MSG_ALGO_SHA3_512) },
+		/*8*/{ DI_RADIOBUTTON, 6, 9, 0, 0, 0, (selectedAlgo == RHASH_WHIRLPOOL), 0, 0, GetLocMsg(MSG_ALGO_WHIRLPOOL) },
 
-		/*8*/{DI_TEXT,			3, 9, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
-		/*9*/{DI_CHECKBOX,		5,10, 0, 0, 0, recursive, 0, 0, GetLocMsg(MSG_GEN_RECURSE)},
+		/*9*/{DI_TEXT,			3,10, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
+		/*10*/{DI_CHECKBOX,		5,11, 0, 0, 0, recursive, 0, 0, GetLocMsg(MSG_GEN_RECURSE)},
 
-		/*10*/{DI_TEXT,			3,11, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
-		/*11*/{DI_BUTTON,		0,12, 0,13, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_RUN), 0},
-		/*12*/{DI_BUTTON,		0,12, 0,13, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
+		/*11*/{DI_TEXT,			3,12, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
+		/*12*/{DI_BUTTON,		0,13, 0,13, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_RUN), 0},
+		/*13*/{DI_BUTTON,		0,13, 0,13, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
 	};
 	size_t numDialogItems = sizeof(DialogItems) / sizeof(DialogItems[0]);
 
-	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 45, 15, L"CompareParams", DialogItems, (unsigned) numDialogItems, 0, 0, FarSInfo.DefDlgProc, 0);
+	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 45, 16, L"CompareParams", DialogItems, (unsigned) numDialogItems, 0, 0, FarSInfo.DefDlgProc, 0);
 
 	bool retVal = false;
 	if (hDlg != INVALID_HANDLE_VALUE)
@@ -939,7 +943,7 @@ static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive)
 		int ExitCode = FarSInfo.DialogRun(hDlg);
 		if (ExitCode == numDialogItems - 2) // OK was pressed
 		{
-			recursive = DlgHlp_GetSelectionState(hDlg, 15) != 0;
+			recursive = DlgHlp_GetSelectionState(hDlg, 10) != 0;
 
 			for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
 			{
