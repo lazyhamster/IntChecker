@@ -29,12 +29,12 @@ ECHO.
 SET PACKER_CMD=@rar.exe a -y -r -ep1 -apIntChecker2
 
 :Far2
-REM ECHO Building version for Far 2 x86
-REM %DEVENV_EXE_PATH% /Rebuild "Release-Far2|Win32" "..\IntChecker2.VS2010.sln"
-REM IF NOT EXIST ..\bin\Release-Far2\ GOTO Far2x64
-REM ECHO Packing
-REM %PACKER_CMD% -- ..\bin\IntChecker2_Far2_x86_%1.rar "..\bin\Release-Far2\*" > nul
-REM if NOT ERRORLEVEL == 0 GOTO PACK_ERROR
+ECHO Building version for Far 2 x86
+%DEVENV_EXE_PATH% /Rebuild "Release-Far2|Win32" "..\IntChecker2.sln"
+IF NOT EXIST ..\bin\Release-Far2\ GOTO BUILD_ERROR
+ECHO Packing
+%PACKER_CMD% -- ..\bin\IntChecker2_Far2_x86_%PVER%.rar "..\bin\Release-Far2\*" > nul
+if NOT ERRORLEVEL == 0 GOTO PACK_ERROR
 
 :Far2x64
 REM ECHO Building version for Far 2 x64
