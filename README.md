@@ -2,9 +2,9 @@
 
 Hash sums calculation/verification plugin.
 
-Following hash algorithms are supported: CRC32, MD5, SHA1, SHA-256, SHA-512, Whirlpool
+Following hash algorithms are supported: CRC32, MD5, SHA1, SHA-256, SHA-512, SHA3-512, Whirlpool
 
-Based on RHash utility code.
+Based on [RHash](https://github.com/rhash/RHash) utility code.
 
 # Installation
 
