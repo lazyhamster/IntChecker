@@ -906,8 +906,8 @@ static void RunGenerateHashes()
 
 static intptr_t WINAPI CompareParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t Param1, void* Param2)
 {
-	const int nUseFilterBoxIndex = 10;
-	const int nFilterButtonIndex = 13;
+	const int nUseFilterBoxIndex = 11;
+	const int nFilterButtonIndex = 14;
 
 	if (Msg == DN_BTNCLICK)
 	{
