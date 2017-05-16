@@ -32,14 +32,31 @@ static wchar_t optPrefix[32] = L"check";
 #define EDR_RETRY 2
 #define EDR_ABORT 3
 
+const size_t cntProgressDialogWidth = 65;
+
+static std::wstring ShortenPath(const std::wstring &path, size_t maxWidth)
+{
+	if (path.length() > maxWidth)
+	{
+		wchar_t* tmpBuf = _wcsdup(path.c_str());
+		FSF.TruncPathStr(tmpBuf, maxWidth);
+
+		std::wstring result(tmpBuf);
+		free(tmpBuf);
+		return result;
+	}
+
+	return path;
+}
+
 struct ProgressContext
 {
-	ProgressContext()
-		: TotalFilesSize(0), TotalFilesCount(0), CurrentFileSize(0), CurrentFileIndex(-1),
-		TotalProcessedBytes(0), CurrentFileProcessedBytes(0), FileProgress(0), TotalProgress(0)
+	ProgressContext(int totalFiles, int64_t totalBytes)
+		: TotalFilesSize(totalBytes), TotalFilesCount(totalFiles), CurrentFileSize(0), CurrentFileIndex(-1),
+		TotalProcessedBytes(0), CurrentFileProcessedBytes(0), FileProgress(-1), TotalProgress(-1),
+		m_nPrevTotalBytes(0), m_nPrevTotalProgress(-1)
 	{}
 
-	std::wstring FileName;
 	std::wstring HashAlgoName;
 
 	int64_t TotalFilesSize;
@@ -51,9 +68,84 @@ struct ProgressContext
 	int64_t TotalProcessedBytes;	
 	int64_t CurrentFileProcessedBytes;
 
+	void NextFile(const std::wstring& displayPath, int64_t fileSize)
+	{
+		m_nPrevTotalBytes = TotalProcessedBytes;
+		m_nPrevTotalProgress = TotalProgress;
+		
+		m_sFilePath = displayPath;
+		m_sShortenedFilePath = ShortenPath(displayPath, cntProgressDialogWidth);
+		CurrentFileIndex++;
+		CurrentFileProcessedBytes = 0;
+		CurrentFileSize = fileSize;
+		FileProgress = -1;
+	}
+
+	void NextFile(const std::wstring& displayPath)
+	{
+		NextFile(displayPath, GetFileSize_i64(displayPath.c_str()));
+	}
+
+	void RestartFile()
+	{
+		TotalProcessedBytes = m_nPrevTotalBytes;
+		TotalProgress = m_nPrevTotalProgress;
+		FileProgress = -1;
+		CurrentFileProcessedBytes = 0;
+	}
+
+	void SetAlgorithm(rhash_ids algo)
+	{
+		HashAlgoName = GetAlgoInfo(algo)->AlgoName;
+	}
+
+	// Returns true if progress dialog needs to be updated
+	bool IncreaseProcessedBytes(int64_t bytesProcessed)
+	{
+		CurrentFileProcessedBytes += bytesProcessed;
+		TotalProcessedBytes += bytesProcessed;
+
+		int nFileProgress = (CurrentFileSize > 0) ? (int)((CurrentFileProcessedBytes * 100) / CurrentFileSize) : 0;
+		int nTotalProgress = (TotalFilesSize > 0) ? (int)((TotalProcessedBytes * 100) / TotalFilesSize) : 0;
+		
+		if (nFileProgress != FileProgress || nTotalProgress != TotalProgress)
+		{
+			FileProgress = nFileProgress;
+			TotalProgress = nTotalProgress;
+
+			return true;
+		}
+
+		return false;
+	}
+
+	const wchar_t* GetShortenedPath() const
+	{
+		return m_sShortenedFilePath.c_str();
+	}
+
+	int GetCurrentFileProgress() const
+	{
+		return FileProgress;
+	}
+
+	int GetTotalProgress() const
+	{
+		return TotalProgress;
+	}
+
+private:
+	std::wstring m_sFilePath;
+	std::wstring m_sShortenedFilePath;
+
+	int64_t m_nPrevTotalBytes;
+	int m_nPrevTotalProgress;
+
 	// This is percentage cache to prevent screen flicker
 	int FileProgress;
 	int TotalProgress;
+
+	ProgressContext() {}
 };
 
 class FarScreenSave
@@ -137,6 +229,17 @@ static bool FindBestListBoxSize(std::vector<std::wstring> listItems, FARSIZECALL
 		listBoxSize.Height = min(numLines, farSize.Height - 12);
 
 	return true;
+}
+
+static std::wstring ProgressBarString(intptr_t Percentage, intptr_t Width)
+{
+	std::wstring result;
+	// 0xB0 - 0x2591
+	// 0xDB - 0x2588
+	result = std::wstring((Width - 5) * (Percentage > 100 ? 100 : Percentage) / 100, 0x2588);
+	result += std::wstring((Width - 5) - result.length(), 0x2591);
+	result += FormatString(L"%4d%%", Percentage > 100 ? 100 : Percentage);
+	return result;
 }
 
 #endif // FarCommon_h__

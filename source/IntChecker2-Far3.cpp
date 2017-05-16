@@ -220,6 +220,24 @@ static void SaveSettings()
 	ps.Set(0, L"DefaultOutput", optDefaultOutputTarget);
 }
 
+static std::wstring FileSizeToString(int64_t fileSize)
+{
+	//todo: use FSF.FormatFileSize when it is fixed
+	
+	wchar_t tmpBuf[64] = { 0 };
+	FSF.FormatFileSize(fileSize, _countof(tmpBuf) - 1, FFFS_COMMAS, tmpBuf, _countof(tmpBuf));
+	FSF.Trim(tmpBuf);
+	return tmpBuf;
+}
+
+static std::wstring JoinProgressLine(const std::wstring &prefix, const std::wstring &suffix, size_t maxWidth, size_t rightPadding)
+{
+	size_t middlePadding = maxWidth - prefix.length() - suffix.length() - rightPadding;
+	std::wstring result = prefix + std::wstring(middlePadding, ' ') + suffix + std::wstring(rightPadding, ' ');
+
+	return result;
+}
+
 static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 {
 	if (CheckEsc())
@@ -231,32 +249,31 @@ static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 	if (context == NULL) return true;
 
 	ProgressContext* prCtx = (ProgressContext*) context;
-	prCtx->CurrentFileProcessedBytes += bytesProcessed;
-	prCtx->TotalProcessedBytes += bytesProcessed;
-
-	int nFileProgress = (prCtx->CurrentFileSize > 0) ? (int) ((prCtx->CurrentFileProcessedBytes * 100) / prCtx->CurrentFileSize) : 0;
-	int nTotalProgress = (prCtx->TotalFilesSize > 0) ? (int) ((prCtx->TotalProcessedBytes * 100) / prCtx->TotalFilesSize) : 0;
-
-	if (nFileProgress != prCtx->FileProgress || nTotalProgress != prCtx->TotalProgress)
+	if (prCtx->IncreaseProcessedBytes(bytesProcessed))
 	{
-		prCtx->FileProgress = nFileProgress;
-		prCtx->TotalProgress = nTotalProgress;
-
-		static wchar_t szGeneratingLine[100] = {0};
+		int nFileProgress = prCtx->GetCurrentFileProgress();
+		int nTotalProgress = prCtx->GetTotalProgress();
+		
+		static wchar_t szGeneratingLine[128] = {0};
 		swprintf_s(szGeneratingLine, ARRAY_SIZE(szGeneratingLine), GetLocMsg(MSG_DLG_CALCULATING), prCtx->HashAlgoName.c_str());
 
-		static wchar_t szFileProgressLine[100] = {0};
-		swprintf_s(szFileProgressLine, ARRAY_SIZE(szFileProgressLine), GetLocMsg(MSG_DLG_PROGRESS), prCtx->CurrentFileIndex + 1, prCtx->TotalFilesCount, nFileProgress, nTotalProgress);
+		std::wstring strFilesNumLine = JoinProgressLine(L"Files:", FormatString(L"%d / %d", prCtx->CurrentFileIndex + 1, prCtx->TotalFilesCount), cntProgressDialogWidth, 5);
+		std::wstring strBytesLine = JoinProgressLine(L"Bytes:", FileSizeToString(prCtx->TotalProcessedBytes) + L" / " + FileSizeToString(prCtx->TotalFilesSize), cntProgressDialogWidth, 5);
+		
+		std::wstring strPBarCurrent = ProgressBarString(nFileProgress, cntProgressDialogWidth);
+		std::wstring strPBarTotal = ProgressBarString(nTotalProgress, cntProgressDialogWidth);
 
-		static const wchar_t* InfoLines[4];
+		static const wchar_t* InfoLines[7];
 		InfoLines[0] = GetLocMsg(MSG_DLG_PROCESSING);
 		InfoLines[1] = szGeneratingLine;
-		InfoLines[2] = szFileProgressLine;
-		InfoLines[3] = prCtx->FileName.c_str();
+		InfoLines[2] = prCtx->GetShortenedPath();
+		InfoLines[3] = strPBarCurrent.c_str();
+		InfoLines[4] = strFilesNumLine.c_str();
+		InfoLines[5] = strBytesLine.c_str();
+		InfoLines[6] = strPBarTotal.c_str();
 
 		FarSInfo.Message(&GUID_PLUGIN_MAIN, &GUID_MESSAGE_BOX, 0, NULL, InfoLines, ARRAY_SIZE(InfoLines), 0);
 
-		// Win7 only feature
 		if (prCtx->TotalFilesSize > 0)
 		{
 			ProgressValue pv;
@@ -475,10 +492,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 
 	if (existingFiles.size() > 0)
 	{
-		ProgressContext progressCtx;
-		progressCtx.TotalFilesCount = (int) existingFiles.size();
-		progressCtx.TotalFilesSize = totalFilesSize;
-		progressCtx.CurrentFileIndex = -1;
+		ProgressContext progressCtx((int)existingFiles.size(), totalFilesSize);
 
 		bool fAutoSkipErrors = false;
 		bool fAborted = false;
@@ -488,12 +502,8 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 			wstring strFullFilePath = MakeAbsPath(fileInfo.Filename, workDir);
 			bool fSkipFile = false;
 
-			progressCtx.FileName = fileInfo.Filename;
-			progressCtx.CurrentFileIndex++;
-			progressCtx.CurrentFileProcessedBytes = 0;
-			progressCtx.CurrentFileSize = GetFileSize_i64(strFullFilePath.c_str());
-			progressCtx.FileProgress = -1;
-			progressCtx.HashAlgoName = GetAlgoInfo(fileInfo.GetAlgo())->AlgoName;
+			progressCtx.NextFile(fileInfo.Filename, GetFileSize_i64(strFullFilePath.c_str()));
+			progressCtx.SetAlgorithm(fileInfo.GetAlgo());
 
 			{
 				FarScreenSave screen;
@@ -789,12 +799,8 @@ static void RunGenerateHashes()
 
 	// Perform hashing
 	char hashValueBuf[150] = {0};
-	ProgressContext progressCtx;
-	progressCtx.TotalFilesCount = (int) filesToProcess.size();
-	progressCtx.TotalFilesSize = totalFilesSize;
-	progressCtx.TotalProcessedBytes = 0;
-	progressCtx.CurrentFileIndex = -1;
-	progressCtx.HashAlgoName = GetAlgoInfo(genParams.Algorithm)->AlgoName;
+	ProgressContext progressCtx((int)filesToProcess.size(), totalFilesSize);
+	progressCtx.SetAlgorithm(genParams.Algorithm);
 
 	bool continueSave = true;
 	bool fAutoSkipErrors = false;
@@ -804,22 +810,14 @@ static void RunGenerateHashes()
 		wstring strFullPath = strPanelDir + strNextFile;
 		bool fSaveHash = true;
 
-		progressCtx.FileName = strNextFile;
-		progressCtx.CurrentFileIndex++;
-		progressCtx.CurrentFileSize = GetFileSize_i64(strFullPath.c_str());
-
-		int nOldTotalProgress = progressCtx.TotalProgress;
-		int64_t nOldTotalBytes = progressCtx.TotalProcessedBytes;
-
+		progressCtx.NextFile(strNextFile, GetFileSize_i64(strFullPath.c_str()));
+		
 		{
 			FarScreenSave screen;
 
 			while(true)
 			{
-				progressCtx.FileProgress = -1;
-				progressCtx.CurrentFileProcessedBytes = 0;
-				progressCtx.TotalProgress = nOldTotalProgress;
-				progressCtx.TotalProcessedBytes = nOldTotalBytes;
+				progressCtx.RestartFile();
 
 				fSaveHash = true;
 
@@ -978,22 +976,14 @@ static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, ProgressC
 {
 	FarScreenSave screen;
 
-	progressCtx.FileName = filePath;
-	progressCtx.CurrentFileIndex++;
-	progressCtx.CurrentFileSize = GetFileSize_i64(filePath.c_str());
-	progressCtx.HashAlgoName = GetAlgoInfo(hashAlgo)->AlgoName;
-
-	int nOldTotalProgress = progressCtx.TotalProgress;
-	int64_t nOldTotalBytes = progressCtx.TotalProcessedBytes;
+	progressCtx.NextFile(filePath);
+	progressCtx.SetAlgorithm(hashAlgo);
 
 	shouldAbort = false;
 
 	while (true)
 	{
-		progressCtx.FileProgress = -1;
-		progressCtx.CurrentFileProcessedBytes = 0;
-		progressCtx.TotalProgress = nOldTotalProgress;
-		progressCtx.TotalProcessedBytes = nOldTotalBytes;
+		progressCtx.RestartFile();
 
 		// Next is hash calculation for both files
 		int genRetVal = GenerateHash(filePath.c_str(), hashAlgo, hashStrBuffer, false, FileHashingProgress, &progressCtx);
@@ -1082,11 +1072,7 @@ static void RunComparePanels()
 	bool fAborted = false;
 	bool fSkipAllErrors = false;
 
-	ProgressContext progressCtx;
-	progressCtx.TotalFilesCount = (int) vSelectedFiles.size() * 2;
-	progressCtx.TotalFilesSize = totalFilesSize * 2;
-	progressCtx.TotalProcessedBytes = 0;
-	progressCtx.CurrentFileIndex = -1;
+	ProgressContext progressCtx((int)vSelectedFiles.size() * 2, totalFilesSize * 2);
 
 	for (auto cit = vSelectedFiles.begin(); cit != vSelectedFiles.end(); cit++)
 	{
@@ -1182,11 +1168,7 @@ void RunCompareWithClipboard(std::wstring &selectedFile)
 	char szHashValueBuf[150] = {0};
 	bool fAborted = false, fSkipAllErrors = false;
 
-	ProgressContext progressCtx;
-	progressCtx.TotalFilesCount = 1;
-	progressCtx.TotalFilesSize = GetFileSize_i64(selectedFile.c_str());
-	progressCtx.TotalProcessedBytes = 0;
-	progressCtx.CurrentFileIndex = -1;
+	ProgressContext progressCtx(1, GetFileSize_i64(selectedFile.c_str()));
 
 	if (RunGeneration(selectedFile, algo, progressCtx, szHashValueBuf, fAborted, fSkipAllErrors))
 	{
