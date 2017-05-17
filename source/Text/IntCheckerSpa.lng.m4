@@ -63,6 +63,8 @@
 "No se puede guardar lista hash al archivo"
 "Utilizar filtro"
 "Seleccionar algoritmo"
+"Files:"
+"Bytes:"
 
 "Generar"
 "Algoritmo"

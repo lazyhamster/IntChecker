@@ -63,6 +63,8 @@
 "Can not save hashlist to file"
 "&Use filter"
 "Select algorithm"
+"Files:"
+"Bytes:"
 
 "Generate"
 "Algorithm"

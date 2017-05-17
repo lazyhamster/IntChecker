@@ -257,8 +257,8 @@ static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 		static wchar_t szGeneratingLine[128] = {0};
 		swprintf_s(szGeneratingLine, ARRAY_SIZE(szGeneratingLine), GetLocMsg(MSG_DLG_CALCULATING), prCtx->HashAlgoName.c_str());
 
-		std::wstring strFilesNumLine = JoinProgressLine(L"Files:", FormatString(L"%d / %d", prCtx->CurrentFileIndex + 1, prCtx->TotalFilesCount), cntProgressDialogWidth, 5);
-		std::wstring strBytesLine = JoinProgressLine(L"Bytes:", FileSizeToString(prCtx->TotalProcessedBytes, true) + L" / " + FileSizeToString(prCtx->TotalFilesSize, true), cntProgressDialogWidth, 5);
+		std::wstring strFilesNumLine = JoinProgressLine(GetLocMsg(MSG_DLG_PROGRESS_NUMFILES), FormatString(L"%d / %d", prCtx->CurrentFileIndex + 1, prCtx->TotalFilesCount), cntProgressDialogWidth, 5);
+		std::wstring strBytesLine = JoinProgressLine(GetLocMsg(MSG_DLG_PROGRESS_NUMBYTES), FileSizeToString(prCtx->TotalProcessedBytes, true) + L" / " + FileSizeToString(prCtx->TotalFilesSize, true), cntProgressDialogWidth, 5);
 		
 		std::wstring strPBarCurrent = ProgressBarString(nFileProgress, cntProgressDialogWidth);
 		std::wstring strPBarTotal = ProgressBarString(nTotalProgress, cntProgressDialogWidth);

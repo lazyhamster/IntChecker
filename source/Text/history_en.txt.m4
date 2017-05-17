@@ -1,5 +1,8 @@
 Changes history:
 
+2.6.0
+- New hashing progress dialog.
+
 2.5.1
 - Fixed issues with panel compare dialog (regression).
 
