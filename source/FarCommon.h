@@ -33,6 +33,24 @@ static wchar_t optPrefix[32] = L"check";
 #define EDR_ABORT 3
 
 const size_t cntProgressDialogWidth = 65;
+const int cntProgressRedrawTimeout = 50; // ms
+
+class FarScreenSave
+{
+private:
+	HANDLE hScreen;
+
+public:
+	FarScreenSave()
+	{
+		hScreen = FarSInfo.SaveScreen(0, 0, -1, -1);
+	}
+
+	~FarScreenSave()
+	{
+		FarSInfo.RestoreScreen(hScreen);
+	}
+};
 
 static std::wstring ShortenPath(const std::wstring &path, size_t maxWidth)
 {
@@ -53,8 +71,8 @@ struct ProgressContext
 {
 	ProgressContext(int totalFiles, int64_t totalBytes)
 		: TotalFilesSize(totalBytes), TotalFilesCount(totalFiles), CurrentFileSize(0), CurrentFileIndex(-1),
-		TotalProcessedBytes(0), CurrentFileProcessedBytes(0), FileProgress(-1), TotalProgress(-1),
-		m_nPrevTotalBytes(0), m_nPrevTotalProgress(-1)
+		TotalProcessedBytes(0), CurrentFileProcessedBytes(0),m_nPrevTotalBytes(0),
+		m_tRefreshTime(time_check::mode::immediate, std::chrono::milliseconds(cntProgressRedrawTimeout)), m_tStartTime(clock_type::now())
 	{}
 
 	std::wstring HashAlgoName;
@@ -71,14 +89,12 @@ struct ProgressContext
 	void NextFile(const std::wstring& displayPath, int64_t fileSize)
 	{
 		m_nPrevTotalBytes = TotalProcessedBytes;
-		m_nPrevTotalProgress = TotalProgress;
 		
 		m_sFilePath = displayPath;
 		m_sShortenedFilePath = ShortenPath(displayPath, cntProgressDialogWidth);
 		CurrentFileIndex++;
 		CurrentFileProcessedBytes = 0;
 		CurrentFileSize = fileSize;
-		FileProgress = -1;
 	}
 
 	void NextFile(const std::wstring& displayPath)
@@ -89,8 +105,6 @@ struct ProgressContext
 	void RestartFile()
 	{
 		TotalProcessedBytes = m_nPrevTotalBytes;
-		TotalProgress = m_nPrevTotalProgress;
-		FileProgress = -1;
 		CurrentFileProcessedBytes = 0;
 	}
 
@@ -105,18 +119,10 @@ struct ProgressContext
 		CurrentFileProcessedBytes += bytesProcessed;
 		TotalProcessedBytes += bytesProcessed;
 
-		int nFileProgress = (CurrentFileSize > 0) ? (int)((CurrentFileProcessedBytes * 100) / CurrentFileSize) : 0;
-		int nTotalProgress = (TotalFilesSize > 0) ? (int)((TotalProcessedBytes * 100) / TotalFilesSize) : 0;
-		
-		if (nFileProgress != FileProgress || nTotalProgress != TotalProgress)
-		{
-			FileProgress = nFileProgress;
-			TotalProgress = nTotalProgress;
+		if (!m_tRefreshTime)
+			return false;
 
-			return true;
-		}
-
-		return false;
+		return true;
 	}
 
 	const wchar_t* GetShortenedPath() const
@@ -126,12 +132,12 @@ struct ProgressContext
 
 	int GetCurrentFileProgress() const
 	{
-		return FileProgress;
+		return (CurrentFileSize > 0) ? (int)((CurrentFileProcessedBytes * 100) / CurrentFileSize) : 0;
 	}
 
 	int GetTotalProgress() const
 	{
-		return TotalProgress;
+		return (TotalFilesSize > 0) ? (int)((TotalProcessedBytes * 100) / TotalFilesSize) : 0;
 	}
 
 private:
@@ -139,30 +145,12 @@ private:
 	std::wstring m_sShortenedFilePath;
 
 	int64_t m_nPrevTotalBytes;
-	int m_nPrevTotalProgress;
 
-	// This is percentage cache to prevent screen flicker
-	int FileProgress;
-	int TotalProgress;
+	time_check m_tRefreshTime;
+	clock_type::time_point m_tStartTime;
+	FarScreenSave m_pScreen;
 
-	ProgressContext() {}
-};
-
-class FarScreenSave
-{
-private:
-	HANDLE hScreen;
-
-public:
-	FarScreenSave()
-	{
-		hScreen = FarSInfo.SaveScreen(0, 0, -1, -1);
-	}
-
-	~FarScreenSave()
-	{
-		FarSInfo.RestoreScreen(hScreen);
-	}
+	ProgressContext() = delete;
 };
 
 struct RectSize

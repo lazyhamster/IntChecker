@@ -505,43 +505,40 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 			progressCtx.NextFile(fileInfo.Filename, GetFileSize_i64(strFullFilePath.c_str()));
 			progressCtx.SetAlgorithm(fileInfo.GetAlgo());
 
+			while (true)
 			{
-				FarScreenSave screen;
-				while (true)
+				int genRetVal = GenerateHash(strFullFilePath.c_str(), fileInfo.GetAlgo(), hashValueBuf, false, FileHashingProgress, &progressCtx);
+
+				if (genRetVal == GENERATE_ABORTED)
 				{
-					int genRetVal = GenerateHash(strFullFilePath.c_str(), fileInfo.GetAlgo(), hashValueBuf, false, FileHashingProgress, &progressCtx);
-
-					if (genRetVal == GENERATE_ABORTED)
+					fAborted = true;
+				}
+				else if (genRetVal == GENERATE_ERROR)
+				{
+					int resp = fAutoSkipErrors ? EDR_SKIP : DisplayHashGenerateError(fileInfo.Filename);
+					if (resp == EDR_RETRY)
+						continue;
+					else if (resp == EDR_SKIP)
+						fSkipFile = true;
+					else if (resp == EDR_SKIPALL)
 					{
+						fSkipFile = true;
+						fAutoSkipErrors = true;
+					}
+					else
 						fAborted = true;
-					}
-					else if (genRetVal == GENERATE_ERROR)
-					{
-						int resp = fAutoSkipErrors ? EDR_SKIP : DisplayHashGenerateError(fileInfo.Filename);
-						if (resp == EDR_RETRY)
-							continue;
-						else if (resp == EDR_SKIP)
-							fSkipFile = true;
-						else if (resp == EDR_SKIPALL)
-						{
-							fSkipFile = true;
-							fAutoSkipErrors = true;
-						}
-						else
-							fAborted = true;
-					}
+				}
 
-					// Always break if not said otherwise
-					break;
-				} // while
+				// Always break if not said otherwise
+				break;
+			} // while
 				
-				if (fAborted) break;
+			if (fAborted) break;
 
-				if (fSkipFile)
-					nFilesSkipped++;
-				else if (_stricmp(fileInfo.HashStr.c_str(), hashValueBuf) != 0)
-					vMismatches.push_back(fileInfo.Filename);
-			}
+			if (fSkipFile)
+				nFilesSkipped++;
+			else if (_stricmp(fileInfo.HashStr.c_str(), hashValueBuf) != 0)
+				vMismatches.push_back(fileInfo.Filename);
 		} // for
 
 		if (!fAborted)
@@ -797,25 +794,23 @@ static void RunGenerateHashes()
 		GetSelectedPanelFiles(pi, strPanelDir, filesToProcess, totalFilesSize, genParams.Recursive, genParams.FileFilter);
 	}
 
-	// Perform hashing
-	char hashValueBuf[150] = {0};
-	ProgressContext progressCtx((int)filesToProcess.size(), totalFilesSize);
-	progressCtx.SetAlgorithm(genParams.Algorithm);
-
-	bool continueSave = true;
-	bool fAutoSkipErrors = false;
-	for (auto cit = filesToProcess.begin(); cit != filesToProcess.end(); cit++)
 	{
-		wstring strNextFile = *cit;
-		wstring strFullPath = strPanelDir + strNextFile;
-		bool fSaveHash = true;
+		// Perform hashing
+		char hashValueBuf[150] = { 0 };
+		ProgressContext progressCtx((int)filesToProcess.size(), totalFilesSize);
+		progressCtx.SetAlgorithm(genParams.Algorithm);
 
-		progressCtx.NextFile(strNextFile, GetFileSize_i64(strFullPath.c_str()));
-		
+		bool continueSave = true;
+		bool fAutoSkipErrors = false;
+		for (auto cit = filesToProcess.begin(); cit != filesToProcess.end(); cit++)
 		{
-			FarScreenSave screen;
+			wstring strNextFile = *cit;
+			wstring strFullPath = strPanelDir + strNextFile;
+			bool fSaveHash = true;
 
-			while(true)
+			progressCtx.NextFile(strNextFile, GetFileSize_i64(strFullPath.c_str()));
+
+			while (true)
 			{
 				progressCtx.RestartFile();
 
@@ -847,23 +842,23 @@ static void RunGenerateHashes()
 				// Always break if not said otherwise
 				break;
 			}
+
+			if (!continueSave) break;
+
+			if (fSaveHash)
+			{
+				hashes.SetFileHash(genParams.StoreAbsPaths ? strFullPath.c_str() : strNextFile.c_str(), hashValueBuf, genParams.Algorithm);
+			}
 		}
 
-		if (!continueSave) break;
+		FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);
+		FarAdvControl(ACTL_PROGRESSNOTIFY, 0, NULL);
 
-		if (fSaveHash)
-		{
-			hashes.SetFileHash(genParams.StoreAbsPaths ? strFullPath.c_str() : strNextFile.c_str(), hashValueBuf, genParams.Algorithm);
-		}
+		if (genParams.FileFilter != INVALID_HANDLE_VALUE)
+			FarSInfo.FileFilterControl(genParams.FileFilter, FFCTL_FREEFILEFILTER, 0, nullptr);
+
+		if (!continueSave) return;
 	}
-
-	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);
-	FarAdvControl(ACTL_PROGRESSNOTIFY, 0, NULL);
-
-	if (genParams.FileFilter != INVALID_HANDLE_VALUE)
-		FarSInfo.FileFilterControl(genParams.FileFilter, FFCTL_FREEFILEFILTER, 0, nullptr);
-
-	if (!continueSave) return;
 
 	// Display/save hash list
 	bool saveSuccess = false;
@@ -974,8 +969,6 @@ static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive, HANDLE
 
 static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, ProgressContext& progressCtx, char* hashStrBuffer, bool &shouldAbort, bool &shouldSkipAllErrors)
 {
-	FarScreenSave screen;
-
 	progressCtx.NextFile(filePath);
 	progressCtx.SetAlgorithm(hashAlgo);
 
@@ -1065,59 +1058,61 @@ static void RunComparePanels()
 	// No suitable items selected for comparison
 	if (vSelectedFiles.size() == 0) return;
 
-	vector<wstring> vMismatches, vMissing;
+	std::vector<std::wstring> vMismatches, vMissing;
 	int nFilesSkipped = 0;
 	char szHashValueActive[130] = {0};
 	char szHashValuePassive[130] = {0};
 	bool fAborted = false;
 	bool fSkipAllErrors = false;
 
-	ProgressContext progressCtx((int)vSelectedFiles.size() * 2, totalFilesSize * 2);
-
-	for (auto cit = vSelectedFiles.begin(); cit != vSelectedFiles.end(); cit++)
 	{
-		wstring strNextFile = *cit;
+		ProgressContext progressCtx((int)vSelectedFiles.size() * 2, totalFilesSize * 2);
 
-		wstring strActvPath = strActivePanelDir + strNextFile;
-		wstring strPasvPath = strPassivePanelDir + strNextFile;
-
-		int64_t nActivePanelFileSize = GetFileSize_i64(strActvPath.c_str());
-
-		// Does opposite file exists at all?
-		if (!IsFile(strPasvPath.c_str()))
+		for (auto cit = vSelectedFiles.begin(); cit != vSelectedFiles.end(); cit++)
 		{
-			vMissing.push_back(strNextFile);
-			progressCtx.CurrentFileIndex += 2;
-			progressCtx.TotalProcessedBytes += nActivePanelFileSize * 2;
-			continue;
-		}
+			wstring strNextFile = *cit;
 
-		// For speed compare file sizes first
-		if (nActivePanelFileSize != GetFileSize_i64(strPasvPath.c_str()))
-		{
-			vMismatches.push_back(strNextFile);
-			progressCtx.CurrentFileIndex += 2;
-			progressCtx.TotalProcessedBytes += nActivePanelFileSize * 2;
-			continue;
-		}
+			wstring strActvPath = strActivePanelDir + strNextFile;
+			wstring strPasvPath = strPassivePanelDir + strNextFile;
 
-		if (RunGeneration(strActvPath, cmpAlgo, progressCtx, szHashValueActive, fAborted, fSkipAllErrors)
-			&& RunGeneration(strPasvPath, cmpAlgo, progressCtx, szHashValuePassive, fAborted, fSkipAllErrors))
-		{
-			if (strcmp(szHashValueActive, szHashValuePassive) != 0)
+			int64_t nActivePanelFileSize = GetFileSize_i64(strActvPath.c_str());
+
+			// Does opposite file exists at all?
+			if (!IsFile(strPasvPath.c_str()))
+			{
+				vMissing.push_back(strNextFile);
+				progressCtx.CurrentFileIndex += 2;
+				progressCtx.TotalProcessedBytes += nActivePanelFileSize * 2;
+				continue;
+			}
+
+			// For speed compare file sizes first
+			if (nActivePanelFileSize != GetFileSize_i64(strPasvPath.c_str()))
+			{
 				vMismatches.push_back(strNextFile);
-		}
-		else
-		{
-			if (fAborted)
-				break;
-			else
-				nFilesSkipped++;
-		}
-	}
+				progressCtx.CurrentFileIndex += 2;
+				progressCtx.TotalProcessedBytes += nActivePanelFileSize * 2;
+				continue;
+			}
 
-	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);
-	FarAdvControl(ACTL_PROGRESSNOTIFY, 0, NULL);
+			if (RunGeneration(strActvPath, cmpAlgo, progressCtx, szHashValueActive, fAborted, fSkipAllErrors)
+				&& RunGeneration(strPasvPath, cmpAlgo, progressCtx, szHashValuePassive, fAborted, fSkipAllErrors))
+			{
+				if (strcmp(szHashValueActive, szHashValuePassive) != 0)
+					vMismatches.push_back(strNextFile);
+			}
+			else
+			{
+				if (fAborted)
+					break;
+				else
+					nFilesSkipped++;
+			}
+		}
+
+		FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);
+		FarAdvControl(ACTL_PROGRESSNOTIFY, 0, NULL);
+	}
 
 	if (!fAborted)
 	{
