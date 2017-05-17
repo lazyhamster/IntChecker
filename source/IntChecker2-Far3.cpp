@@ -230,14 +230,6 @@ static std::wstring FileSizeToString(int64_t fileSize, bool keepBytes)
 	return tmpBuf;
 }
 
-static std::wstring JoinProgressLine(const std::wstring &prefix, const std::wstring &suffix, size_t maxWidth, size_t rightPadding)
-{
-	size_t middlePadding = maxWidth - prefix.length() - suffix.length() - rightPadding;
-	std::wstring result = prefix + std::wstring(middlePadding, ' ') + suffix + std::wstring(rightPadding, ' ');
-
-	return result;
-}
-
 static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 {
 	if (CheckEsc())
@@ -328,7 +320,7 @@ static void SelectFilesOnPanel(HANDLE hPanel, vector<wstring> &fileNames, bool e
 	FarSInfo.PanelControl(hPanel, FCTL_REDRAWPANEL, 0, NULL);
 }
 
-static int DisplayHashGenerateError(const wstring& fileName)
+static int DisplayHashGenerateError(const std::wstring& fileName)
 {
 	static const wchar_t* DlgLines[7];
 	DlgLines[0] = GetLocMsg(MSG_DLG_ERROR);
@@ -517,6 +509,8 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 
 			while (true)
 			{
+				progressCtx.RestartFile();
+
 				int genRetVal = GenerateHash(strFullFilePath.c_str(), fileInfo.GetAlgo(), hashValueBuf, false, FileHashingProgress, &progressCtx);
 
 				if (genRetVal == GENERATE_ABORTED)

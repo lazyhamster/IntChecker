@@ -245,4 +245,12 @@ static std::wstring DurationToString(int64_t durationMs)
 	return FormatString(L"%02lld:%02lld:%02lld", hours, mins - hours * 60, secs - mins * 60 - hours * 60 * 60);
 }
 
+static std::wstring JoinProgressLine(const std::wstring &prefix, const std::wstring &suffix, size_t maxWidth, size_t rightPadding)
+{
+	size_t middlePadding = maxWidth - prefix.length() - suffix.length() - rightPadding;
+	std::wstring result = prefix + std::wstring(middlePadding, ' ') + suffix + std::wstring(rightPadding, ' ');
+
+	return result;
+}
+
 #endif // FarCommon_h__
