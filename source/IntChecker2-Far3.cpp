@@ -220,12 +220,12 @@ static void SaveSettings()
 	ps.Set(0, L"DefaultOutput", optDefaultOutputTarget);
 }
 
-static std::wstring FileSizeToString(int64_t fileSize)
+static std::wstring FileSizeToString(int64_t fileSize, bool keepBytes)
 {
 	//todo: use FSF.FormatFileSize when it is fixed
 	
 	wchar_t tmpBuf[64] = { 0 };
-	FSF.FormatFileSize(fileSize, _countof(tmpBuf) - 1, FFFS_COMMAS, tmpBuf, _countof(tmpBuf));
+	FSF.FormatFileSize(fileSize, _countof(tmpBuf) - 1, keepBytes ? FFFS_COMMAS : FFFS_FLOATSIZE, tmpBuf, _countof(tmpBuf));
 	FSF.Trim(tmpBuf);
 	return tmpBuf;
 }
@@ -258,19 +258,29 @@ static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 		swprintf_s(szGeneratingLine, ARRAY_SIZE(szGeneratingLine), GetLocMsg(MSG_DLG_CALCULATING), prCtx->HashAlgoName.c_str());
 
 		std::wstring strFilesNumLine = JoinProgressLine(L"Files:", FormatString(L"%d / %d", prCtx->CurrentFileIndex + 1, prCtx->TotalFilesCount), cntProgressDialogWidth, 5);
-		std::wstring strBytesLine = JoinProgressLine(L"Bytes:", FileSizeToString(prCtx->TotalProcessedBytes) + L" / " + FileSizeToString(prCtx->TotalFilesSize), cntProgressDialogWidth, 5);
+		std::wstring strBytesLine = JoinProgressLine(L"Bytes:", FileSizeToString(prCtx->TotalProcessedBytes, true) + L" / " + FileSizeToString(prCtx->TotalFilesSize, true), cntProgressDialogWidth, 5);
 		
 		std::wstring strPBarCurrent = ProgressBarString(nFileProgress, cntProgressDialogWidth);
 		std::wstring strPBarTotal = ProgressBarString(nTotalProgress, cntProgressDialogWidth);
 
-		static const wchar_t* InfoLines[7];
+		int64_t elapsedTime = prCtx->GetElapsedTimeMS();
+		int64_t avgSpeed = prCtx->TotalProcessedBytes ? (prCtx->TotalProcessedBytes * 1000) / elapsedTime : 0;
+		
+		std::wstring elapsedTimeStr = L"Time: " + DurationToString(elapsedTime);
+		std::wstring avgSpeedStr = FileSizeToString(avgSpeed, false) + L"/s";
+		std::wstring strSpeed = JoinProgressLine(elapsedTimeStr, avgSpeedStr, cntProgressDialogWidth, 0);
+
+		static const wchar_t* InfoLines[10];
 		InfoLines[0] = GetLocMsg(MSG_DLG_PROCESSING);
 		InfoLines[1] = szGeneratingLine;
 		InfoLines[2] = prCtx->GetShortenedPath();
 		InfoLines[3] = strPBarCurrent.c_str();
-		InfoLines[4] = strFilesNumLine.c_str();
-		InfoLines[5] = strBytesLine.c_str();
-		InfoLines[6] = strPBarTotal.c_str();
+		InfoLines[4] = L"\1";
+		InfoLines[5] = strFilesNumLine.c_str();
+		InfoLines[6] = strBytesLine.c_str();
+		InfoLines[7] = strPBarTotal.c_str();
+		InfoLines[8] = L"\1";
+		InfoLines[9] = strSpeed.c_str();
 
 		FarSInfo.Message(&GUID_PLUGIN_MAIN, &GUID_MESSAGE_BOX, 0, NULL, InfoLines, ARRAY_SIZE(InfoLines), 0);
 

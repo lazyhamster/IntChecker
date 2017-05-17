@@ -140,6 +140,12 @@ struct ProgressContext
 		return (TotalFilesSize > 0) ? (int)((TotalProcessedBytes * 100) / TotalFilesSize) : 0;
 	}
 
+	int64_t GetElapsedTimeMS()
+	{
+		clock_type::duration timeDiff = clock_type::now() - m_tStartTime;
+		return std::chrono::duration_cast<std::chrono::milliseconds>(timeDiff).count();
+	}
+
 private:
 	std::wstring m_sFilePath;
 	std::wstring m_sShortenedFilePath;
@@ -228,6 +234,15 @@ static std::wstring ProgressBarString(intptr_t Percentage, intptr_t Width)
 	result += std::wstring((Width - 5) - result.length(), 0x2591);
 	result += FormatString(L"%4d%%", Percentage > 100 ? 100 : Percentage);
 	return result;
+}
+
+static std::wstring DurationToString(int64_t durationMs)
+{
+	int64_t secs = durationMs / 1000;
+	int64_t mins = secs / 60;
+	int64_t hours = mins / 60;
+
+	return FormatString(L"%02lld:%02lld:%02lld", hours, mins - hours * 60, secs - mins * 60 - hours * 60 * 60);
 }
 
 #endif // FarCommon_h__
