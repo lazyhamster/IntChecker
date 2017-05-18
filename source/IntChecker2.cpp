@@ -366,8 +366,6 @@ static int DisplayHashGenerateError(const std::wstring& fileName)
 
 static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, std::vector<std::wstring> &vMissingList, int numSkipped)
 {
-	vector<wstring> vSameFolderFiles;
-	
 	if (vMismatchList.size() == 0 && vMissingList.size() == 0)
 	{
 		// If everything is fine then just display simple message
@@ -443,15 +441,15 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 		free(mmListItems);
 
 		// Select mismatched files that are in the same folder
+		std::vector<std::wstring> vSameFolderFiles;
 		for (size_t i = 0; i < vMismatchList.size(); i++)
 		{
 			wstring &nextFile = vMismatchList[i];
 			if (nextFile.find_first_of(L"\\/") == wstring::npos)
 				vSameFolderFiles.push_back(nextFile);
 		}
+		SelectFilesOnPanel(PANEL_ACTIVE, vSameFolderFiles, true);
 	}
-
-	SelectFilesOnPanel(PANEL_ACTIVE, vSameFolderFiles, true);
 }
 
 static bool AskValidationFileParams(UINT &codepage)
@@ -894,7 +892,7 @@ static void RunGenerateHashes()
 
 			if (fSaveHash)
 			{
-				hashes.SetFileHash(storeAbsPaths ? strFullPath.c_str() : strNextFile.c_str(), hashValueBuf, genAlgo);
+				hashes.SetFileHash(storeAbsPaths ? strFullPath : strNextFile, hashValueBuf, genAlgo);
 			}
 		}
 

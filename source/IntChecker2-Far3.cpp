@@ -108,7 +108,7 @@ static bool GetSelectedPanelItemPath(wstring& nameStr)
 			}
 		}
 
-		return (nameStr.size() > 0);
+	return (nameStr.size() > 0);
 }
 
 static bool PathMatchFileFilter(const PluginPanelItem* item, HANDLE fileFilter)
@@ -289,7 +289,7 @@ static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 	return true;
 }
 
-static void SelectFilesOnPanel(HANDLE hPanel, vector<wstring> &fileNames, bool exclusive)
+static void SelectFilesOnPanel(HANDLE hPanel, std::vector<std::wstring> &fileNames, bool exclusive)
 {
 	if (!exclusive && (fileNames.size() == 0)) return;
 
@@ -336,8 +336,6 @@ static int DisplayHashGenerateError(const std::wstring& fileName)
 
 static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, std::vector<std::wstring> &vMissingList, int numSkipped)
 {
-	vector<wstring> vSameFolderFiles;
-
 	if (vMismatchList.size() == 0 && vMissingList.size() == 0)
 	{
 		// If everything is fine then just display simple message
@@ -403,15 +401,16 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 		delete [] boxList;
 
 		// Select mismatched files that are in the same folder
+		std::vector<std::wstring> vSameFolderFiles;
 		for (size_t i = 0; i < vMismatchList.size(); i++)
 		{
 			wstring &nextFile = vMismatchList[i];
 			if (nextFile.find_first_of(L"\\/") == wstring::npos)
 				vSameFolderFiles.push_back(nextFile);
 		}
-	}
 
-	SelectFilesOnPanel(PANEL_ACTIVE, vSameFolderFiles, true);
+		SelectFilesOnPanel(PANEL_ACTIVE, vSameFolderFiles, true);
+	}
 }
 
 static bool AskValidationFileParams(UINT &codepage)
@@ -851,7 +850,7 @@ static void RunGenerateHashes()
 
 			if (fSaveHash)
 			{
-				hashes.SetFileHash(genParams.StoreAbsPaths ? strFullPath.c_str() : strNextFile.c_str(), hashValueBuf, genParams.Algorithm);
+				hashes.SetFileHash(genParams.StoreAbsPaths ? strFullPath : strNextFile, hashValueBuf, genParams.Algorithm);
 			}
 		}
 
