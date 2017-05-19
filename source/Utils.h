@@ -3,16 +3,16 @@
 
 bool CheckEsc();
 
-std::wstring MakeAbsPath(const std::wstring path, const std::wstring refDir);
+std::wstring MakeAbsPath(const std::wstring &path, const std::wstring &refDir);
 void IncludeTrailingPathDelim(wchar_t *pathBuf, size_t bufMaxSize);
 void IncludeTrailingPathDelim(wstring &pathStr);
 std::wstring ExtractFileName(const std::wstring& fullPath);
 std::wstring ExtractFileExt(const std::wstring& path);
-std::wstring PrependLongPrefix(const wchar_t* basePath);
+std::wstring PrependLongPrefix(const std::wstring &basePath);
 
 int64_t GetFileSize_i64(const wchar_t* path);
 int64_t GetFileSize_i64(HANDLE hFile);
-bool IsFile(const wchar_t* path);
+bool IsFile(const std::wstring &path, int64_t *fileSize = nullptr);
 bool CanCreateFile(const wchar_t* path);
 
 void TrimRight(char* str);

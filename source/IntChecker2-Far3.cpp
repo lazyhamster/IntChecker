@@ -474,15 +474,16 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 		FarScreenSave screen;
 		DisplayMessage(GetLocMsg(MSG_DLG_PROCESSING), GetLocMsg(MSG_DLG_PREPARE_LIST), NULL, false, false);
 
+		int64_t fileSize;
 		for (size_t i = 0; i < hashes.GetCount(); i++)
 		{
 			const FileHashInfo& fileInfo = hashes.GetFileInfo(i);
 
 			wstring strFullFilePath = MakeAbsPath(fileInfo.Filename, workDir);
-			if (IsFile(strFullFilePath.c_str()))
+			if (IsFile(strFullFilePath, &fileSize))
 			{
 				existingFiles.push_back(i);
-				totalFilesSize += GetFileSize_i64(strFullFilePath.c_str());
+				totalFilesSize += fileSize;
 			}
 			else
 			{
@@ -761,7 +762,7 @@ static void RunGenerateHashes()
 		if (genParams.OutputTarget == OT_SINGLEFILE)
 		{
 			// Check if hash file already exists
-			if (IsFile(genParams.OutputFileName.c_str()))
+			if (IsFile(genParams.OutputFileName))
 			{
 				wchar_t wszMsgText[256] = {0};
 				swprintf_s(wszMsgText, ARRAY_SIZE(wszMsgText), GetLocMsg(MSG_DLG_OVERWRITE_FILE_TEXT), genParams.OutputFileName.c_str());
@@ -1039,11 +1040,11 @@ static void RunComparePanels()
 	bool recursive = true;
 	HANDLE fileFilter = INVALID_HANDLE_VALUE;
 
-	StringList vSelectedFiles;
-	int64_t totalFilesSize = 0;
-
 	if (!AskForCompareParams(cmpAlgo, recursive, fileFilter))
 		return;
+
+	StringList vSelectedFiles;
+	int64_t totalFilesSize = 0;
 
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_INDETERMINATE, NULL);
 
@@ -1079,9 +1080,10 @@ static void RunComparePanels()
 			wstring strPasvPath = strPassivePanelDir + strNextFile;
 
 			int64_t nActivePanelFileSize = GetFileSize_i64(strActvPath.c_str());
+			int64_t nPassivePanelFileSize;
 
 			// Does opposite file exists at all?
-			if (!IsFile(strPasvPath.c_str()))
+			if (!IsFile(strPasvPath, &nPassivePanelFileSize))
 			{
 				vMissing.push_back(strNextFile);
 				progressCtx.CurrentFileIndex += 2;
@@ -1090,7 +1092,7 @@ static void RunComparePanels()
 			}
 
 			// For speed compare file sizes first
-			if (nActivePanelFileSize != GetFileSize_i64(strPasvPath.c_str()))
+			if (nActivePanelFileSize != nPassivePanelFileSize)
 			{
 				vMismatches.push_back(strNextFile);
 				progressCtx.CurrentFileIndex += 2;
@@ -1323,7 +1325,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 		openMenu.AddItemEx(GetLocMsg(MSG_MENU_COMPARE), boost::bind(RunComparePanels));
 
 		wstring selectedFilePath;
-		if ((pi.SelectedItemsNumber == 1) && GetSelectedPanelItemPath(selectedFilePath) && IsFile(selectedFilePath.c_str()))
+		if ((pi.SelectedItemsNumber == 1) && GetSelectedPanelItemPath(selectedFilePath) && IsFile(selectedFilePath))
 		{
 			//TODO: use optDetectHashFiles
 			openMenu.AddItemEx(GetLocMsg(MSG_MENU_VALIDATE), boost::bind(RunValidateFiles, selectedFilePath.c_str(), false, false));

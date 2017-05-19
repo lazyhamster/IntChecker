@@ -24,7 +24,7 @@ bool CheckEsc()
 		return false;
 }
 
-std::wstring MakeAbsPath(const std::wstring sPath, const std::wstring refDir)
+std::wstring MakeAbsPath(const std::wstring &sPath, const std::wstring &refDir)
 {
 	auto pathAbs = boost::filesystem::absolute(sPath, refDir);
 	std::wstring strPathCanon;
@@ -78,16 +78,23 @@ int64_t GetFileSize_i64(HANDLE hFile)
 	return 0;
 }
 
-bool IsFile( const wchar_t* path )
+bool IsFile(const std::wstring &path, int64_t *fileSize)
 {
-	wstring strSearchPath = PrependLongPrefix(path);
+	std::wstring strSearchPath = PrependLongPrefix(path);
 
 	WIN32_FIND_DATA fd = {0};
 	HANDLE hFind = FindFirstFile(strSearchPath.c_str(), &fd);
 	if (hFind != INVALID_HANDLE_VALUE)
 	{
 		FindClose(hFind);
-		return (fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0;
+		if ((fd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
+		{
+			if (fileSize)
+			{
+				*fileSize = ((int64_t)fd.nFileSizeHigh << 32) | fd.nFileSizeLow;
+			}
+			return true;
+		}
 	}
 
 	return false;
@@ -129,9 +136,9 @@ static std::wstring GetFullPath(const wchar_t* path)
 	return tmpBuf;
 }
 
-static int EnumFiles(const wstring& baseAbsPath, const wstring& pathPrefix, StringList &destList, int64_t &totalSize, bool recursive, FilterCompareProc filterProc, HANDLE filterData)
+static int EnumFiles(const std::wstring& baseAbsPath, const std::wstring& pathPrefix, StringList &destList, int64_t &totalSize, bool recursive, FilterCompareProc filterProc, HANDLE filterData)
 {
-	wstring strBasePath = PrependLongPrefix(baseAbsPath.c_str());
+	wstring strBasePath = PrependLongPrefix(baseAbsPath);
 	IncludeTrailingPathDelim(strBasePath);
 	strBasePath.append(L"*.*");
 
@@ -282,9 +289,9 @@ void TrimStr(std::string &str)
 		str.erase(0, 1);
 }
 
-std::wstring PrependLongPrefix(const wchar_t* basePath)
+std::wstring PrependLongPrefix(const std::wstring &basePath)
 {
-	wstring finalPath(basePath);
+	std::wstring finalPath = basePath;
 	
 	// If path is network path (starts with \\) then prefix is not needed
 	if ((finalPath.size() > 2) && (finalPath[0] != '\\' || finalPath[1] != '\\'))
