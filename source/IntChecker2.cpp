@@ -557,58 +557,61 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 
 	if (existingFiles.size() > 0)
 	{
-		ProgressContext progressCtx((int)existingFiles.size(), totalFilesSize);
-
-		bool fAutoSkipErrors = false;
 		bool fAborted = false;
-		for (size_t i = 0; i < existingFiles.size(); i++)
-		{
-			FileHashInfo fileInfo = hashes.GetFileInfo(existingFiles[i]);
-			wstring strFullFilePath = MakeAbsPath(fileInfo.Filename, workDir);
-			bool fSkipFile = false;
+		{ // Scope for ProgressContext object
+			ProgressContext progressCtx((int)existingFiles.size(), totalFilesSize);
 
-			progressCtx.NextFile(fileInfo.Filename, GetFileSize_i64(strFullFilePath.c_str()));
-			progressCtx.SetAlgorithm(fileInfo.GetAlgo());
-
-			while (true)
+			bool fAutoSkipErrors = false;
+			for (size_t i = 0; i < existingFiles.size(); i++)
 			{
-				progressCtx.RestartFile();
-				
-				int genRetVal = GenerateHash(strFullFilePath.c_str(), fileInfo.GetAlgo(), hashValueBuf, false, FileHashingProgress, &progressCtx);
+				FileHashInfo fileInfo = hashes.GetFileInfo(existingFiles[i]);
+				wstring strFullFilePath = MakeAbsPath(fileInfo.Filename, workDir);
+				bool fSkipFile = false;
 
-				if (genRetVal == GENERATE_ABORTED)
+				progressCtx.NextFile(fileInfo.Filename, GetFileSize_i64(strFullFilePath.c_str()));
+				progressCtx.SetAlgorithm(fileInfo.GetAlgo());
+
+				while (true)
 				{
-					fAborted = true;
-				}
-				else if (genRetVal == GENERATE_ERROR)
-				{
-					int resp = fAutoSkipErrors ? EDR_SKIP : DisplayHashGenerateError(fileInfo.Filename);
-					if (resp == EDR_RETRY)
-						continue;
-					else if (resp == EDR_SKIP)
-						fSkipFile = true;
-					else if (resp == EDR_SKIPALL)
+					progressCtx.RestartFile();
+
+					int genRetVal = GenerateHash(strFullFilePath.c_str(), fileInfo.GetAlgo(), hashValueBuf, false, FileHashingProgress, &progressCtx);
+
+					if (genRetVal == GENERATE_ABORTED)
 					{
-						fSkipFile = true;
-						fAutoSkipErrors = true;
-					}
-					else
 						fAborted = true;
-				}
+					}
+					else if (genRetVal == GENERATE_ERROR)
+					{
+						int resp = fAutoSkipErrors ? EDR_SKIP : DisplayHashGenerateError(fileInfo.Filename);
+						if (resp == EDR_RETRY)
+							continue;
+						else if (resp == EDR_SKIP)
+							fSkipFile = true;
+						else if (resp == EDR_SKIPALL)
+						{
+							fSkipFile = true;
+							fAutoSkipErrors = true;
+						}
+						else
+							fAborted = true;
+					}
 
-				// Always break if not said otherwise
-				break;
-			} // while
+					// Always break if not said otherwise
+					break;
+				} // while
 
-			if (fAborted) break;
+				if (fAborted) break;
 
-			if (fSkipFile)
-				nFilesSkipped++;
-			else if (_stricmp(fileInfo.HashStr.c_str(), hashValueBuf) != 0)
-				vMismatches.push_back(fileInfo.Filename);
+				if (fSkipFile)
+					nFilesSkipped++;
+				else if (_stricmp(fileInfo.HashStr.c_str(), hashValueBuf) != 0)
+					vMismatches.push_back(fileInfo.Filename);
+			}
 		}
 
-		DisplayValidationResults(vMismatches, vMissing, nFilesSkipped);
+		if (!fAborted)
+			DisplayValidationResults(vMismatches, vMissing, nFilesSkipped);
 	}
 	else
 	{
