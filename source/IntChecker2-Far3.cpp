@@ -222,11 +222,8 @@ static void SaveSettings()
 
 static std::wstring FileSizeToString(int64_t fileSize, bool keepBytes)
 {
-	//todo: use FSF.FormatFileSize when it is fixed
-	
 	wchar_t tmpBuf[64] = { 0 };
-	FSF.FormatFileSize(fileSize, _countof(tmpBuf) - 1, keepBytes ? FFFS_COMMAS : FFFS_FLOATSIZE, tmpBuf, _countof(tmpBuf));
-	FSF.Trim(tmpBuf);
+	FSF.FormatFileSize(fileSize, 0, keepBytes ? FFFS_COMMAS : FFFS_FLOATSIZE, tmpBuf, _countof(tmpBuf));
 	return tmpBuf;
 }
 
