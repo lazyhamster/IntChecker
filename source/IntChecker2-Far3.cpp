@@ -194,7 +194,7 @@ static void LoadSettings()
 	optHashUppercase			= ps.Get(0, L"HashInUppercase", optHashUppercase);
 	optRememberLastUsedAlgo		= ps.Get(0, L"RememberLastAlgorithm", optRememberLastUsedAlgo);
 	optListDefaultCodepage		= ps.Get(0, L"DefaultListCodepage", optListDefaultCodepage);
-	optDefaultOutputTarget		= ps.Get(0, L"DefaultOutput", optDefaultAlgo);
+	optDefaultOutputTarget		= ps.Get(0, L"DefaultOutput", optDefaultOutputTarget);
 
 	const wchar_t* prefixVal = ps.Get(0, L"Prefix", optPrefix);
 	if (prefixVal != optPrefix)
