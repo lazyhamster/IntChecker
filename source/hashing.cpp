@@ -121,7 +121,7 @@ bool HashList::SaveList( const wchar_t* filepath, UINT codepage )
 	}
 
 	string strData = sstr.str();
-	return DumpStringToFile(strData.c_str(), strData.length(), filepath);
+	return DumpStringToFile(strData, filepath);
 }
 
 bool HashList::SaveListSeparate( const wchar_t* baseDir, UINT codepage, int &successCount, int &failCount )
@@ -143,7 +143,7 @@ bool HashList::SaveListSeparate( const wchar_t* baseDir, UINT codepage, int &suc
 		sstr << endl;
 
 		string strData = sstr.str();
-		if (DumpStringToFile(strData.c_str(), strData.length(), destFilePath.c_str()))
+		if (DumpStringToFile(strData, destFilePath.c_str()))
 			successCount++;
 		else
 			failCount++;
@@ -213,15 +213,17 @@ int HashList::GetFileRecordIndex( const wchar_t* fileName ) const
 	return -1;
 }
 
-bool HashList::DumpStringToFile( const char* data, size_t dataSize, const wchar_t* filePath )
+bool HashList::DumpStringToFile(const std::string& data, const wchar_t* filePath)
 {
 	HANDLE hFile = CreateFile(filePath, GENERIC_WRITE, FILE_SHARE_READ, NULL, CREATE_ALWAYS, FILE_ATTRIBUTE_NORMAL, 0);
 	if (hFile == INVALID_HANDLE_VALUE) return false;
 
+	DWORD writeSize = (DWORD)data.length();
 	DWORD numWritten;
-	bool retVal = WriteFile(hFile, data, (DWORD) dataSize, &numWritten, NULL) && (numWritten == dataSize);
+	
+	bool retVal = WriteFile(hFile, data.c_str(), writeSize, &numWritten, NULL) && (numWritten == writeSize);
+	
 	CloseHandle(hFile);
-
 	return retVal;
 }
 

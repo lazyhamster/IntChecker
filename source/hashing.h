@@ -39,7 +39,7 @@ private:
 	std::vector<FileHashInfo> m_HashList;
 
 	int GetFileRecordIndex(const wchar_t* fileName) const;
-	bool DumpStringToFile(const char* data, size_t dataSize, const wchar_t* filePath);
+	bool DumpStringToFile(const std::string& data, const wchar_t* filePath);
 	bool DetectHashAlgo(const char* testStr, UINT codepage, const wchar_t* filePath, int &foundAlgoIndex, HashListFormat &listFormat);
 	bool TryParseBSD(const char* inputStr, UINT codepage, FileHashInfo &fileInfo);
 	bool TryParseSimple(const char* inputStr, UINT codepage, int hashAlgoIndex, FileHashInfo &fileInfo);
@@ -58,7 +58,7 @@ public:
 };
 
 // Params: context, processed bytes
-typedef bool (CALLBACK *HashingProgressFunc)(HANDLE, int64_t);
+typedef bool (CALLBACK *HashingProgressFunc)(HANDLE context, int64_t bytesProcessed);
 
 #define GENERATE_SUCCESS 0
 #define GENERATE_ERROR 1
