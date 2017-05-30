@@ -23,15 +23,7 @@ RegistrySettings::RegistrySettings( const wchar_t* RootKey )
 	m_strRegKeyName.append(SETTINGS_KEY_REGISTRY);
 
 	m_hkRegKey = 0;
-}
-
-RegistrySettings::RegistrySettings( const char* RootKey )
-{
-	m_strRegKeyName = ConvertString(RootKey);
-	m_strRegKeyName.append(L"\\");
-	m_strRegKeyName.append(SETTINGS_KEY_REGISTRY);
-
-	m_hkRegKey = 0;
+	m_fCanWrite = false;
 }
 
 RegistrySettings::~RegistrySettings()
@@ -43,7 +35,7 @@ RegistrySettings::~RegistrySettings()
 	}
 }
 
-bool RegistrySettings::Open(int CanWrite)
+bool RegistrySettings::Open(bool CanWrite)
 {
 	if (m_hkRegKey != 0)
 		return true;
@@ -55,6 +47,7 @@ bool RegistrySettings::Open(int CanWrite)
 	else
 		retVal = RegOpenKey(HKEY_CURRENT_USER, m_strRegKeyName.c_str(), &m_hkRegKey);
 
+	m_fCanWrite = CanWrite;
 	return (retVal == ERROR_SUCCESS);
 }
 
