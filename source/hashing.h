@@ -51,7 +51,7 @@ public:
 	bool SaveListSeparate(const wchar_t* baseDir, UINT codepage, int &successCount, int &failCount);
 	bool LoadList(const wchar_t* filepath, UINT codepage, bool merge);
 
-	void SetFileHash(std::wstring &fileName, std::string hashVal, rhash_ids hashAlgo);
+	void SetFileHash(const std::wstring &fileName, std::string hashVal, rhash_ids hashAlgo);
 	
 	size_t GetCount() const { return m_HashList.size(); }
 	const FileHashInfo& GetFileInfo(size_t index) const { return m_HashList.at(index); }
@@ -60,17 +60,24 @@ public:
 // Params: context, processed bytes
 typedef bool (CALLBACK *HashingProgressFunc)(HANDLE context, int64_t bytesProcessed);
 
-#define GENERATE_SUCCESS 0
-#define GENERATE_ERROR 1
-#define GENERATE_ABORTED 2
+enum class GenResult
+{
+	Success = 0,
+	Error = 1,
+	Aborted = 2
+};
 
 extern size_t FileReadBufferSize;
 
-int GenerateHash(const wchar_t* filePath, rhash_ids hashAlgo, char* result, bool useUppercase, HashingProgressFunc progressFunc, HANDLE progressContext);
+GenResult GenerateHash(const std::wstring& filePath, std::vector<rhash_ids> hashAlgos, std::vector<std::string> &results, bool useUppercase, HashingProgressFunc progressFunc, HANDLE progressContext);
+GenResult GenerateHash(const std::wstring& filePath, rhash_ids hashAlgo, std::string& result, bool useUppercase, HashingProgressFunc progressFunc, HANDLE progressContext);
+
 HashAlgoInfo* GetAlgoInfo(rhash_ids algoId);
 int GetAlgoIndex(rhash_ids algoId);
 
 // Returns list of algorithms that have matching hash pattern
 std::vector<int> DetectHashAlgo(std::string &testStr);
+
+bool SameHash(const std::string& hash1, const std::string& hash2);
 
 #endif // hashing_h__

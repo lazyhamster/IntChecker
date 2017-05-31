@@ -455,10 +455,9 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 
 	wstring workDir;
 	int nFilesSkipped = 0;
-	vector<wstring> vMismatches, vMissing;
-	vector<size_t> existingFiles;
+	std::vector<wstring> vMismatches, vMissing;
+	std::vector<size_t> existingFiles;
 	int64_t totalFilesSize = 0;
-	char hashValueBuf[150] = {0};
 
 	if (!GetPanelDir(PANEL_ACTIVE, workDir))
 		return false;
@@ -500,6 +499,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 			const FileHashInfo& fileInfo = hashes.GetFileInfo(existingFiles[i]);
 			wstring strFullFilePath = MakeAbsPath(fileInfo.Filename, workDir);
 			bool fSkipFile = false;
+			std::string hashValueStr;
 
 			progressCtx.NextFile(fileInfo.Filename, GetFileSize_i64(strFullFilePath.c_str()));
 			progressCtx.SetAlgorithm(fileInfo.GetAlgo());
@@ -508,13 +508,13 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 			{
 				progressCtx.RestartFile();
 
-				int genRetVal = GenerateHash(strFullFilePath.c_str(), fileInfo.GetAlgo(), hashValueBuf, false, FileHashingProgress, &progressCtx);
+				GenResult genRetVal = GenerateHash(strFullFilePath, fileInfo.GetAlgo(), hashValueStr, false, FileHashingProgress, &progressCtx);
 
-				if (genRetVal == GENERATE_ABORTED)
+				if (genRetVal == GenResult::Aborted)
 				{
 					fAborted = true;
 				}
-				else if (genRetVal == GENERATE_ERROR)
+				else if (genRetVal == GenResult::Error)
 				{
 					int resp = fAutoSkipErrors ? EDR_SKIP : DisplayHashGenerateError(fileInfo.Filename);
 					if (resp == EDR_RETRY)
@@ -538,7 +538,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 
 			if (fSkipFile)
 				nFilesSkipped++;
-			else if (_stricmp(fileInfo.HashStr.c_str(), hashValueBuf) != 0)
+			else if (!SameHash(fileInfo.HashStr, hashValueStr))
 				vMismatches.push_back(fileInfo.Filename);
 		} // for
 
@@ -797,7 +797,6 @@ static void RunGenerateHashes()
 
 	{
 		// Perform hashing
-		char hashValueBuf[150] = { 0 };
 		ProgressContext progressCtx((int)filesToProcess.size(), totalFilesSize);
 		progressCtx.SetAlgorithm(genParams.Algorithm);
 
@@ -808,6 +807,7 @@ static void RunGenerateHashes()
 			wstring strNextFile = *cit;
 			wstring strFullPath = strPanelDir + strNextFile;
 			bool fSaveHash = true;
+			std::string hashValueStr;
 
 			progressCtx.NextFile(strNextFile, GetFileSize_i64(strFullPath.c_str()));
 
@@ -817,14 +817,14 @@ static void RunGenerateHashes()
 
 				fSaveHash = true;
 
-				int genRetVal = GenerateHash(strFullPath.c_str(), genParams.Algorithm, hashValueBuf, optHashUppercase != 0, FileHashingProgress, &progressCtx);
+				GenResult genRetVal = GenerateHash(strFullPath, genParams.Algorithm, hashValueStr, optHashUppercase != 0, FileHashingProgress, &progressCtx);
 
-				if (genRetVal == GENERATE_ABORTED)
+				if (genRetVal == GenResult::Aborted)
 				{
 					// Exit silently
 					continueSave = false;
 				}
-				else if (genRetVal == GENERATE_ERROR)
+				else if (genRetVal == GenResult::Error)
 				{
 					int resp = fAutoSkipErrors ? EDR_SKIP : DisplayHashGenerateError(strNextFile);
 					if (resp == EDR_RETRY)
@@ -848,7 +848,7 @@ static void RunGenerateHashes()
 
 			if (fSaveHash)
 			{
-				hashes.SetFileHash(genParams.StoreAbsPaths ? strFullPath : strNextFile, hashValueBuf, genParams.Algorithm);
+				hashes.SetFileHash(genParams.StoreAbsPaths ? strFullPath : strNextFile, hashValueStr, genParams.Algorithm);
 			}
 		}
 
@@ -968,7 +968,7 @@ static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive, HANDLE
 	return false;
 }
 
-static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, ProgressContext& progressCtx, char* hashStrBuffer, bool &shouldAbort, bool &shouldSkipAllErrors)
+static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, ProgressContext& progressCtx, std::string& hashStr, bool &shouldAbort, bool &shouldSkipAllErrors)
 {
 	progressCtx.NextFile(filePath);
 	progressCtx.SetAlgorithm(hashAlgo);
@@ -980,15 +980,15 @@ static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, ProgressC
 		progressCtx.RestartFile();
 
 		// Next is hash calculation for both files
-		int genRetVal = GenerateHash(filePath.c_str(), hashAlgo, hashStrBuffer, false, FileHashingProgress, &progressCtx);
+		GenResult genRetVal = GenerateHash(filePath, hashAlgo, hashStr, false, FileHashingProgress, &progressCtx);
 
-		if (genRetVal == GENERATE_ABORTED)
+		if (genRetVal == GenResult::Aborted)
 		{
 			// Exit silently
 			shouldAbort = true;
 			return false;
 		}
-		else if (genRetVal == GENERATE_ERROR)
+		else if (genRetVal == GenResult::Error)
 		{
 			int errResp = shouldSkipAllErrors ? EDR_SKIP : DisplayHashGenerateError(filePath);
 			if (errResp == EDR_RETRY)
@@ -1061,8 +1061,6 @@ static void RunComparePanels()
 
 	std::vector<std::wstring> vMismatches, vMissing;
 	int nFilesSkipped = 0;
-	char szHashValueActive[130] = {0};
-	char szHashValuePassive[130] = {0};
 	bool fAborted = false;
 	bool fSkipAllErrors = false;
 
@@ -1097,10 +1095,13 @@ static void RunComparePanels()
 				continue;
 			}
 
-			if (RunGeneration(strActvPath, cmpAlgo, progressCtx, szHashValueActive, fAborted, fSkipAllErrors)
-				&& RunGeneration(strPasvPath, cmpAlgo, progressCtx, szHashValuePassive, fAborted, fSkipAllErrors))
+			std::string strHashValueActive;
+			std::string strHashValuePassive;
+
+			if (RunGeneration(strActvPath, cmpAlgo, progressCtx, strHashValueActive, fAborted, fSkipAllErrors)
+				&& RunGeneration(strPasvPath, cmpAlgo, progressCtx, strHashValuePassive, fAborted, fSkipAllErrors))
 			{
-				if (strcmp(szHashValueActive, szHashValuePassive) != 0)
+				if (!SameHash(strHashValueActive, strHashValuePassive))
 					vMismatches.push_back(strNextFile);
 			}
 			else
@@ -1162,14 +1163,14 @@ void RunCompareWithClipboard(std::wstring &selectedFile)
 	}
 
 	rhash_ids algo = SupportedHashes[selectedAlgoIndex].AlgoId;
-	char szHashValueBuf[150] = {0};
+	std::string strHashValue;
 	bool fAborted = false, fSkipAllErrors = false;
 
 	ProgressContext progressCtx(1, GetFileSize_i64(selectedFile.c_str()));
 
-	if (RunGeneration(selectedFile, algo, progressCtx, szHashValueBuf, fAborted, fSkipAllErrors))
+	if (RunGeneration(selectedFile, algo, progressCtx, strHashValue, fAborted, fSkipAllErrors))
 	{
-		if (_stricmp(szHashValueBuf, clipText.c_str()) == 0)
+		if (SameHash(strHashValue, clipText))
 			DisplayMessage(GetLocMsg(MSG_DLG_CALC_COMPLETE), GetLocMsg(MSG_DLG_FILE_CLIP_MATCH), NULL, false, true);
 		else
 			DisplayMessage(GetLocMsg(MSG_DLG_CALC_COMPLETE), GetLocMsg(MSG_DLG_FILE_CLIP_MISMATCH), NULL, true, true);

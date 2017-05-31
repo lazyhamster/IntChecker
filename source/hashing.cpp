@@ -90,7 +90,7 @@ int GetAlgoIndex(rhash_ids algoId)
 
 //////////////////////////////////////////////////////////////////////////
 
-void HashList::SetFileHash(std::wstring &fileName, std::string hashVal, rhash_ids hashAlgo)
+void HashList::SetFileHash(const std::wstring &fileName, std::string hashVal, rhash_ids hashAlgo)
 {
 	int index = GetFileRecordIndex(fileName.c_str());
 	if (index >= 0)
@@ -341,25 +341,34 @@ void FileHashInfo::Serialize( std::stringstream& dest, UINT codepage ) const
 
 size_t FileReadBufferSize = 32 * 1024;
 
-int GenerateHash( const wchar_t* filePath, rhash_ids hashAlgo, char* result, bool useUppercase, HashingProgressFunc progressFunc, HANDLE progressContext )
+GenResult GenerateHash(const std::wstring& filePath, std::vector<rhash_ids> hashAlgos, std::vector<std::string> &results, bool useUppercase, HashingProgressFunc progressFunc, HANDLE progressContext)
 {
+	if (hashAlgos.size() == 0)
+		return GenResult::Error;
+	
 	wstring strUniPath = PrependLongPrefix(filePath);
 	
 	HANDLE hFile = CreateFile(strUniPath.c_str(), GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, FILE_FLAG_SEQUENTIAL_SCAN, 0);
-	if (hFile == INVALID_HANDLE_VALUE) return GENERATE_ERROR;
+	if (hFile == INVALID_HANDLE_VALUE) return GenResult::Error;
 
 	char *readBuf = (char*) malloc(FileReadBufferSize);
 	DWORD numReadBytes;
 
-	int retVal = GENERATE_SUCCESS;
+	GenResult retVal = GenResult::Success;
 	int64_t totalBytes = GetFileSize_i64(hFile);
 
-	rhash hashCtx = rhash_init(hashAlgo);
-	while (retVal == GENERATE_SUCCESS && totalBytes > 0)
+	rhash_ids algo = (rhash_ids) 0;
+	for (rhash_ids nextAlgo : hashAlgos)
+	{
+		algo = (rhash_ids) (algo | nextAlgo);
+	}
+
+	rhash hashCtx = rhash_init(algo);
+	while (retVal == GenResult::Success && totalBytes > 0)
 	{
 		if (!ReadFile(hFile, readBuf, (DWORD) FileReadBufferSize, &numReadBytes, NULL) || !numReadBytes)
 		{
-			retVal = GENERATE_ERROR;
+			retVal = GenResult::Error;
 			break;
 		}
 
@@ -369,22 +378,45 @@ int GenerateHash( const wchar_t* filePath, rhash_ids hashAlgo, char* result, boo
 		if (progressFunc != NULL)
 		{
 			if (!progressFunc(progressContext, numReadBytes))
-				retVal = GENERATE_ABORTED;
+				retVal = GenResult::Aborted;
 		}
 	}
 	
-	if (retVal == GENERATE_SUCCESS)
+	if (retVal == GenResult::Success)
 	{
 		int printFlags = RHPR_HEX;
 		if (useUppercase) printFlags = printFlags | RHPR_UPPERCASE;
 
 		rhash_final(hashCtx, NULL);
-		rhash_print(result, hashCtx, hashAlgo, printFlags);
+
+		char tmpBuf[256] = { 0 };
+		for (auto nextAlgo : hashAlgos)
+		{
+			rhash_print(tmpBuf, hashCtx, nextAlgo, printFlags);
+			results.push_back(tmpBuf);
+		}
 	}
 
 	rhash_free(hashCtx);
 	CloseHandle(hFile);
 	free(readBuf);
+
+	return retVal;
+}
+
+GenResult GenerateHash(const std::wstring& filePath, rhash_ids hashAlgo, std::string& result, bool useUppercase, HashingProgressFunc progressFunc, HANDLE progressContext)
+{
+	std::vector<rhash_ids> algos;
+	algos.push_back(hashAlgo);
+
+	std::vector<std::string> results;
+
+	GenResult retVal = GenerateHash(filePath, algos, results, useUppercase, progressFunc, progressContext);
+
+	if (results.size() > 0)
+	{
+		result = results[0];
+	}
 
 	return retVal;
 }
@@ -406,4 +438,9 @@ std::vector<int> DetectHashAlgo(std::string &testStr)
 	}
 	
 	return algoIndicies;
+}
+
+bool SameHash(const std::string& hash1, const std::string& hash2)
+{
+	return _stricmp(hash1.c_str(), hash2.c_str()) == 0;
 }
