@@ -328,7 +328,45 @@ static int DisplayHashGenerateError(const std::wstring& fileName)
 	DlgLines[5] = GetLocMsg(MSG_BTN_RETRY);
 	DlgLines[6] = GetLocMsg(MSG_BTN_CANCEL);
 
-	return (int) FarSInfo.Message(&GUID_PLUGIN_MAIN, &GUID_MESSAGE_BOX, FMSG_WARNING, NULL, DlgLines, ARRAY_SIZE(DlgLines), 4);
+	return (int)FarSInfo.Message(&GUID_PLUGIN_MAIN, &GUID_MESSAGE_BOX, FMSG_WARNING, NULL, DlgLines, ARRAY_SIZE(DlgLines), 4);
+}
+
+static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, ProgressContext& progressCtx, std::string& hashStr, bool &shouldAbort, bool &shouldSkipAllErrors)
+{
+	progressCtx.NextFile(filePath);
+	progressCtx.SetAlgorithm(hashAlgo);
+
+	shouldAbort = false;
+
+	while (true)
+	{
+		progressCtx.RestartFile();
+
+		// Next is hash calculation for both files
+		GenResult genRetVal = GenerateHash(filePath, hashAlgo, hashStr, false, FileHashingProgress, &progressCtx);
+
+		if (genRetVal == GenResult::Aborted)
+		{
+			// Exit silently
+			shouldAbort = true;
+			return false;
+		}
+		else if (genRetVal == GenResult::Error)
+		{
+			int errResp = shouldSkipAllErrors ? EDR_SKIP : DisplayHashGenerateError(filePath);
+			if (errResp == EDR_RETRY)
+				continue;
+
+			shouldAbort = (errResp == EDR_ABORT);
+			shouldSkipAllErrors = shouldSkipAllErrors || (errResp == EDR_SKIPALL);
+
+			return false;
+		}
+
+		break;
+	}
+
+	return true;
 }
 
 static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, std::vector<std::wstring> &vMissingList, int numSkipped)
@@ -497,49 +535,23 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 		for (size_t i = 0; i < existingFiles.size(); i++)
 		{
 			const FileHashInfo& fileInfo = hashes.GetFileInfo(existingFiles[i]);
+
 			wstring strFullFilePath = MakeAbsPath(fileInfo.Filename, workDir);
-			bool fSkipFile = false;
 			std::string hashValueStr;
 
-			progressCtx.NextFile(fileInfo.Filename, GetFileSize_i64(strFullFilePath.c_str()));
-			progressCtx.SetAlgorithm(fileInfo.GetAlgo());
-
-			while (true)
+			if (RunGeneration(strFullFilePath, fileInfo.GetAlgo(), progressCtx, hashValueStr, fAborted, fAutoSkipErrors))
 			{
-				progressCtx.RestartFile();
-
-				GenResult genRetVal = GenerateHash(strFullFilePath, fileInfo.GetAlgo(), hashValueStr, false, FileHashingProgress, &progressCtx);
-
-				if (genRetVal == GenResult::Aborted)
-				{
-					fAborted = true;
-				}
-				else if (genRetVal == GenResult::Error)
-				{
-					int resp = fAutoSkipErrors ? EDR_SKIP : DisplayHashGenerateError(fileInfo.Filename);
-					if (resp == EDR_RETRY)
-						continue;
-					else if (resp == EDR_SKIP)
-						fSkipFile = true;
-					else if (resp == EDR_SKIPALL)
-					{
-						fSkipFile = true;
-						fAutoSkipErrors = true;
-					}
-					else
-						fAborted = true;
-				}
-
-				// Always break if not said otherwise
+				if (!SameHash(fileInfo.HashStr, hashValueStr))
+					vMismatches.push_back(fileInfo.Filename);
+			}
+			else if (fAborted)
+			{
 				break;
-			} // while
-				
-			if (fAborted) break;
-
-			if (fSkipFile)
+			}
+			else
+			{
 				nFilesSkipped++;
-			else if (!SameHash(fileInfo.HashStr, hashValueStr))
-				vMismatches.push_back(fileInfo.Filename);
+			}
 		} // for
 
 		if (!fAborted)
@@ -806,49 +818,18 @@ static void RunGenerateHashes()
 		{
 			wstring strNextFile = *cit;
 			wstring strFullPath = strPanelDir + strNextFile;
-			bool fSaveHash = true;
+			
 			std::string hashValueStr;
+			bool fShouldAbort = false;
 
-			progressCtx.NextFile(strNextFile, GetFileSize_i64(strFullPath.c_str()));
-
-			while (true)
-			{
-				progressCtx.RestartFile();
-
-				fSaveHash = true;
-
-				GenResult genRetVal = GenerateHash(strFullPath, genParams.Algorithm, hashValueStr, optHashUppercase != 0, FileHashingProgress, &progressCtx);
-
-				if (genRetVal == GenResult::Aborted)
-				{
-					// Exit silently
-					continueSave = false;
-				}
-				else if (genRetVal == GenResult::Error)
-				{
-					int resp = fAutoSkipErrors ? EDR_SKIP : DisplayHashGenerateError(strNextFile);
-					if (resp == EDR_RETRY)
-						continue;
-					else if (resp == EDR_SKIP)
-						fSaveHash = false;
-					else if (resp == EDR_SKIPALL)
-					{
-						fSaveHash = false;
-						fAutoSkipErrors = true;
-					}
-					else
-						continueSave = false;
-				}
-
-				// Always break if not said otherwise
-				break;
-			}
-
-			if (!continueSave) break;
-
-			if (fSaveHash)
+			if (RunGeneration(strFullPath, genParams.Algorithm, progressCtx, hashValueStr, fShouldAbort, fAutoSkipErrors))
 			{
 				hashes.SetFileHash(genParams.StoreAbsPaths ? strFullPath : strNextFile, hashValueStr, genParams.Algorithm);
+			}
+			else if (fShouldAbort)
+			{
+				continueSave = false;
+				break;
 			}
 		}
 
@@ -876,10 +857,15 @@ static void RunGenerateHashes()
 		int numGood, numBad;
 		saveSuccess = hashes.SaveListSeparate(strPanelDir.c_str(), genParams.OutputFileCodepage, numGood, numBad);
 	}
-	else
+	else if (genParams.OutputTarget == OT_DISPLAY)
 	{
 		saveSuccess = true;
 		DisplayHashListOnScreen(hashes);
+	}
+	else
+	{
+		// Something went wrong. This should not happen.
+		DisplayMessage(L"Error", L"Invalid output target", nullptr, true, true);
 	}
 
 	// Clear selection if requested
@@ -966,44 +952,6 @@ static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive, HANDLE
 	}
 
 	return false;
-}
-
-static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, ProgressContext& progressCtx, std::string& hashStr, bool &shouldAbort, bool &shouldSkipAllErrors)
-{
-	progressCtx.NextFile(filePath);
-	progressCtx.SetAlgorithm(hashAlgo);
-
-	shouldAbort = false;
-
-	while (true)
-	{
-		progressCtx.RestartFile();
-
-		// Next is hash calculation for both files
-		GenResult genRetVal = GenerateHash(filePath, hashAlgo, hashStr, false, FileHashingProgress, &progressCtx);
-
-		if (genRetVal == GenResult::Aborted)
-		{
-			// Exit silently
-			shouldAbort = true;
-			return false;
-		}
-		else if (genRetVal == GenResult::Error)
-		{
-			int errResp = shouldSkipAllErrors ? EDR_SKIP : DisplayHashGenerateError(filePath);
-			if (errResp == EDR_RETRY)
-				continue;
-
-			shouldAbort = (errResp == EDR_ABORT);
-			shouldSkipAllErrors = shouldSkipAllErrors || (errResp == EDR_SKIPALL);
-
-			return false;
-		}
-
-		break;
-	}
-
-	return true;
 }
 
 static void RunComparePanels()
