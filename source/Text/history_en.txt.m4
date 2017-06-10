@@ -1,5 +1,8 @@
 Changes history:
 
+2.6.1
+- Fixed crash during hashing speed calculations.
+
 2.6.0
 - New hashing progress dialog.
 

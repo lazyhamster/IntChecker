@@ -253,7 +253,7 @@ static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 		std::wstring strPBarTotal = ProgressBarString(nTotalProgress, cntProgressDialogWidth);
 
 		int64_t elapsedTime = prCtx->GetElapsedTimeMS();
-		int64_t avgSpeed = prCtx->TotalProcessedBytes ? (prCtx->TotalProcessedBytes * 1000) / elapsedTime : 0;
+		int64_t avgSpeed = (elapsedTime > 0) ? (prCtx->TotalProcessedBytes * 1000) / elapsedTime : 0;
 		
 		std::wstring elapsedTimeStr = L"Time: " + DurationToString(elapsedTime);
 		std::wstring avgSpeedStr = FileSizeToString(avgSpeed, false) + L"/s";
