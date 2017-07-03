@@ -1,5 +1,8 @@
 Changes history:
 
+2.6.2
+- Fixed broken hash uppercase option (regression).
+
 2.6.1
 - Fixed crash during hashing speed calculations.
 

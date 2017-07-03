@@ -364,7 +364,7 @@ static int DisplayHashGenerateError(const std::wstring& fileName)
 	return FarSInfo.Message(FarSInfo.ModuleNumber, FMSG_WARNING, NULL, DlgLines, ARRAY_SIZE(DlgLines), 4);
 }
 
-static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, ProgressContext& progressCtx, std::string& hashStr, bool &shouldAbort, bool &shouldSkipAllErrors)
+static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, bool useHashUppercase, ProgressContext& progressCtx, std::string& hashStr, bool &shouldAbort, bool &shouldSkipAllErrors)
 {
 	progressCtx.NextFile(filePath);
 	progressCtx.SetAlgorithm(hashAlgo);
@@ -376,7 +376,7 @@ static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, ProgressC
 		progressCtx.RestartFile();
 
 		// Next is hash calculation for both files
-		GenResult genRetVal = GenerateHash(filePath, hashAlgo, hashStr, false, FileHashingProgress, &progressCtx);
+		GenResult genRetVal = GenerateHash(filePath, hashAlgo, hashStr, useHashUppercase, FileHashingProgress, &progressCtx);
 
 		if (genRetVal == GenResult::Aborted)
 		{
@@ -607,7 +607,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 				wstring strFullFilePath = MakeAbsPath(fileInfo.Filename, workDir);
 				std::string hashValueStr;
 
-				if (RunGeneration(strFullFilePath, fileInfo.GetAlgo(), progressCtx, hashValueStr, fAborted, fAutoSkipErrors))
+				if (RunGeneration(strFullFilePath, fileInfo.GetAlgo(), false, progressCtx, hashValueStr, fAborted, fAutoSkipErrors))
 				{
 					if (!SameHash(fileInfo.HashStr, hashValueStr))
 						vMismatches.push_back(fileInfo.Filename);
@@ -870,7 +870,7 @@ static void RunGenerateHashes()
 			std::string hashValueStr;
 			bool fShouldAbort = false;
 
-			if (RunGeneration(strFullPath, genAlgo, progressCtx, hashValueStr, fShouldAbort, fAutoSkipErrors))
+			if (RunGeneration(strFullPath, genAlgo, optHashUppercase != FALSE, progressCtx, hashValueStr, fShouldAbort, fAutoSkipErrors))
 			{
 				hashes.SetFileHash(storeAbsPaths ? strFullPath : strNextFile, hashValueStr, genAlgo);
 			}
@@ -1064,8 +1064,8 @@ static void RunComparePanels()
 			std::string strHashValueActive;
 			std::string strHashValuePassive;
 
-			if (RunGeneration(strActvPath, cmpAlgo, progressCtx, strHashValueActive, fAborted, fSkipAllErrors)
-				&& RunGeneration(strPasvPath, cmpAlgo, progressCtx, strHashValuePassive, fAborted, fSkipAllErrors))
+			if (RunGeneration(strActvPath, cmpAlgo, false, progressCtx, strHashValueActive, fAborted, fSkipAllErrors)
+				&& RunGeneration(strPasvPath, cmpAlgo, false, progressCtx, strHashValuePassive, fAborted, fSkipAllErrors))
 			{
 				if (!SameHash(strHashValueActive, strHashValuePassive))
 					vMismatches.push_back(strNextFile);
@@ -1134,7 +1134,7 @@ void RunCompareWithClipboard(std::wstring &selectedFile)
 
 	ProgressContext progressCtx(1, GetFileSize_i64(selectedFile.c_str()));
 
-	if (RunGeneration(selectedFile, algo, progressCtx, strHashValue, fAborted, fSkipAllErrors))
+	if (RunGeneration(selectedFile, algo, false, progressCtx, strHashValue, fAborted, fSkipAllErrors))
 	{
 		if (SameHash(strHashValue, clipText))
 			DisplayMessage(GetLocMsg(MSG_DLG_CALC_COMPLETE), GetLocMsg(MSG_DLG_FILE_CLIP_MATCH), NULL, false, true);
