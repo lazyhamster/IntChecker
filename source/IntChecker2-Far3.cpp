@@ -307,7 +307,7 @@ static void SelectFilesOnPanel(HANDLE hPanel, std::vector<std::wstring> &fileNam
 			bool isNameInList = std::find(fileNames.begin(), fileNames.end(), PPI->FileName) != fileNames.end();
 			if (isNameInList || exclusive)
 			{
-				FarSInfo.PanelControl(hPanel, FCTL_SETSELECTION, i, (void*) (isNameInList ? TRUE : FALSE));
+				FarSInfo.PanelControl(hPanel, FCTL_SETSELECTION, i, (void*)(UINT_PTR)(isNameInList ? TRUE : FALSE));
 			}
 			free(PPI);
 		}
@@ -604,7 +604,7 @@ static intptr_t WINAPI HashParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t Par
 		}
 		else if (Param1 == nUseFilterBoxIndex)
 		{
-			FarSInfo.SendDlgMessage(hDlg, DM_ENABLE, nFilterButtonIndex, (void*) (Param2 ? TRUE : FALSE));
+			FarSInfo.SendDlgMessage(hDlg, DM_ENABLE, nFilterButtonIndex, (void*)(UINT_PTR)(Param2 ? TRUE : FALSE));
 		}
 		else if (Param1 == nFilterButtonIndex)
 		{
@@ -893,7 +893,7 @@ static intptr_t WINAPI CompareParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t 
 	{
 		if (Param1 == nUseFilterBoxIndex)
 		{
-			FarSInfo.SendDlgMessage(hDlg, DM_ENABLE, nFilterButtonIndex, (void*) (Param2 ? TRUE : FALSE));
+			FarSInfo.SendDlgMessage(hDlg, DM_ENABLE, nFilterButtonIndex, (void*)(UINT_PTR)(Param2 ? TRUE : FALSE));
 		}
 		else if (Param1 == nFilterButtonIndex)
 		{
