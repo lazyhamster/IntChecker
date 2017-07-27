@@ -289,6 +289,11 @@ void TrimStr(std::string &str)
 		str.erase(0, 1);
 }
 
+bool SameText(const wchar_t* str1, const wchar_t* str2)
+{
+	return _wcsicmp(str1, str2) == 0;
+}
+
 std::wstring PrependLongPrefix(const std::wstring &basePath)
 {
 	std::wstring finalPath = basePath;

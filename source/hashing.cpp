@@ -88,6 +88,16 @@ int GetAlgoIndex(rhash_ids algoId)
 	return -1;
 }
 
+int GetAlgoIndexByName(const wchar_t* name)
+{
+	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
+	{
+		if (SameText(SupportedHashes[i].AlgoName.c_str(), name))
+			return i;
+	}
+	return -1;
+}
+
 //////////////////////////////////////////////////////////////////////////
 
 void HashList::SetFileHash(const std::wstring &fileName, std::string hashVal, rhash_ids hashAlgo)

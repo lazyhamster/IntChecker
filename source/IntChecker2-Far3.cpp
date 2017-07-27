@@ -179,6 +179,14 @@ static bool GetFarWindowSize(RectSize &size)
 	return false;
 }
 
+static const wchar_t* GetMacroStringValue(OpenMacroInfo *macroInfo, int index)
+{
+	if (macroInfo->Values[index].Type == FMVT_STRING)
+		return macroInfo->Values[index].String;
+
+	return L"";
+}
+
 // --------------------------------------- Local functions ---------------------------------------------------
 
 static void LoadSettings()
@@ -1128,6 +1136,40 @@ void RunCompareWithClipboard(std::wstring &selectedFile)
 	FarAdvControl(ACTL_PROGRESSNOTIFY, 0, NULL);
 }
 
+static bool CalculateHashByAlgoName(const wchar_t* algoName, const wchar_t* path, wchar_t* hashBuf, size_t hashBufSize)
+{
+	int algoIndex = GetAlgoIndexByName(algoName);
+	if (algoIndex < 0) return false;
+
+	int64_t fileSize = GetFileSize_i64(path);
+	if (fileSize <= 0) return false;
+
+	rhash_ids algo = SupportedHashes[algoIndex].AlgoId;
+	std::string strHashValue;
+	bool fAborted = false, fSkipAllErrors = false;
+
+	ProgressContext progressCtx(1, fileSize);
+
+	if (RunGeneration(path, algo, optHashUppercase != FALSE, progressCtx, strHashValue, fAborted, fSkipAllErrors))
+	{
+		memset(hashBuf, 0, hashBufSize * sizeof(wchar_t));
+		MultiByteToWideChar(CP_UTF8, 0, strHashValue.c_str(), -1, hashBuf, hashBufSize);
+	}
+
+	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);
+	FarAdvControl(ACTL_PROGRESSNOTIFY, 0, NULL);
+	
+	return true;
+}
+
+static void WINAPI FreeMacroCall(void *CallbackData, struct FarMacroValue *Values, size_t Count)
+{
+	FarMacroCall* macroCall = (FarMacroCall*)CallbackData;
+
+	delete macroCall->Values;
+	delete macroCall;
+}
+
 //-----------------------------------  Export functions ----------------------------------------
 
 void WINAPI GetGlobalInfoW(struct GlobalInfo *Info)
@@ -1280,6 +1322,40 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 		}
 
 		openMenu.RunEx();
+	}
+	else if (OInfo->OpenFrom == OPEN_FROMMACRO)
+	{
+		OpenMacroInfo *macroInfo = (OpenMacroInfo*)OInfo->Data;
+
+		if (macroInfo->StructSize != sizeof(OpenMacroInfo))
+			return 0;
+		if (macroInfo->Count != 3)
+			return 0;
+
+		const wchar_t* strOp = GetMacroStringValue(macroInfo, 0);
+		const wchar_t* strAlgoName = GetMacroStringValue(macroInfo, 1);
+		const wchar_t* strTarget = GetMacroStringValue(macroInfo, 2);
+
+		if (SameText(strOp, L"gethash"))
+		{
+			static wchar_t hashValue[256] = { 0 };
+			
+			if (CalculateHashByAlgoName(strAlgoName, strTarget, hashValue, _countof(hashValue)))
+			{
+				FarMacroValue *macroVal = new FarMacroValue();
+				macroVal->Type = FMVT_STRING;
+				macroVal->String = hashValue;
+
+				FarMacroCall *macroCall = new FarMacroCall();
+				macroCall->StructSize = sizeof(FarMacroCall);
+				macroCall->Count = 1;
+				macroCall->Values = macroVal;
+				macroCall->Callback = FreeMacroCall;
+				macroCall->CallbackData = macroCall;
+
+				return macroCall;
+			}
+		}
 	}
 
 	return NULL;

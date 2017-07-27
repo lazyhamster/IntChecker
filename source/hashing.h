@@ -74,6 +74,7 @@ GenResult GenerateHash(const std::wstring& filePath, rhash_ids hashAlgo, std::st
 
 HashAlgoInfo* GetAlgoInfo(rhash_ids algoId);
 int GetAlgoIndex(rhash_ids algoId);
+int GetAlgoIndexByName(const wchar_t* name);
 
 // Returns list of algorithms that have matching hash pattern
 std::vector<int> DetectHashAlgo(std::string &testStr);
