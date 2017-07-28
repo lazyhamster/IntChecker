@@ -1153,7 +1153,7 @@ static bool CalculateHashByAlgoName(const wchar_t* algoName, const wchar_t* path
 	if (RunGeneration(path, algo, optHashUppercase != FALSE, progressCtx, strHashValue, fAborted, fSkipAllErrors))
 	{
 		memset(hashBuf, 0, hashBufSize * sizeof(wchar_t));
-		MultiByteToWideChar(CP_UTF8, 0, strHashValue.c_str(), -1, hashBuf, hashBufSize);
+		MultiByteToWideChar(CP_UTF8, 0, strHashValue.c_str(), -1, hashBuf, (int) hashBufSize);
 	}
 
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);
