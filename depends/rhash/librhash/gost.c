@@ -45,7 +45,7 @@ void rhash_gost_cryptopro_init(gost_ctx *ctx)
 	ctx->cryptpro = 1;
 }
 
-#if defined(__GNUC__) && defined(CPU_IA32) && !defined(RHASH_NO_ASM)
+#if defined(__GNUC__) && defined(CPU_IA32) && !defined(__clang__) && !defined(RHASH_NO_ASM)
 # define USE_GCC_ASM_IA32
 #elif defined(__GNUC__) && defined(CPU_X64) && !defined(RHASH_NO_ASM)
 # define USE_GCC_ASM_X64
@@ -454,7 +454,7 @@ static void rhash_gost_fill_sbox(unsigned out[4][256], const unsigned char src[8
 void rhash_gost_init_table(void)
 {
 	/* Test parameters set. Eight 4-bit S-Boxes defined by GOST R 34.10-94
-	 * standart for testing the hash function.
+	 * standard for testing the hash function.
 	 * Also given by RFC 4357 section 11.2 */
 	static const unsigned char sbox[8][16] = {
 		{  4, 10,  9,  2, 13,  8,  0, 14,  6, 11,  1, 12,  7, 15,  5,  3 },

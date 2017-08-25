@@ -38,6 +38,8 @@ extern "C" {
 /* detect CPU endianness */
 #if (defined(__BYTE_ORDER) && defined(__LITTLE_ENDIAN) && \
 		__BYTE_ORDER == __LITTLE_ENDIAN) || \
+	(defined(__BYTE_ORDER__) && defined(__ORDER_LITTLE_ENDIAN__) && \
+		__BYTE_ORDER__ == __ORDER_LITTLE_ENDIAN__) || \
 	defined(CPU_IA32) || defined(CPU_X64) || \
 	defined(__ia64) || defined(__ia64__) || defined(__alpha__) || defined(_M_ALPHA) || \
 	defined(vax) || defined(MIPSEL) || defined(_ARM_) || defined(__arm__)
@@ -46,6 +48,8 @@ extern "C" {
 # define IS_LITTLE_ENDIAN 1
 #elif (defined(__BYTE_ORDER) && defined(__BIG_ENDIAN) && \
 		__BYTE_ORDER == __BIG_ENDIAN) || \
+	(defined(__BYTE_ORDER__) && defined(__ORDER_BIG_ENDIAN__) && \
+		__BYTE_ORDER__ == __ORDER_BIG_ENDIAN__) || \
 	defined(__sparc) || defined(__sparc__) || defined(sparc) || \
 	defined(_ARCH_PPC) || defined(_ARCH_PPC64) || defined(_POWER) || \
 	defined(__POWERPC__) || defined(POWERPC) || defined(__powerpc) || \
@@ -57,6 +61,10 @@ extern "C" {
 # define IS_LITTLE_ENDIAN 0
 #else
 # error "Can't detect CPU architechture"
+#endif
+
+#ifndef __has_builtin
+# define __has_builtin(x) 0
 #endif
 
 #define IS_ALIGNED_32(p) (0 == (3 & ((const char*)(p) - (const char*)0)))
@@ -74,11 +82,22 @@ extern "C" {
 #if defined(_MSC_VER) || defined(__BORLANDC__)
 #define I64(x) x##ui64
 #else
-#define I64(x) x##LL
+#define I64(x) x##ULL
 #endif
 
-/* convert a hash flag to index */
-#if __GNUC__ >= 4 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4) /* GCC < 3.4 */
+
+#ifndef __STRICT_ANSI__
+#define RHASH_INLINE inline
+#elif defined(__GNUC__)
+#define RHASH_INLINE __inline__
+#else
+#define RHASH_INLINE
+#endif
+
+/* define rhash_ctz - count traling zero bits */
+#if (defined(__GNUC__) && __GNUC__ >= 4 || (__GNUC__ == 3 && __GNUC_MINOR__ >= 4)) || \
+    (defined(__clang__) && __has_builtin(__builtin_ctz))
+/* GCC >= 3.4 or clang */
 # define rhash_ctz(x) __builtin_ctz(x)
 #else
 unsigned rhash_ctz(unsigned); /* define as function */
@@ -89,35 +108,29 @@ void rhash_swap_copy_str_to_u64(void* to, int index, const void* from, size_t le
 void rhash_swap_copy_u64_to_str(void* to, const void* from, size_t length);
 void rhash_u32_mem_swap(unsigned *p, int length_in_u32);
 
-/* define bswap_32 */
-#if defined(__GNUC__) && defined(CPU_IA32) && !defined(__i386__)
-/* for intel x86 CPU */
-static inline uint32_t bswap_32(uint32_t x) {
-	__asm("bswap\t%0" : "=r" (x) : "0" (x));
-	return x;
-}
-#elif defined(__GNUC__)  && (__GNUC__ >= 4) && (__GNUC__ > 4 || __GNUC_MINOR__ >= 3)
-/* for GCC >= 4.3 */
+/* bswap definitions */
+#if (defined(__GNUC__) && (__GNUC__ >= 4) && (__GNUC__ > 4 || __GNUC_MINOR__ >= 3)) || \
+    (defined(__clang__) && __has_builtin(__builtin_bswap32) && __has_builtin(__builtin_bswap64))
+/* GCC >= 4.3 or clang */
 # define bswap_32(x) __builtin_bswap32(x)
-#elif (_MSC_VER > 1300) && (defined(CPU_IA32) || defined(CPU_X64)) /* MS VC */
-# define bswap_32(x) _byteswap_ulong((unsigned long)x)
-#elif !defined(__STRICT_ANSI__)
-/* general bswap_32 definition */
-static inline uint32_t bswap_32(uint32_t x) {
-	x = ((x << 8) & 0xFF00FF00) | ((x >> 8) & 0x00FF00FF);
-	return (x >> 16) | (x << 16);
-}
-#else
-#define bswap_32(x) ((((x) & 0xff000000) >> 24) | (((x) & 0x00ff0000) >>  8) | \
-	(((x) & 0x0000ff00) <<  8) | (((x) & 0x000000ff) << 24))
-#endif /* bswap_32 */
-
-#if defined(__GNUC__) && (__GNUC__ >= 4) && (__GNUC__ > 4 || __GNUC_MINOR__ >= 3)
 # define bswap_64(x) __builtin_bswap64(x)
 #elif (_MSC_VER > 1300) && (defined(CPU_IA32) || defined(CPU_X64)) /* MS VC */
+# define bswap_32(x) _byteswap_ulong((unsigned long)x)
 # define bswap_64(x) _byteswap_uint64((__int64)x)
-#elif !defined(__STRICT_ANSI__)
-static inline uint64_t bswap_64(uint64_t x) {
+#else
+/* fallback to generic bswap definition */
+static RHASH_INLINE uint32_t bswap_32(uint32_t x)
+{
+# if defined(__GNUC__) && defined(CPU_IA32) && !defined(__i386__) && !defined(RHASH_NO_ASM)
+	__asm("bswap\t%0" : "=r" (x) : "0" (x)); /* gcc x86 version */
+	return x;
+# else
+	x = ((x << 8) & 0xFF00FF00u) | ((x >> 8) & 0x00FF00FFu);
+	return (x >> 16) | (x << 16);
+# endif
+}
+static RHASH_INLINE uint64_t bswap_64(uint64_t x)
+{
 	union {
 		uint64_t ll;
 		uint32_t l[2];
@@ -127,9 +140,7 @@ static inline uint64_t bswap_64(uint64_t x) {
 	r.l[1] = bswap_32(w.l[0]);
 	return r.ll;
 }
-#else
-#error "bswap_64 unsupported"
-#endif
+#endif /* bswap definitions */
 
 #ifdef CPU_BIG_ENDIAN
 # define be2me_32(x) (x)

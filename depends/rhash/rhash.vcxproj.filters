@@ -87,9 +87,6 @@
     <ClCompile Include="librhash\sha3.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="librhash\util.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="librhash\aich.h">

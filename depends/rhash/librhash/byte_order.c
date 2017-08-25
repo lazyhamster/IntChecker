@@ -15,7 +15,7 @@
  */
 #include "byte_order.h"
 
-#if !(__GNUC__ >= 4 || (__GNUC__ ==3 && __GNUC_MINOR__ >= 4)) /* if !GCC or GCC < 4.3 */
+#ifndef rhash_ctz
 
 #  if _MSC_VER >= 1300 && (_M_IX86 || _M_AMD64 || _M_IA64) /* if MSVC++ >= 2002 on x86/x64 */
 #  include <intrin.h>
@@ -59,7 +59,7 @@ unsigned rhash_ctz(unsigned x)
 	return (unsigned)bit_pos[((uint32_t)((x & -x) * 0x077CB531U)) >> 27];
 }
 #  endif /* _MSC_VER >= 1300... */
-#endif /* !(GCC >= 4.3) */
+#endif /* rhash_ctz */
 
 /**
  * Copy a memory block with simultaneous exchanging byte order.
@@ -79,10 +79,12 @@ void rhash_swap_copy_str_to_u32(void* to, int index, const void* from, size_t le
 		const uint32_t* src = (const uint32_t*)from;
 		const uint32_t* end = (const uint32_t*)((const char*)src + length);
 		uint32_t* dst = (uint32_t*)((char*)to + index);
-		while (src < end) *(dst++) = bswap_32( *(src++) );
+		for (; src < end; dst++, src++)
+			*dst = bswap_32(*src);
 	} else {
 		const char* src = (const char*)from;
-		for (length += index; (size_t)index < length; index++) ((char*)to)[index ^ 3] = *(src++);
+		for (length += index; (size_t)index < length; index++)
+			((char*)to)[index ^ 3] = *(src++);
 	}
 }
 
