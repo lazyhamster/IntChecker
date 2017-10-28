@@ -5,7 +5,7 @@
 #include <boost/regex.hpp>
 
 HashAlgoInfo SupportedHashes[] = {
-	{ RHASH_CRC32,     L"CRC32",     L".sfv",    "^(?<path>[^<>|?*\\n]+)\\s(?<hash>[A-Za-z\\d]{8})$",         8 },
+	{ RHASH_CRC32,     L"CRC32",     L".sfv",    "^(?<path>[^<>|?*\\n]+?)\\s+(?<hash>[A-Za-z\\d]{8})$",         8 },
 	{ RHASH_MD5,       L"MD5",       L".md5",    "^(?<hash>[A-Za-z\\d]{32})\\s[\\s*](?<path>(?:\\\\\\\\\\?\\\\)?[^<>|?*\\n]+)$",  32 },
 	{ RHASH_SHA1,      L"SHA1",      L".sha1",   "^(?<hash>[A-Za-z\\d]{40})\\s[\\s*](?<path>(?:\\\\\\\\\\?\\\\)?[^<>|?*\\n]+)$",  40 },
 	{ RHASH_SHA256,    L"SHA-256",   L".sha256", "^(?<hash>[A-Za-z\\d]{64})\\s[\\s*](?<path>(?:\\\\\\\\\\?\\\\)?[^<>|?*\\n]+)$",  64 },
