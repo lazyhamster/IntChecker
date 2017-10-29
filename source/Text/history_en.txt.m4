@@ -3,6 +3,7 @@ Changes history:
 2.7.0
 - Added ability to use plugin from lua macros (e.g. IntChecker.GetFileHash.lua).
 - Fixed loading of the hashlists that have paths stored in UNC format.
+- Added validation option to ignore missing files.
 - Updated Spanish translation (thanks to Mauro72).
 
 2.6.2

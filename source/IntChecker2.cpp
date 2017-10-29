@@ -490,7 +490,7 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 	}
 }
 
-static bool AskValidationFileParams(UINT &codepage)
+static bool AskValidationFileParams(UINT &codepage, int &ignoreMissingFiles)
 {
 	const wchar_t* codePageNames[] = {L"UTF-8", L"ANSI", L"OEM"};
 	const UINT codePageValues[] = {CP_UTF8, CP_ACP, CP_OEMCP};
@@ -498,13 +498,14 @@ static bool AskValidationFileParams(UINT &codepage)
 	FarListItem cpListItems[ARRAY_SIZE(codePageNames)] = {0};
 	FarList cpDlgList = {ARRAY_SIZE(codePageNames), cpListItems};
 
-	FarDialogItem DialogItems []={
-		/*00*/ {DI_DOUBLEBOX, 3, 1,30, 5, 0, 0, 0,0, GetLocMsg(MSG_MENU_VALIDATE), 0},
-		/*01*/ {DI_TEXT,	  5, 2, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_CODEPAGE), 0},
-		/*02*/ {DI_COMBOBOX,  5, 2, 0, 0, 0, (DWORD_PTR)&cpDlgList, DIF_DROPDOWNLIST, 0, NULL, 0},
-		/*03*/ {DI_TEXT,	  3, 3, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
-		/*04*/ {DI_BUTTON,	  0, 4, 0, 0, 1, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_RUN), 0},
-		/*05*/ {DI_BUTTON,    0, 4, 0, 0, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
+	FarDialogItem DialogItems[] = {
+		/*00*/ { DI_DOUBLEBOX, 3, 1,30, 6, 0, 0, 0,0, GetLocMsg(MSG_MENU_VALIDATE), 0},
+		/*01*/ { DI_TEXT,	   5, 2, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_CODEPAGE), 0},
+		/*02*/ { DI_COMBOBOX,  5, 2, 0, 0, 0, (DWORD_PTR)&cpDlgList, DIF_DROPDOWNLIST, 0, NULL, 0},
+		/*03*/ { DI_CHECKBOX,  5, 3, 0, 0, 0, ignoreMissingFiles, 0, 0, GetLocMsg(MSG_DLG_IGNORE_MISSING), 0 },
+		/*04*/ { DI_TEXT,	   3, 4, 0, 0, 0, 0, DIF_BOXCOLOR | DIF_SEPARATOR, 0, L"", 0 },
+		/*05*/ { DI_BUTTON,	   0, 5, 0, 0, 1, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_RUN), 0},
+		/*06*/ { DI_BUTTON,    0, 5, 0, 0, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
 	};
 
 	for (int i = 0; i < ARRAY_SIZE(codePageValues); i++)
@@ -521,7 +522,7 @@ static bool AskValidationFileParams(UINT &codepage)
 	// Expand right border of the dialog if text is too long to fit
 	int borderX2 = AdjustDialogBorder(DialogItems, ARRAY_SIZE(DialogItems));
 
-	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, borderX2 + 4, 7, L"ValidationParams",
+	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, borderX2 + 4, 8, L"ValidationParams",
 		DialogItems, sizeof(DialogItems) / sizeof(DialogItems[0]), 0, 0, FarSInfo.DefDlgProc, 0);
 
 	int nOkID = ARRAY_SIZE(DialogItems) - 2;
@@ -533,6 +534,7 @@ static bool AskValidationFileParams(UINT &codepage)
 		{
 			int selectedCodepage = (int) DlgList_GetCurPos(FarSInfo, hDlg, 2);
 			codepage = codePageValues[selectedCodepage];
+			ignoreMissingFiles = DlgItem_GetCheck(FarSInfo, hDlg, 3);
 		}
 		FarSInfo.DialogFree(hDlg);
 
@@ -546,8 +548,9 @@ static bool AskValidationFileParams(UINT &codepage)
 static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool showParamsDialog)
 {
 	UINT fileCodepage = optListDefaultCodepage;
+	int ignoreMissingFiles = optIgnoreMissingFiles;
 
-	if (!silent && showParamsDialog && !AskValidationFileParams(fileCodepage))
+	if (!silent && showParamsDialog && !AskValidationFileParams(fileCodepage, ignoreMissingFiles))
 		return false;
 	
 	HashList hashes;
@@ -560,8 +563,8 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 
 	wstring workDir;
 	int nFilesSkipped = 0;
-	vector<wstring> vMismatches, vMissing;
-	vector<size_t> existingFiles;
+	std::vector<wstring> vMismatches, vMissing;
+	std::vector<size_t> existingFiles;
 	int64_t totalFilesSize = 0;
 
 	if (!GetPanelDir(PANEL_ACTIVE, workDir))
@@ -586,7 +589,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 				existingFiles.push_back(i);
 				totalFilesSize += fileSize;
 			}
-			else
+			else if (!ignoreMissingFiles)
 			{
 				vMissing.push_back(fileInfo.Filename);
 			}

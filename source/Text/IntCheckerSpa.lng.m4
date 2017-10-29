@@ -65,6 +65,7 @@
 "Seleccionar algoritmo"
 "Archivos:"
 "Bytes:"
+"*Ignore missing files*"
 
 "Generar"
 "Algoritmo"

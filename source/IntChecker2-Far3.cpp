@@ -456,7 +456,7 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 	}
 }
 
-static bool AskValidationFileParams(UINT &codepage)
+static bool AskValidationFileParams(UINT &codepage, int &ignoreMissingFiles)
 {
 	const wchar_t* codePageNames[] = {L"UTF-8", L"ANSI", L"OEM"};
 	const UINT codePageValues[] = {CP_UTF8, CP_ACP, CP_OEMCP};
@@ -471,6 +471,7 @@ static bool AskValidationFileParams(UINT &codepage)
 
 	auto cpBox = dlgBuilder.AddComboBox(&selectedCP, NULL, 8, codePageNames, ARRAY_SIZE(codePageNames), DIF_DROPDOWNLIST);
 	dlgBuilder.AddTextBefore(cpBox, MSG_GEN_CODEPAGE);
+	dlgBuilder.AddCheckbox(MSG_DLG_IGNORE_MISSING, &ignoreMissingFiles);
 	dlgBuilder.AddOKCancel(MSG_BTN_RUN, MSG_BTN_CANCEL);
 
 	if (dlgBuilder.ShowDialog())
@@ -487,8 +488,9 @@ static bool AskValidationFileParams(UINT &codepage)
 static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool showParamsDialog)
 {
 	UINT fileCodepage = optListDefaultCodepage;
+	int ignoreMissingFiles = optIgnoreMissingFiles;
 
-	if (!silent && showParamsDialog && !AskValidationFileParams(fileCodepage))
+	if (!silent && showParamsDialog && !AskValidationFileParams(fileCodepage, ignoreMissingFiles))
 		return false;
 	
 	HashList hashes;
@@ -508,7 +510,6 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 	if (!GetPanelDir(PANEL_ACTIVE, workDir))
 		return false;
 
-	// Win7 only feature
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_INDETERMINATE, NULL);
 
 	// Prepare files list
@@ -527,7 +528,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 				existingFiles.push_back(i);
 				totalFilesSize += fileSize;
 			}
-			else
+			else if (!ignoreMissingFiles)
 			{
 				vMissing.push_back(fileInfo.Filename);
 			}
