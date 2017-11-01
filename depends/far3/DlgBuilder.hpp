@@ -414,9 +414,9 @@ class DialogBuilderBase
 		}
 
 		// Добавляет чекбокс.
-		T *AddCheckbox(int TextMessageId, int *Value, int Mask=0, bool ThreeState=false)
+		T *AddCheckbox(const wchar_t* TextMessage, int *Value, int Mask=0, bool ThreeState=false)
 		{
-			T *Item = AddDialogItem(DI_CHECKBOX, GetLangString(TextMessageId));
+			T *Item = AddDialogItem(DI_CHECKBOX, TextMessage);
 			if (ThreeState && !Mask)
 				Item->Flags |= DIF_3STATE;
 			SetNextY(Item);
@@ -427,6 +427,12 @@ class DialogBuilderBase
 				Item->Selected = (*Value & Mask) != 0;
 			SetLastItemBinding(CreateCheckBoxBinding(Value, Mask));
 			return Item;
+		}
+
+		// Добавляет чекбокс.
+		T *AddCheckbox(int TextMessageId, int *Value, int Mask = 0, bool ThreeState = false)
+		{
+			return AddCheckbox(GetLangString(TextMessageId), Value, Mask, ThreeState);
 		}
 
 		// Добавляет группу радиокнопок.
@@ -466,9 +472,9 @@ class DialogBuilderBase
 		}
 
 		// Добавляет указанную текстовую строку слева от элемента RelativeTo.
-		T *AddTextBefore(T *RelativeTo, int LabelId)
+		T *AddTextBefore(T *RelativeTo, const wchar_t* Label)
 		{
-			T *Item = AddDialogItem(DI_TEXT, GetLangString(LabelId));
+			T *Item = AddDialogItem(DI_TEXT, Label);
 			Item->Y1 = Item->Y2 = RelativeTo->Y1;
 			Item->X1 = 5 + m_Indent;
 			Item->X2 = Item->X1 + ItemWidth(*Item) - 1;
@@ -482,6 +488,12 @@ class DialogBuilderBase
 				Binding->BeforeLabelID = GetItemID(Item);
 
 			return Item;
+		}
+
+		// Добавляет указанную текстовую строку слева от элемента RelativeTo.
+		T *AddTextBefore(T *RelativeTo, int LabelId)
+		{
+			return AddTextBefore(RelativeTo, GetLangString(LabelId));
 		}
 
 		// Добавляет указанную текстовую строку справа от элемента RelativeTo.

@@ -19,6 +19,7 @@
 #include <algorithm>
 #include <memory>
 #include <chrono>
+#include <numeric>
 
 typedef std::vector<std::wstring> StringList;
 

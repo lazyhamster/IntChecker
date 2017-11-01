@@ -395,7 +395,7 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 		// Otherwise display proper list of invalid/missing files
 
 		//Prepare list
-		vector<wstring> displayStrings;
+		std::vector<wstring> displayStrings;
 
 		size_t nListIndex = 0;
 		if (vMismatchList.size() > 0)
@@ -1137,6 +1137,88 @@ void RunCompareWithClipboard(std::wstring &selectedFile)
 	FarAdvControl(ACTL_PROGRESSNOTIFY, 0, NULL);
 }
 
+static bool SelectBenchmarkParams(int &numBuffers, int *algoList)
+{
+	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_PARAMS, MSG_DLG_SELECT_ALGORITHM, nullptr);
+	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; ++i)
+	{
+		dlgBuilder.AddCheckbox(SupportedHashes[i].AlgoName.c_str(), &algoList[i]);
+	}
+	dlgBuilder.AddSeparator();
+	auto editBox = dlgBuilder.AddIntEditField(&numBuffers, 8);
+	dlgBuilder.AddTextBefore(editBox, L"Data Size");
+	dlgBuilder.AddTextAfter(editBox, L"Mb");
+	dlgBuilder.AddOKCancel(MSG_BTN_OK, MSG_BTN_CANCEL);
+
+	return dlgBuilder.ShowDialog();
+}
+
+static void RunBenchmark()
+{
+	const size_t nBenchBufferSize = 1 * 1024 * 1024; // 1Mb
+
+	int nNumBuffers = 1024;
+	int vAlgoList[NUMBER_OF_SUPPORTED_HASHES] = {0};
+
+	std::fill_n(vAlgoList, NUMBER_OF_SUPPORTED_HASHES, 1);
+	if (!SelectBenchmarkParams(nNumBuffers, vAlgoList))
+		return;
+
+	if ((nNumBuffers <= 0) || std::accumulate(std::begin(vAlgoList), std::end(vAlgoList), 0) <= 0)
+	{
+		DisplayMessage(L"Error", L"Invalid parameters selected", nullptr, true, true);
+		return;
+	}
+
+	std::vector<std::wstring> vBenchResults;
+	size_t nBenchDataSize = nNumBuffers * nBenchBufferSize;
+
+	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_INDETERMINATE, NULL);
+
+	bool fAborted = false;
+	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; ++i)
+	{
+		if (!vAlgoList[i]) continue;
+
+		const HashAlgoInfo& algoInfo = SupportedHashes[i];
+		
+		std::wstring strBenchingAlgo = FormatString(L"Benchmarking %s", algoInfo.AlgoName.c_str());
+
+		FarScreenSave screen;
+		DisplayMessage(GetLocMsg(MSG_DLG_PROCESSING), strBenchingAlgo.c_str(), NULL, false, false);
+
+		int64_t benchMs = BenchmarkAlgorithm(algoInfo.AlgoId, nBenchDataSize, nBenchBufferSize);
+		if (benchMs < 0)
+		{
+			fAborted = true;
+			break;
+		}
+
+		std::wstring strBenchSpeed = FileSizeToString((int64_t)nBenchDataSize * 1000 / benchMs, false) + L"b/s";
+		std::wstring strBenchData = FormatString(L"%9s : %llu ms, %s", algoInfo.AlgoName.c_str(), benchMs, strBenchSpeed.c_str());
+		vBenchResults.push_back(strBenchData);
+	}
+
+	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);
+
+	if (fAborted) return;
+
+	std::wstring strDataSizeInfo = std::wstring(L"Total data size: ") + FileSizeToString(nBenchDataSize, false);
+
+	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_RESULTS, MSG_DLG_CALC_COMPLETE, nullptr);
+	dlgBuilder.AddText(strDataSizeInfo.c_str());
+	dlgBuilder.AddSeparator();
+
+	for (size_t i = 0; i < vBenchResults.size(); ++i)
+	{
+		std::wstring& strResult = vBenchResults[i];
+		dlgBuilder.AddText(strResult.c_str());
+	}
+
+	dlgBuilder.AddOKCancel(MSG_BTN_OK, -1);
+	dlgBuilder.ShowDialog();
+}
+
 static bool CalculateHashByAlgoName(const wchar_t* algoName, const wchar_t* path, wchar_t* hashBuf, size_t hashBufSize)
 {
 	int algoIndex = GetAlgoIndexByName(algoName);
@@ -1321,6 +1403,9 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 			openMenu.AddItemEx(GetLocMsg(MSG_MENU_VALIDATE_WITH_PARAMS), boost::bind(RunValidateFiles, selectedFilePath.c_str(), false, true));
 			openMenu.AddItemEx(GetLocMsg(MSG_MENU_COMPARE_CLIP), boost::bind(RunCompareWithClipboard, selectedFilePath));
 		}
+
+		openMenu.AddSeparator();
+		openMenu.AddItemEx(L"Run benchmark", boost::bind(RunBenchmark));
 
 		openMenu.RunEx();
 	}
