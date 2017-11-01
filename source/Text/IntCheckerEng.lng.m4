@@ -8,6 +8,7 @@
 "&Validate Files"
 "Validate Files (params)"
 "Compare With &Clipboard"
+"Run Benchmark"
 
 "Configuration"
 "Use &prefix"
@@ -66,6 +67,9 @@
 "Files:"
 "Bytes:"
 "Ignore missing files"
+"Invalid parameters selected"
+"Select parameters"
+"Benchmarking %s"
 
 "Generate"
 "Algorithm"

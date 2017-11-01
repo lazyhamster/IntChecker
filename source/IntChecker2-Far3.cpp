@@ -1139,7 +1139,7 @@ void RunCompareWithClipboard(std::wstring &selectedFile)
 
 static bool SelectBenchmarkParams(int &numBuffers, int *algoList)
 {
-	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_PARAMS, MSG_DLG_SELECT_ALGORITHM, nullptr);
+	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_PARAMS, MSG_DLG_SELECT_PARAMS, nullptr);
 	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; ++i)
 	{
 		dlgBuilder.AddCheckbox(SupportedHashes[i].AlgoName.c_str(), &algoList[i]);
@@ -1166,7 +1166,7 @@ static void RunBenchmark()
 
 	if ((nNumBuffers <= 0) || std::accumulate(std::begin(vAlgoList), std::end(vAlgoList), 0) <= 0)
 	{
-		DisplayMessage(L"Error", L"Invalid parameters selected", nullptr, true, true);
+		DisplayMessage(MSG_DLG_ERROR, MSG_DLG_INVALID_PARAMS, nullptr, true, true);
 		return;
 	}
 
@@ -1182,7 +1182,7 @@ static void RunBenchmark()
 
 		const HashAlgoInfo& algoInfo = SupportedHashes[i];
 		
-		std::wstring strBenchingAlgo = FormatString(L"Benchmarking %s", algoInfo.AlgoName.c_str());
+		std::wstring strBenchingAlgo = FormatString(GetLocMsg(MSG_DLG_BENCHMARKING), algoInfo.AlgoName.c_str());
 
 		FarScreenSave screen;
 		DisplayMessage(GetLocMsg(MSG_DLG_PROCESSING), strBenchingAlgo.c_str(), NULL, false, false);
@@ -1405,7 +1405,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 		}
 
 		openMenu.AddSeparator();
-		openMenu.AddItemEx(L"Run benchmark", boost::bind(RunBenchmark));
+		openMenu.AddItemEx(GetLocMsg(MSG_MENU_BENCHMARK), boost::bind(RunBenchmark));
 
 		openMenu.RunEx();
 	}

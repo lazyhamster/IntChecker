@@ -8,6 +8,7 @@
 "&Validar Archivos"
 "Validar Archivos (parámetros)"
 "&Comparar con Portapapeles"
+"*Run Benchmark"
 
 "Configuración"
 "Usar &prefijo"
@@ -65,7 +66,10 @@
 "Seleccionar algoritmo"
 "Archivos:"
 "Bytes:"
-"*Ignore missing files*"
+"*Ignore missing files"
+"*Invalid parameters selected"
+"*Select parameters"
+"*Benchmarking %s"
 
 "Generar"
 "Algoritmo"
