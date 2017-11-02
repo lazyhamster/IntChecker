@@ -400,9 +400,7 @@ class DialogBuilderBase
 		// Добавляет статический текст, расположенный на отдельной строке в диалоге.
 		T *AddText(int LabelId)
 		{
-			T *Item = AddDialogItem(DI_TEXT, LabelId == -1 ? L"" : GetLangString(LabelId));
-			SetNextY(Item);
-			return Item;
+			return AddText(LabelId == -1 ? L"" : GetLangString(LabelId));
 		}
 
 		// Добавляет статический текст, расположенный на отдельной строке в диалоге.
@@ -516,9 +514,9 @@ class DialogBuilderBase
 		}
 
 		// Добавляет кнопку справа от элемента RelativeTo.
-		T *AddButtonAfter(T *RelativeTo, int LabelId)
+		T *AddButtonAfter(T *RelativeTo, const wchar_t* Label)
 		{
-			T *Item = AddDialogItem(DI_BUTTON, GetLangString(LabelId));
+			T *Item = AddDialogItem(DI_BUTTON, Label);
 			Item->Y1 = Item->Y2 = RelativeTo->Y1;
 			Item->X1 = RelativeTo->X1 + ItemWidth(*RelativeTo) - 1 + 2;
 
@@ -527,6 +525,12 @@ class DialogBuilderBase
 				Binding->AfterLabelID = GetItemID(Item);
 
 			return Item;
+		}
+
+		// Добавляет кнопку справа от элемента RelativeTo.
+		T *AddButtonAfter(T *RelativeTo, int LabelId)
+		{
+			return AddButtonAfter(RelativeTo, GetLangString(LabelId));
 		}
 
 		// Начинает располагать поля диалога в две колонки.

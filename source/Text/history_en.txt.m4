@@ -2,8 +2,10 @@ Changes history:
 
 2.7.0
 - Added ability to use plugin from lua macros (e.g. IntChecker.GetFileHash.lua).
-- Fixed loading of the hashlists that have paths stored in UNC format.
+- Added basic benchmark to test hashing speed.
 - Added validation option to ignore missing files.
+- Fixed loading of the hashlists that have paths stored in UNC format.
+- Allowed SFV files to have variable amount of spaces between file path and checksum.
 - Updated Spanish translation (thanks to Mauro72).
 
 2.6.2
