@@ -23,16 +23,20 @@
 -- Tue Jun 16 23:25:04 +0300 2015
 -- v1.2 - рефакторинг
 -- Mon Jun 22 05:40:42 +0300 2015
+-- v1.2.1 - рефакторинг
+-- Thu Aug 04 15:09:30 +0300 2016
+-- v1.2.2 - добавлена поддержка SHA3-512
+-- 07.11.2017 17:09:21 +0300
 --
 
 local ICID="E186306E-3B0D-48C1-9668-ED7CF64C0E65";
 local ICMID="A22F9043-C94A-4037-845C-26ED67E843D1";
-local Mask="/.+\\.(md5|sfv|sha(1|256|512)|wrpl)/i";
+local Mask="/.+\\.(md5|sfv|sha(1|3|256|512)|wrpl)/i";
 
 Macro{
-  uid="C7BD288F-E03F-44F1-8E43-DC7BC7CBE4BA";
+  id="C7BD288F-E03F-44F1-8E43-DC7BC7CBE4BA";
   area="Shell";
-  key="Enter NumEnter MsM1Click";
+  key="Enter NumEnter MsM1Click MsLClick";
   description="Integrity Checker: check integrity use check summ";
   priority=60;
   flags="EnableOutput";
@@ -43,9 +47,9 @@ Macro{
 }
 
 Macro{
-  uid="3E69B931-A38E-4119-98E9-6149684B01A1";
+  id="3E69B931-A38E-4119-98E9-6149684B01A1";
   area="Shell";
-  key="AltH";
+  key="CtrlH";
   priority=50;
   description="Integrity Checker: show menu";
   action=function()
