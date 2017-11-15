@@ -14,7 +14,12 @@ Binaries are available here: http://plugring.farmanager.com/plugin.php?pid=893
 
 # Building from source
 
-You need Visual Studio 2013 and Boost C++ libraries.
+Project is developed under MS Visual Studio 2013.
+
+Additional requirements (not included in source distribution):
+
+* Boost C++ Libraries.
+* M4 Macro Processor (must be in %PATH%).
 
 # License
 
