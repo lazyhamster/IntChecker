@@ -7,6 +7,8 @@ SET /p PVER=<version.txt
 DEL version.txt
 
 IF "%PVER%" == "" GOTO :EMPTY_VERSION
+ECHO Version found: %PVER%
+ECHO.
 
 ECHO Verifying prerequisites
 
@@ -22,53 +24,54 @@ PAUSE
 EXIT 1
 
 :VS_FOUND
-ECHO Using Visual Studio 2013 from
+ECHO Using Visual Studio from
 ECHO %DEVENV_EXE_PATH%
 ECHO.
 
-SET PACKER_CMD=@rar.exe a -y -r -ep1 -apIntChecker2
+SET SOLUTION_FILE=..\IntChecker2.sln
 
 :Far2
 ECHO Building version for Far 2 x86
-%DEVENV_EXE_PATH% /Rebuild "Release-Far2|Win32" "..\IntChecker2.sln"
-IF NOT EXIST ..\bin\Release-Far2\ GOTO BUILD_ERROR
-ECHO Packing
-%PACKER_CMD% -- ..\bin\IntChecker2_Far2_x86_%PVER%.rar "..\bin\Release-Far2\*" > nul
-if NOT ERRORLEVEL == 0 GOTO PACK_ERROR
+call :Build_Version Far2 Win32 Release-Far2 x86
+if ERRORLEVEL == 1 GOTO BUILD_ERROR
+if ERRORLEVEL == 2 GOTO PACK_ERROR
 
 :Far2x64
-REM ECHO Building version for Far 2 x64
-REM %DEVENV_EXE_PATH% /Rebuild "Release-Far2|x64" "..\IntChecker2.VS2010.sln"
-REM IF NOT EXIST ..\bin\Release-Far2-x64\ GOTO Far3
-REM ECHO Packing
-REM %PACKER_CMD% -- ..\bin\IntChecker2_Far2_x64_%1.rar "..\bin\Release-Far2-x64\*" > nul
-REM if NOT ERRORLEVEL == 0 GOTO PACK_ERROR
+ECHO Building version for Far 2 x64
+call :Build_Version Far2 x64 Release-Far2-x64 x64
+if ERRORLEVEL == 1 GOTO BUILD_ERROR
+if ERRORLEVEL == 2 GOTO PACK_ERROR
 
 :Far3
 ECHO Building version for Far 3 x86
-%DEVENV_EXE_PATH% /Rebuild "Release-Far3|Win32" "..\IntChecker2.sln"
-IF NOT EXIST ..\bin\Release-Far3\ GOTO BUILD_ERROR
-ECHO Packing
-%PACKER_CMD% -- ..\bin\IntChecker2_Far3_x86_%PVER%.rar "..\bin\Release-Far3\*" .\*.lua > nul
-if NOT ERRORLEVEL == 0 GOTO PACK_ERROR
+call :Build_Version Far3 Win32 Release-Far3 x86
+if ERRORLEVEL == 1 GOTO BUILD_ERROR
+if ERRORLEVEL == 2 GOTO PACK_ERROR
 
 :Far3x64
-ECHO Building version for Far 3 x64
-%DEVENV_EXE_PATH% /Rebuild "Release-Far3|x64" "..\IntChecker2.sln"
-IF NOT EXIST ..\bin\Release-Far3-x64\ GOTO BUILD_ERROR
-ECHO Packing
-%PACKER_CMD% -- ..\bin\IntChecker2_Far3_x64_%PVER%.rar "..\bin\Release-Far3-x64\*" .\*.lua > nul
-if NOT ERRORLEVEL == 0 GOTO PACK_ERROR
-
-:Src
-REM ECHO Packing source code
-REM %PACKER_CMD% -xipch "-x*\ipch" "-x*\ipch\*" -x*.suo -x*.sdf -x*.opensdf -- ..\bin\IntChecker2_%PVER%_src.rar "..\source" "..\depends" "..\extra" "..\*.sln" > nul
-REM if NOT ERRORLEVEL == 0 GOTO PACK_ERROR
+ECHO Building version for Far 3 x64 
+call :Build_Version Far3 x64 Release-Far3-x64 x64
+if ERRORLEVEL == 1 GOTO BUILD_ERROR
+if ERRORLEVEL == 2 GOTO PACK_ERROR
 
 :Done
-
 ECHO [SUCCESS]
 EXIT 0
+
+:Build_Version
+REM Arguments <Far Version> <Platform Name> <Bin Folder Name> <Archive Platform Name>
+
+ECHO Executing build
+%DEVENV_EXE_PATH% /Rebuild "Release-%~1|%~2" "%SOLUTION_FILE%"
+IF NOT EXIST ..\bin\%~3\ EXIT /B 1
+ECHO Packing archive
+rar.exe a -y -r -ep1 -apIntChecker2 -- ..\bin\IntChecker2_%~1_%~4_%PVER%.rar "..\bin\%~3\*" .\*.lua > nul
+if NOT ERRORLEVEL == 0 EXIT /B 2
+ECHO Cleanup
+rmdir /s /q "..\bin\%~3\"
+rmdir /s /q "..\obj\%~3\"
+ECHO.
+EXIT /B 0
 
 :PACK_ERROR
 ECHO Unable to pack release into archive

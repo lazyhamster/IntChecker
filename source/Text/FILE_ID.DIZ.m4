@@ -16,6 +16,6 @@ Supported algorithms:
 - SHA3-512
 - Whirlpool
 
-(c) 2014-2017, Ariman
+(c) 2014-2018, Ariman
 -----------------------------------------
 E-mail for suggestions, bug reports, etc: ariman@inbox.ru
