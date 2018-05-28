@@ -87,6 +87,12 @@
     <ClCompile Include="librhash\sha3.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="librhash\plug_openssl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="librhash\rhash_torrent.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="librhash\aich.h">
@@ -159,6 +165,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="librhash\sha3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="librhash\rhash_torrent.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="librhash\ustd.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

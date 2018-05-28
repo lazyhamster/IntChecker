@@ -497,11 +497,6 @@ struct test_vectors_t short_test_vectors[] = {
  */
 static int g_errors = 0;
 
-#ifdef UNDER_CE /* if Windows CE */
-/* string buffer to store error messages */
-static char *g_msg = NULL;
-#endif
-
 /**
  * Print a formatted message to the message log.
  * @param format the format of the message
@@ -509,19 +504,9 @@ static char *g_msg = NULL;
 static void log_message(char* format, ...)
 {
 	va_list vl;
-#ifndef UNDER_CE /* not Windows CE */
 	va_start(vl, format);
 	vprintf(format, vl);
 	fflush(stdout);
-#else
-	char str[300];
-	int add_nl = (g_msg == NULL);
-	va_start(vl, format);
-	vsprintf(str, format, vl);
-	g_msg = (char*)realloc(g_msg, (g_msg ? strlen(g_msg) : 0) + strlen(str) + 3);
-	if (add_nl) strcat(g_msg, "\r\n");
-	strcat(g_msg, str);
-#endif
 	va_end(vl);
 }
 
@@ -928,12 +913,40 @@ static unsigned find_hash(const char* name)
 	return 0;
 }
 
-/* The program entry point */
+/**
+ * Print status of OpenSSL plugin.
+ */
+static void print_openssl_status(void)
+{
+	rhash_uptr_t available = rhash_get_openssl_available_mask();
+	rhash_uptr_t supported = rhash_get_openssl_supported_mask();
+	int has_openssl = rhash_is_openssl_supported();
 
-#ifndef UNDER_CE /* if not Windows CE */
+	printf("OpenSSL %s", (has_openssl ? "supported" : "not supported"));
+	if (has_openssl && available != RHASH_ERROR)
+	{
+		printf(", %s", (available ? "loaded" : "not loaded"));
+		if (available)
+		{
+			unsigned hash_id;
+			printf(":");
+			available &= RHASH_ALL_HASHES;
+			for (hash_id = 1; hash_id <= available; hash_id <<= 1) {
+				if (!!(hash_id & available))
+					printf(" %s", rhash_get_name(hash_id));
+			}
+			supported &= (~available & RHASH_ALL_HASHES);
+			for (hash_id = 1; hash_id <= supported; hash_id <<= 1) {
+				if (!!(hash_id & supported))
+					printf(" -%s", rhash_get_name(hash_id));
+			}
+		}
+	}
+	printf("\n");
+}
 
 /**
- * The application entry point for Linux and Windows.
+ * The program entry point.
  *
  * @param argc number of arguments including the program name
  * @param argv program arguments including the program name
@@ -956,10 +969,11 @@ int main(int argc, char *argv[])
 			test_known_strings(hash_id);
 
 			rhash_run_benchmark(hash_id, 0, stdout);
-		} else if (strcmp(argv[1], "--flags") == 0) {
+		} else if (strcmp(argv[1], "--info") == 0) {
 			printf("%s", compiler_flags);
+			print_openssl_status();
 		} else {
-			printf("Options: [--speed [HASH_NAME]| --flags]\n");
+			printf("Options: [--speed [HASH_NAME]| --info]\n");
 		}
 	} else {
 		test_all_known_strings();
@@ -975,48 +989,3 @@ int main(int argc, char *argv[])
 
 	return (g_errors == 0 ? 0 : 1);
 }
-#else /* UNDER_CE */
-
-#include <windows.h>
-#include <commctrl.h>
-
-/**
- * Convert a single-byte string to a two-byte (wchar_t*).
- *
- * @param str the string to convert
- * @return converted string of wchar_t
- */
-wchar_t *char2wchar(char* str)
-{
-	size_t origsize;
-	wchar_t *wmsg;
-
-	origsize = strlen(str) + 1;
-	wmsg = (wchar_t*)malloc(origsize * 2);
-	mbstowcs(wmsg, str, origsize);
-	return wmsg;
-}
-
-/**
- * The program entry point for Windows CE
- *
- * @param argc number of arguments including the program name
- * @param argv program arguments including the program name
- */
-int _tmain(int argc, _TCHAR* argv[])
-{
-	wchar_t *wmsg;
-	(void)argc;
-	(void)argv;
-
-	test_known_strings();
-	test_alignment();
-
-	wmsg = char2wchar(g_msg ? g_msg : "Success!\r\nAll sums are working properly.");
-	MessageBox(NULL, wmsg, _T("caption"), MB_OK | MB_ICONEXCLAMATION);
-	free(wmsg);
-	free(g_msg);
-
-	return (g_errors == 0 ? 0 : 1);
-}
-#endif /* UNDER_CE */

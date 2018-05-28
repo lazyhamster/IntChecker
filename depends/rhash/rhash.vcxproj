@@ -291,7 +291,9 @@
     <ClCompile Include="librhash\hex.c" />
     <ClCompile Include="librhash\md4.c" />
     <ClCompile Include="librhash\md5.c" />
+    <ClCompile Include="librhash\plug_openssl.c" />
     <ClCompile Include="librhash\rhash.c" />
+    <ClCompile Include="librhash\rhash_torrent.c" />
     <ClCompile Include="librhash\ripemd-160.c" />
     <ClCompile Include="librhash\sha1.c" />
     <ClCompile Include="librhash\sha256.c" />
@@ -319,6 +321,7 @@
     <ClInclude Include="librhash\md5.h" />
     <ClInclude Include="librhash\plug_openssl.h" />
     <ClInclude Include="librhash\rhash.h" />
+    <ClInclude Include="librhash\rhash_torrent.h" />
     <ClInclude Include="librhash\ripemd-160.h" />
     <ClInclude Include="librhash\sha1.h" />
     <ClInclude Include="librhash\sha256.h" />
@@ -328,6 +331,7 @@
     <ClInclude Include="librhash\tiger.h" />
     <ClInclude Include="librhash\torrent.h" />
     <ClInclude Include="librhash\tth.h" />
+    <ClInclude Include="librhash\ustd.h" />
     <ClInclude Include="librhash\util.h" />
     <ClInclude Include="librhash\whirlpool.h" />
   </ItemGroup>

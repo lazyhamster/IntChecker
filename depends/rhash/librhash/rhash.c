@@ -26,7 +26,7 @@
 #include <errno.h>
 
 /* modifier for Windows DLL */
-#if defined(_WIN32) && defined(RHASH_EXPORTS)
+#if (defined(_WIN32) || defined(__CYGWIN__)) && defined(RHASH_EXPORTS)
 # define RHASH_API __declspec(dllexport)
 #endif
 
@@ -445,7 +445,10 @@ RHASH_API int rhash_file(unsigned hash_id, const char* filepath, unsigned char* 
 
 	if ((fd = fopen(filepath, "rb")) == NULL) return -1;
 
-	if ((ctx = rhash_init(hash_id)) == NULL) return -1;
+	if ((ctx = rhash_init(hash_id)) == NULL) {
+		fclose(fd);
+		return -1;
+	}
 
 	res = rhash_file_update(ctx, fd); /* hash the file */
 	fclose(fd);
@@ -480,7 +483,10 @@ RHASH_API int rhash_wfile(unsigned hash_id, const wchar_t* filepath, unsigned ch
 
 	if ((fd = _wfsopen(filepath, L"rb", _SH_DENYWR)) == NULL) return -1;
 
-	if ((ctx = rhash_init(hash_id)) == NULL) return -1;
+	if ((ctx = rhash_init(hash_id)) == NULL) {
+		fclose(fd);
+		return -1;
+	}
 
 	res = rhash_file_update(ctx, fd); /* hash the file */
 	fclose(fd);
@@ -788,7 +794,7 @@ size_t RHASH_API rhash_print(char* output, rhash context, unsigned hash_id, int 
 	return rhash_print_bytes(output, digest, digest_size, flags);
 }
 
-#if defined(_WIN32) && defined(RHASH_EXPORTS)
+#if (defined(_WIN32) || defined(__CYGWIN__)) && defined(RHASH_EXPORTS)
 #include <windows.h>
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved);
 BOOL APIENTRY DllMain(HMODULE hModule, DWORD reason, LPVOID reserved)
@@ -901,6 +907,10 @@ RHASH_API rhash_uptr_t rhash_transmit(unsigned msg_id, void* dst, rhash_uptr_t l
 	case RMSG_GET_OPENSSL_MASK:
 		return rhash_openssl_hash_mask;
 #endif
+	case RMSG_GET_OPENSSL_SUPPORTED_MASK:
+		return rhash_get_openssl_supported_hash_mask();
+	case RMSG_GET_OPENSSL_AVAILABLE_MASK:
+		return rhash_get_openssl_available_hash_mask();
 
 	/* BitTorrent related messages */
 	case RMSG_BT_ADD_FILE:

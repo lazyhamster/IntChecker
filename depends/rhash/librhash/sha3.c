@@ -86,28 +86,28 @@ void rhash_sha3_512_init(sha3_ctx *ctx)
 	rhash_keccak_init(ctx, 512);
 }
 
+#define XORED_A(i) A[(i)] ^ A[(i) + 5] ^ A[(i) + 10] ^ A[(i) + 15] ^ A[(i) + 20]
+#define THETA_STEP(i) \
+	A[(i)]      ^= D[(i)]; \
+	A[(i) + 5]  ^= D[(i)]; \
+	A[(i) + 10] ^= D[(i)]; \
+	A[(i) + 15] ^= D[(i)]; \
+	A[(i) + 20] ^= D[(i)] \
+
 /* Keccak theta() transformation */
 static void keccak_theta(uint64_t *A)
 {
-	unsigned int x;
-	uint64_t C[5], D[5];
-
-	for (x = 0; x < 5; x++) {
-		C[x] = A[x] ^ A[x + 5] ^ A[x + 10] ^ A[x + 15] ^ A[x + 20];
-	}
-	D[0] = ROTL64(C[1], 1) ^ C[4];
-	D[1] = ROTL64(C[2], 1) ^ C[0];
-	D[2] = ROTL64(C[3], 1) ^ C[1];
-	D[3] = ROTL64(C[4], 1) ^ C[2];
-	D[4] = ROTL64(C[0], 1) ^ C[3];
-
-	for (x = 0; x < 5; x++) {
-		A[x]      ^= D[x];
-		A[x + 5]  ^= D[x];
-		A[x + 10] ^= D[x];
-		A[x + 15] ^= D[x];
-		A[x + 20] ^= D[x];
-	}
+	uint64_t D[5];
+	D[0] = ROTL64(XORED_A(1), 1) ^ XORED_A(4);
+	D[1] = ROTL64(XORED_A(2), 1) ^ XORED_A(0);
+	D[2] = ROTL64(XORED_A(3), 1) ^ XORED_A(1);
+	D[3] = ROTL64(XORED_A(4), 1) ^ XORED_A(2);
+	D[4] = ROTL64(XORED_A(0), 1) ^ XORED_A(3);
+	THETA_STEP(0);
+	THETA_STEP(1);
+	THETA_STEP(2);
+	THETA_STEP(3);
+	THETA_STEP(4);
 }
 
 /* Keccak pi() transformation */
@@ -142,18 +142,24 @@ static void keccak_pi(uint64_t *A)
 	/* note: A[ 0] is left as is */
 }
 
+#define CHI_STEP(i) \
+	A0 = A[0 + (i)]; \
+	A1 = A[1 + (i)]; \
+	A[0 + (i)] ^= ~A1 & A[2 + (i)]; \
+	A[1 + (i)] ^= ~A[2 + (i)] & A[3 + (i)]; \
+	A[2 + (i)] ^= ~A[3 + (i)] & A[4 + (i)]; \
+	A[3 + (i)] ^= ~A[4 + (i)] & A0; \
+	A[4 + (i)] ^= ~A0 & A1 \
+
 /* Keccak chi() transformation */
 static void keccak_chi(uint64_t *A)
 {
-	int i;
-	for (i = 0; i < 25; i += 5) {
-		uint64_t A0 = A[0 + i], A1 = A[1 + i];
-		A[0 + i] ^= ~A1 & A[2 + i];
-		A[1 + i] ^= ~A[2 + i] & A[3 + i];
-		A[2 + i] ^= ~A[3 + i] & A[4 + i];
-		A[3 + i] ^= ~A[4 + i] & A0;
-		A[4 + i] ^= ~A0 & A1;
-	}
+	uint64_t A0, A1;
+	CHI_STEP(0);
+	CHI_STEP(5);
+	CHI_STEP(10);
+	CHI_STEP(15);
+	CHI_STEP(20);
 }
 
 static void rhash_sha3_permutation(uint64_t *state)
