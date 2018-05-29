@@ -38,9 +38,6 @@
     <ClCompile Include="IntChecker2-Far3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="IntChecker2.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="RegistrySettings.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -50,16 +47,19 @@
     <ClCompile Include="Utils.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="IntChecker2-Far2.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="IntChecker2-Far3.def">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="IntChecker2.def">
-      <Filter>Source Files</Filter>
-    </None>
     <None Include="version.m4i">
       <Filter>Text</Filter>
+    </None>
+    <None Include="IntChecker2-Far2.def">
+      <Filter>Source Files</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
