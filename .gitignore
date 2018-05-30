@@ -5,5 +5,4 @@
 *.suo
 *.sdf
 *.opensdf
-/source/IntChecker2.rc
 /source/version.h

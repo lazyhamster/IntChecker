@@ -128,9 +128,6 @@
     <M4_Macro Include="Text\IntCheckerRus.lng.m4">
       <Filter>Text</Filter>
     </M4_Macro>
-    <M4_Macro Include="IntChecker2.rc.m4">
-      <Filter>Text</Filter>
-    </M4_Macro>
     <M4_Macro Include="version.h.m4">
       <Filter>Text</Filter>
     </M4_Macro>

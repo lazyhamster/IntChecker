@@ -446,9 +446,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <M4_Macro Include="IntChecker2.rc.m4">
-      <OutputFile>$(ProjectDir)%(Filename)</OutputFile>
-    </M4_Macro>
     <M4_Macro Include="Text\FILE_ID.DIZ.m4" />
     <M4_Macro Include="Text\history_en.txt.m4" />
     <M4_Macro Include="Text\history_ru.txt.m4" />
