@@ -1,8 +1,10 @@
 /obj/
 /bin/
 /ipch/
+/.vs/
 *.ncb
 *.suo
 *.sdf
 *.opensdf
+*.VC.*
 /source/version.h
