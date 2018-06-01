@@ -1,0 +1,54 @@
+version: 2.0.{build}
+
+branches:
+  only:
+    - master
+
+image: Visual Studio 2015
+
+shallow_clone: true
+clone_depth: 1
+
+configuration:
+  - Release-Far2
+  - Release-Far3
+  
+platform:
+  - Win32
+  - x64  
+
+build:
+  project: IntChecker2.sln
+  verbosity: minimal
+  
+test: off
+
+environment:
+  VCINSTALLDIR: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\
+  BOOST_ROOT: C:\Libraries\boost_1_67_0
+
+install:
+  - SET PATH=%PATH%;C:\msys64\usr\bin
+  - cd extra
+  - m4 -P version.txt.m4 > version.txt
+  - SET /p PVER=<version.txt
+  - appveyor UpdateBuild -Version %PVER%.%APPVEYOR_BUILD_NUMBER%
+  - DEL version.txt
+
+before_build:
+- cmd: >-
+    IF "%platform%" == "Win32" SET VC_ARCH=x86
+
+    IF "%platform%" == "Win32" SET BOOST_LIB_DIR=%BOOST_ROOT%\lib32-msvc-14.0
+
+    IF "%platform%" == "x64" SET VC_ARCH=amd64
+
+    IF "%platform%" == "x64" SET BOOST_LIB_DIR=%BOOST_ROOT%\lib64-msvc-14.0
+
+    "%VCINSTALLDIR%\vcvarsall.bat" %VC_ARCH%
+
+    SET INCLUDE=%BOOST_ROOT%;%INCLUDE%
+
+    SET LIB=%BOOST_LIB_DIR%;%LIB%
+
+    SET UseEnv=true
