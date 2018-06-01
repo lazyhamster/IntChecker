@@ -184,7 +184,7 @@ static int AdjustDialogBorder(FarDialogItem *DialogItems, int NumItems)
 	{
 		if (DialogItems[i].Type == DI_CHECKBOX)
 		{
-			int itemRigthBorder = DialogItems[i].X1 + 4 + wcslen(DialogItems[i].PtrData) + 1;
+			int itemRigthBorder = DialogItems[i].X1 + 4 + (int) wcslen(DialogItems[i].PtrData) + 1;
 			if (itemRigthBorder > borderX2)
 			{
 				borderX2 = itemRigthBorder;
@@ -516,7 +516,7 @@ static bool AskValidationFileParams(UINT &codepage, int &ignoreMissingFiles)
 	}
 
 	// Set proper location for codepage combobox
-	DialogItems[2].X1 += wcslen(DialogItems[1].PtrData) + 1;
+	DialogItems[2].X1 += (int) wcslen(DialogItems[1].PtrData) + 1;
 	DialogItems[2].X2 += DialogItems[2].X1 + 6;
 
 	// Expand right border of the dialog if text is too long to fit
@@ -534,7 +534,7 @@ static bool AskValidationFileParams(UINT &codepage, int &ignoreMissingFiles)
 		{
 			int selectedCodepage = (int) DlgList_GetCurPos(FarSInfo, hDlg, 2);
 			codepage = codePageValues[selectedCodepage];
-			ignoreMissingFiles = DlgItem_GetCheck(FarSInfo, hDlg, 3);
+			ignoreMissingFiles = (int) DlgItem_GetCheck(FarSInfo, hDlg, 3);
 		}
 		FarSInfo.DialogFree(hDlg);
 
@@ -1125,7 +1125,7 @@ void RunCompareWithClipboard(std::wstring &selectedFile)
 		{
 			algoMenu.AddItem(SupportedHashes[algoIndicies[i]].AlgoName.c_str());
 		}
-		int selItem = algoMenu.Run();
+		intptr_t selItem = algoMenu.Run();
 		if (selItem < 0) return;
 
 		selectedAlgoIndex = algoIndicies[selItem];
@@ -1233,7 +1233,7 @@ int WINAPI ConfigureW(int ItemNumber)
 	}
 
 	// Set proper location for codepage combobox
-	DialogItems[12].X1 += wcslen(DialogItems[11].PtrData) + 1;
+	DialogItems[12].X1 += (int) wcslen(DialogItems[11].PtrData) + 1;
 	DialogItems[12].X2 += DialogItems[12].X1 + 6;
 
 	// Expand right border of the dialog if test is too long to fit

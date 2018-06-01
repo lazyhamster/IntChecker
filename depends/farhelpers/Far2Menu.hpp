@@ -73,7 +73,7 @@ public:
 	// Returns index of selected menu item
 	intptr_t Run()
 	{
-		return m_SInfo->Menu(m_SInfo->ModuleNumber, -1, -1, m_MaxHeight, m_Flags, OPT_STR_VAL(m_Title), OPT_STR_VAL(m_Bottom), OPT_STR_VAL(m_HelpTopic), nullptr, nullptr, (FarMenuItem*) &m_Items[0], m_Items.size());
+		return m_SInfo->Menu(m_SInfo->ModuleNumber, -1, -1, (int) m_MaxHeight, m_Flags, OPT_STR_VAL(m_Title), OPT_STR_VAL(m_Bottom), OPT_STR_VAL(m_HelpTopic), nullptr, nullptr, (FarMenuItem*) &m_Items[0], (int) m_Items.size());
 	}
 
 	bool RunEx()
