@@ -9,23 +9,35 @@ image: Visual Studio 2015
 shallow_clone: true
 clone_depth: 1
 
+skip_tags: true
+
 configuration:
   - Release-Far2
   - Release-Far3
   
-platform:
-  - Win32
-  - x64  
+#platform:
+#  - Win32
+#  - x64
 
 build:
   project: IntChecker2.sln
   verbosity: minimal
-  
+
 test: off
 
 environment:
   VCINSTALLDIR: C:\Program Files (x86)\Microsoft Visual Studio 14.0\VC\
   BOOST_ROOT: C:\Libraries\boost_1_67_0
+  matrix:
+    - platform: Win32
+      VC_ARCH: x86
+      BOOST_LIB_DIR: lib32-msvc-14.0
+    - platform: x64
+      VC_ARCH: amd64
+      BOOST_LIB_DIR: lib64-msvc-14.0
+
+matrix:
+  fast_finish: true
 
 install:
   - SET PATH=%PATH%;C:\msys64\usr\bin
@@ -37,18 +49,25 @@ install:
 
 before_build:
 - cmd: >-
-    IF "%platform%" == "Win32" SET VC_ARCH=x86
-
-    IF "%platform%" == "Win32" SET BOOST_LIB_DIR=%BOOST_ROOT%\lib32-msvc-14.0
-
-    IF "%platform%" == "x64" SET VC_ARCH=amd64
-
-    IF "%platform%" == "x64" SET BOOST_LIB_DIR=%BOOST_ROOT%\lib64-msvc-14.0
-
     "%VCINSTALLDIR%\vcvarsall.bat" %VC_ARCH%
 
     SET INCLUDE=%BOOST_ROOT%;%INCLUDE%
 
-    SET LIB=%BOOST_LIB_DIR%;%LIB%
+    SET LIB=%BOOST_ROOT%\%BOOST_LIB_DIR%;%LIB%
 
     SET UseEnv=true
+
+after_build:
+- cmd: >-
+    cd %APPVEYOR_BUILD_FOLDER%
+
+    xcopy bin\%configuration%-%platform%\* export\IntChecker2 /E /I /Y > nul
+
+    IF "%configuration%" == "Release-Far3" xcopy extra\scripts\* export\IntChecker2\scripts /E /I /Y > nul
+
+    cd export
+
+    7z a -r -sdel -bd -- IntChecker2_%configuration:~-4%_%VC_ARCH%_%PVER%_%APPVEYOR_REPO_COMMIT:~0,7%.7z *
+
+artifacts:
+  - path: export\*.7z
