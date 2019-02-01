@@ -48,6 +48,18 @@
 	0
 };
 
+ const char* crc32c_tests[] = {
+	"", "00000000",
+	"a", "C1D04330",
+	"abc", "364B3FB7",
+	"message digest", "02BD79D0",
+	"abcdefghijklmnopqrstuvwxyz", "9EE6EF25",
+	"The quick brown fox jumps over the lazy dog", "22620404",
+	"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789", "A245D57D",
+	"12345678901234567890123456789012345678901234567890123456789012345678901234567890", "477A6781",
+	0
+};
+
 const char* md4_tests[] = {
 	"", "31D6CFE0D16AE931B73C59D7E0C089C0",
 	"a", "BDE52CB31DE33E46245E05FBDBD6FB24",
@@ -459,6 +471,7 @@ struct test_vectors_t {
  */
 struct test_vectors_t short_test_vectors[] = {
 	{ RHASH_CRC32, crc32_tests },
+	{ RHASH_CRC32C, crc32c_tests },
 	{ RHASH_MD4, md4_tests },
 	{ RHASH_MD5, md5_tests },
 	{ RHASH_SHA1, sha1_tests },
@@ -607,7 +620,7 @@ static void assert_hash(unsigned hash_id, const char* msg, const char* expected_
  */
 static void assert_rep_hash(unsigned hash_id, char ch, size_t msg_size, const char* hash, int set_filename)
 {
-	char ALIGN_ATTR(16) msg_chunk[8192]; /* 8 KiB */
+	char ALIGN_ATTR(64) msg_chunk[8192]; /* 8 KiB */
 	char msg_name[20];
 	memset(msg_chunk, ch, 8192);
 	if (ch >= 32) sprintf(msg_name, "\"%c\"x%d", ch, (int)msg_size);
@@ -680,6 +693,7 @@ static void test_long_strings(void)
 
 	struct id_to_hash_t tests[] = {
 		{ RHASH_CRC32, "DC25BFBC" }, /* verified with cksfv */
+		{ RHASH_CRC32C, "436FE240" },
 		{ RHASH_MD4, "BBCE80CC6BB65E5C6745E30D4EECA9A4" }, /* checked by md4sum */
 		{ RHASH_MD5, "7707D6AE4E027C70EEA2A935C2296F21" }, /* checked by md5sum */
 		{ RHASH_SHA1, "34AA973CD4C4DAA4F61EEB2BDBAD27316534016F" }, /* checked by sha1sum */

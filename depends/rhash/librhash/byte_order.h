@@ -189,6 +189,16 @@ static RHASH_INLINE uint64_t bswap_64(uint64_t x)
 #define ROTL64(qword, n) ((qword) << (n) ^ ((qword) >> (64 - (n))))
 #define ROTR64(qword, n) ((qword) >> (n) ^ ((qword) << (64 - (n))))
 
+#define CPU_FEATURE_SSE4_2 (52)
+
+#if defined(__GNUC__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 3)) \
+	&& (defined(CPU_X64) || defined(CPU_IA32))
+# define HAS_INTEL_CPUID
+int has_cpu_feature(unsigned feature_bit);
+#else
+# define has_cpu_feature(x) (0)
+#endif
+
 #ifdef __cplusplus
 } /* extern "C" */
 #endif /* __cplusplus */
