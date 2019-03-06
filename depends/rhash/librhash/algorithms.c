@@ -26,7 +26,8 @@
 #include "crc32.h"
 #include "ed2k.h"
 #include "edonr.h"
-#include "gost.h"
+#include "gost12.h"
+#include "gost94.h"
 #include "has160.h"
 #include "md4.h"
 #include "md5.h"
@@ -49,13 +50,13 @@
 #else
 # define NEED_OPENSSL_INIT 0
 #endif /* USE_OPENSSL */
-#ifdef GENERATE_GOST_LOOKUP_TABLE
-# define NEED_GOST_INIT (RHASH_GOST | RHASH_GOST_CRYPTOPRO)
+#ifdef GENERATE_GOST94_LOOKUP_TABLE
+# define NEED_GOST94_INIT (RHASH_GOST94 | RHASH_GOST94_CRYPTOPRO)
 #else
-# define NEED_GOST_INIT 0
-#endif /* GENERATE_GOST_LOOKUP_TABLE */
+# define NEED_GOST94_INIT 0
+#endif /* GENERATE_GOST94_LOOKUP_TABLE */
 
-#define RHASH_NEED_INIT_ALG (NEED_GOST_INIT | NEED_OPENSSL_INIT)
+#define RHASH_NEED_INIT_ALG (NEED_GOST94_INIT | NEED_OPENSSL_INIT)
 unsigned rhash_uninitialized_algorithms = RHASH_NEED_INIT_ALG;
 
 rhash_hash_info* rhash_info_table = rhash_hash_info_default;
@@ -80,8 +81,10 @@ rhash_info info_ed2k = { RHASH_ED2K,      F_LE32, 16, "ED2K", "ed2k" };
 rhash_info info_aich = { RHASH_AICH,      F_BS32, 20, "AICH", "aich" };
 rhash_info info_whirlpool = { RHASH_WHIRLPOOL, F_BE64, 64, "WHIRLPOOL", "whirlpool" };
 rhash_info info_rmd160 = { RHASH_RIPEMD160,  F_LE32, 20, "RIPEMD-160", "ripemd160" };
-rhash_info info_gost =   { RHASH_GOST,       F_LE32, 32, "GOST", "gost" };
-rhash_info info_gostpro = { RHASH_GOST_CRYPTOPRO, F_LE32, 32, "GOST-CRYPTOPRO", "gost-cryptopro" };
+rhash_info info_gost12_256 = { RHASH_GOST12_256, F_LE64, 32, "GOST12-256", "gost12-256" };
+rhash_info info_gost12_512 = { RHASH_GOST12_512, F_LE64, 64, "GOST12-512", "gost12-512" };
+rhash_info info_gost94 = { RHASH_GOST94,       F_LE32, 32, "GOST94", "gost94" };
+rhash_info info_gost94pro = { RHASH_GOST94_CRYPTOPRO, F_LE32, 32, "GOST94-CRYPTOPRO", "gost94-cryptopro" };
 rhash_info info_has160 = { RHASH_HAS160,     F_LE32, 20, "HAS-160", "has160" };
 rhash_info info_snf128 = { RHASH_SNEFRU128,  F_BE32, 16, "SNEFRU-128", "snefru128" };
 rhash_info info_snf256 = { RHASH_SNEFRU256,  F_BE32, 32, "SNEFRU-256", "snefru256" };
@@ -103,6 +106,7 @@ rhash_info info_sha3_512 = { RHASH_SHA3_512, F_LE64, 64, "SHA3-512", "sha3-512" 
 #define upd(name) ((pupdate_t)(name##_update))
 #define fin(name) ((pfinal_t)(name##_final))
 #define iuf(name) ini(name), upd(name), fin(name)
+#define iuf2(name1, name2) ini(name1), upd(name2), fin(name2)
 #define diuf(name) dgshft(name), ini(name), upd(name), fin(name)
 
 /* information about all supported hash functions */
@@ -119,22 +123,24 @@ rhash_hash_info rhash_hash_info_default[RHASH_HASH_COUNT] =
 	{ &info_aich, sizeof(aich_ctx), dgshft2(aich, sha1_context.hash), iuf(rhash_aich), (pcleanup_t)rhash_aich_cleanup }, /* 160 bit */
 	{ &info_whirlpool, sizeof(whirlpool_ctx), dgshft(whirlpool), iuf(rhash_whirlpool), 0 }, /* 512 bit */
 	{ &info_rmd160, sizeof(ripemd160_ctx), dgshft(ripemd160), iuf(rhash_ripemd160), 0 }, /* 160 bit */
-	{ &info_gost, sizeof(gost_ctx), dgshft(gost), iuf(rhash_gost), 0 }, /* 256 bit */
-	{ &info_gostpro, sizeof(gost_ctx), dgshft(gost), ini(rhash_gost_cryptopro), upd(rhash_gost), fin(rhash_gost), 0 }, /* 256 bit */
+	{ &info_gost94, sizeof(gost94_ctx), dgshft(gost94), iuf(rhash_gost94), 0 }, /* 256 bit */
+	{ &info_gost94pro, sizeof(gost94_ctx), dgshft(gost94), iuf2(rhash_gost94_cryptopro, rhash_gost94), 0 }, /* 256 bit */
 	{ &info_has160, sizeof(has160_ctx), dgshft(has160), iuf(rhash_has160), 0 }, /* 160 bit */
-	{ &info_snf128, sizeof(snefru_ctx), dgshft(snefru), ini(rhash_snefru128), upd(rhash_snefru), fin(rhash_snefru), 0 }, /* 128 bit */
-	{ &info_snf256, sizeof(snefru_ctx), dgshft(snefru), ini(rhash_snefru256), upd(rhash_snefru), fin(rhash_snefru), 0 }, /* 256 bit */
-	{ &info_sha224, sizeof(sha256_ctx), dgshft(sha256), ini(rhash_sha224), upd(rhash_sha256), fin(rhash_sha256), 0 }, /* 224 bit */
+	{ &info_gost12_256, sizeof(gost12_ctx), dgshft2(gost12, h) + 32, iuf2(rhash_gost12_256, rhash_gost12), 0 }, /* 256 bit */
+	{ &info_gost12_512, sizeof(gost12_ctx), dgshft2(gost12, h), iuf2(rhash_gost12_512, rhash_gost12), 0 }, /* 512 bit */
+	{ &info_sha224, sizeof(sha256_ctx), dgshft(sha256), iuf2(rhash_sha224, rhash_sha256), 0 }, /* 224 bit */
 	{ &info_sha256, sizeof(sha256_ctx), dgshft(sha256), iuf(rhash_sha256), 0 },  /* 256 bit */
-	{ &info_sha384, sizeof(sha512_ctx), dgshft(sha512), ini(rhash_sha384), upd(rhash_sha512), fin(rhash_sha512), 0 }, /* 384 bit */
+	{ &info_sha384, sizeof(sha512_ctx), dgshft(sha512), iuf2(rhash_sha384, rhash_sha512), 0 }, /* 384 bit */
 	{ &info_sha512, sizeof(sha512_ctx), dgshft(sha512), iuf(rhash_sha512), 0 },  /* 512 bit */
-	{ &info_edr256, sizeof(edonr_ctx), dgshft2(edonr, u.data256.hash) + 32, iuf(rhash_edonr256), 0 },  /* 256 bit */
-	{ &info_edr512, sizeof(edonr_ctx), dgshft2(edonr, u.data512.hash) + 64, iuf(rhash_edonr512), 0 },  /* 512 bit */
-	{ &info_sha3_224, sizeof(sha3_ctx), dgshft(sha3), ini(rhash_sha3_224), upd(rhash_sha3), fin(rhash_sha3), 0 }, /* 224 bit */
-	{ &info_sha3_256, sizeof(sha3_ctx), dgshft(sha3), ini(rhash_sha3_256), upd(rhash_sha3), fin(rhash_sha3), 0 }, /* 256 bit */
-	{ &info_sha3_384, sizeof(sha3_ctx), dgshft(sha3), ini(rhash_sha3_384), upd(rhash_sha3), fin(rhash_sha3), 0 }, /* 384 bit */
-	{ &info_sha3_512, sizeof(sha3_ctx), dgshft(sha3), ini(rhash_sha3_512), upd(rhash_sha3), fin(rhash_sha3), 0 }, /* 512 bit */
+	{ &info_edr256, sizeof(edonr_ctx),  dgshft2(edonr, u.data256.hash) + 32, iuf(rhash_edonr256), 0 },  /* 256 bit */
+	{ &info_edr512, sizeof(edonr_ctx),  dgshft2(edonr, u.data512.hash) + 64, iuf(rhash_edonr512), 0 },  /* 512 bit */
+	{ &info_sha3_224, sizeof(sha3_ctx), dgshft(sha3), iuf2(rhash_sha3_224, rhash_sha3), 0 }, /* 224 bit */
+	{ &info_sha3_256, sizeof(sha3_ctx), dgshft(sha3), iuf2(rhash_sha3_256, rhash_sha3), 0 }, /* 256 bit */
+	{ &info_sha3_384, sizeof(sha3_ctx), dgshft(sha3), iuf2(rhash_sha3_384, rhash_sha3), 0 }, /* 384 bit */
+	{ &info_sha3_512, sizeof(sha3_ctx), dgshft(sha3), iuf2(rhash_sha3_512, rhash_sha3), 0 }, /* 512 bit */
 	{ &info_crc32c, sizeof(uint32_t), 0, iuf(rhash_crc32c), 0 }, /* 32 bit */
+	{ &info_snf128, sizeof(snefru_ctx), dgshft(snefru), iuf2(rhash_snefru128, rhash_snefru), 0 }, /* 128 bit */
+	{ &info_snf256, sizeof(snefru_ctx), dgshft(snefru), iuf2(rhash_snefru256, rhash_snefru), 0 }, /* 256 bit */
 };
 
 /**
@@ -149,8 +155,8 @@ void rhash_init_algorithms(unsigned mask)
 	/* verify that RHASH_HASH_COUNT is the index of the major bit of RHASH_ALL_HASHES */
 	assert(1 == (RHASH_ALL_HASHES >> (RHASH_HASH_COUNT - 1)));
 
-#ifdef GENERATE_GOST_LOOKUP_TABLE
-	rhash_gost_init_table();
+#ifdef GENERATE_GOST94_LOOKUP_TABLE
+	rhash_gost94_init_table();
 #endif
 	rhash_uninitialized_algorithms = 0;
 }

@@ -33,9 +33,6 @@
     <ClCompile Include="librhash\edonr.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="librhash\gost.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="librhash\has160.c">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -93,6 +90,12 @@
     <ClCompile Include="librhash\rhash_torrent.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="librhash\gost12.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="librhash\gost94.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="librhash\aich.h">
@@ -111,9 +114,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="librhash\edonr.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="librhash\gost.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="librhash\has160.h">
@@ -171,6 +171,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="librhash\ustd.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="librhash\gost12.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="librhash\gost94.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
