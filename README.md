@@ -2,7 +2,7 @@
 
 Hash sums calculation/verification plugin.
 
-Following hash algorithms are supported: CRC32, MD5, SHA1, SHA-256, SHA-512, SHA3-512, Whirlpool
+The following hash algorithms are supported: CRC32, MD5, SHA1, SHA-256, SHA-512, SHA3-512, Whirlpool
 
 Based on [RHash](https://github.com/rhash/RHash) utility code.
 
@@ -14,14 +14,16 @@ Binaries are available here: http://plugring.farmanager.com/plugin.php?pid=893
 
 # Building from source
 
-Project is developed under MS Visual Studio 2013.
+Project is developed under MS Visual Studio 2017.
 
 Additional requirements (not included in source distribution):
 
-* Boost C++ Libraries.
+* [Boost C++ Libraries](https://www.boost.org/).
 * M4 Macro Processor (must be in %PATH%).
 
 # License
 
 Integrity Checker is free software: you can use it, redistribute it and/or modify it under the terms of the GNU General Public License as published by the Free Software Foundation, either version 3 of the License, or (at your option) any later version.
 Integrity Checker is distributed in the hope that it will be useful, but without any warranty; without even the implied warranty of merchantability or fitness for a particular purpose. See the GNU General Public License for more details.
+
+Code from RHash is licensed under [RHash License](https://github.com/rhash/RHash/blob/master/COPYING).
