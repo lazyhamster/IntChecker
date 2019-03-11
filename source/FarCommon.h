@@ -239,11 +239,13 @@ static std::wstring ProgressBarString(intptr_t Percentage, intptr_t Width)
 
 static std::wstring DurationToString(int64_t durationMs)
 {
-	int64_t secs = durationMs / 1000;
-	int64_t mins = secs / 60;
-	int64_t hours = mins / 60;
+	int64_t durationSec = durationMs / 1000;
+	
+	int64_t hours = durationSec / 3600;
+	int64_t mins = (durationSec / 60) - (hours * 60);
+	int64_t secs = durationSec - (hours * 3600) - (mins * 60);
 
-	return FormatString(L"%02lld:%02lld:%02lld", hours, mins - hours * 60, secs - mins * 60 - hours * 60 * 60);
+	return FormatString(L"%02lld:%02lld:%02lld", hours, mins, secs);
 }
 
 static std::wstring JoinProgressLine(const std::wstring &prefix, const std::wstring &suffix, size_t maxWidth, size_t rightPadding)
