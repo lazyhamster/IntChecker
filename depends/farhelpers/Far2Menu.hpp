@@ -6,12 +6,11 @@
 #endif
 
 #include <boost/function.hpp>
-#include <boost/optional.hpp>
 
 typedef boost::function<void (DWORD_PTR aItemUserData)> MenuAction;
 
-#define SET_OPT_STR(str, val) if (val) str = std::wstring(val); else str = boost::none
-#define OPT_STR_VAL(str) (str ? str->c_str() : nullptr)
+#define OPT_STR_VAL(str) (!str.empty() ? str.c_str() : nullptr)
+#define PTR2STR(ptr) (ptr ? ptr : L"")
 
 class FarMenu
 {
@@ -20,9 +19,9 @@ protected:
 	
 	FARMENUFLAGS m_Flags;
 	intptr_t m_MaxHeight;
-	boost::optional<std::wstring> m_Title;
-	boost::optional<std::wstring> m_Bottom;
-	boost::optional<std::wstring> m_HelpTopic;
+	std::wstring m_Title;
+	std::wstring m_Bottom;
+	std::wstring m_HelpTopic;
 
 	std::vector<FarMenuItemEx> m_Items;
 	std::vector<MenuAction> m_Actions;
@@ -32,17 +31,16 @@ public:
 	{
 		m_SInfo = SInfo;
 		
-		SET_OPT_STR(m_Title, aTitle);
-		SET_OPT_STR(m_Bottom, aBottom);
+		m_Title = PTR2STR(aTitle);
+		m_Bottom = PTR2STR(aBottom);
 
 		m_Flags = FMENU_USEEXT;
 		m_MaxHeight = 0;
-		m_HelpTopic = boost::none;
 	}
 
 	void SetMaxHeight(intptr_t aMaxHeight) { m_MaxHeight = aMaxHeight; }
 	void SetFlags(FARMENUFLAGS aFlags) { m_Flags = aFlags; }
-	void SetHelpTopic(const wchar_t* aHelpTopic) { SET_OPT_STR(m_HelpTopic, aHelpTopic); }
+	void SetHelpTopic(const wchar_t* aHelpTopic) { m_HelpTopic = PTR2STR(aHelpTopic); }
 
 	void AddItem(const wchar_t* aText, MENUITEMFLAGS aFlags = (MENUITEMFLAGS) 0, DWORD_PTR aUserData = 0)
 	{
