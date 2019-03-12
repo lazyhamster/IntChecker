@@ -351,7 +351,7 @@ void FileHashInfo::Serialize( std::stringstream& dest, UINT codepage ) const
 
 //////////////////////////////////////////////////////////////////////////
 
-size_t FileReadBufferSize = 32 * 1024;
+size_t FileReadBufferSize = 64 * 1024;
 
 GenResult GenerateHash(const std::wstring& filePath, std::vector<rhash_ids> hashAlgos, std::vector<std::string> &results, bool useUppercase, HashingProgressFunc progressFunc, HANDLE progressContext)
 {

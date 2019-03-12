@@ -1,8 +1,6 @@
 #include "StdAfx.h"
 #include "Utils.h"
 
-#include <boost/filesystem.hpp>
-
 ///////////////////////////////////////////////////////////////////////////////
 //							 Various routines								 //
 ///////////////////////////////////////////////////////////////////////////////
@@ -22,24 +20,6 @@ bool CheckEsc()
 		} //while
 
 		return false;
-}
-
-std::wstring MakeAbsPath(const std::wstring &sPath, const std::wstring &refDir)
-{
-	auto pathAbs = boost::filesystem::absolute(sPath, refDir);
-	std::wstring strPathCanon;
-	try
-	{
-		strPathCanon = boost::filesystem::weakly_canonical(pathAbs).native();
-	}
-	catch (std::exception&)
-	{
-		// weakly_canonical can crash when path contains directory junction
-		strPathCanon = pathAbs.native();
-	}
-
-	std::replace(strPathCanon.begin(), strPathCanon.end(), L'/', L'\\');
-	return strPathCanon;
 }
 
 void IncludeTrailingPathDelim(wchar_t *pathBuf, size_t bufMaxSize)
