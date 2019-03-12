@@ -29,10 +29,10 @@ environment:
   VCINSTALLDIR: C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build
   BOOST_ROOT: C:\Libraries\boost_1_67_0
   matrix:
-    - platform: Win32
+    - Platform: Win32
       VC_ARCH: x86
       BOOST_LIB_DIR: lib32-msvc-14.1
-    - platform: x64
+    - Platform: x64
       VC_ARCH: x64
       BOOST_LIB_DIR: lib64-msvc-14.1
 
