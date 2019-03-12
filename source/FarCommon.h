@@ -256,4 +256,19 @@ static std::wstring JoinProgressLine(const std::wstring &prefix, const std::wstr
 	return result;
 }
 
+static std::wstring ConvertPathToNative(const std::wstring &path)
+{
+	std::vector<wchar_t> Buffer(MAX_PATH);
+
+	for (;;)
+	{
+		size_t ActualSize = FSF.ConvertPath(CPM_NATIVE, path.c_str(), Buffer.data(), Buffer.size());
+		if (ActualSize <= Buffer.size())
+			break;
+		Buffer.resize(ActualSize);
+	}
+
+	return Buffer.data();
+}
+
 #endif // FarCommon_h__

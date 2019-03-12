@@ -339,9 +339,9 @@ static int DisplayHashGenerateError(const std::wstring& fileName)
 	return (int)FarSInfo.Message(&GUID_PLUGIN_MAIN, &GUID_MESSAGE_BOX, FMSG_WARNING, NULL, DlgLines, ARRAY_SIZE(DlgLines), 4);
 }
 
-static bool RunGeneration(const wstring& filePath, rhash_ids hashAlgo, bool useHashUppercase, ProgressContext& progressCtx, std::string& hashStr, bool &shouldAbort, bool &shouldSkipAllErrors)
+static bool RunGeneration(const std::wstring& filePath, const std::wstring& fileDisplayPath, rhash_ids hashAlgo, bool useHashUppercase, ProgressContext& progressCtx, std::string& hashStr, bool &shouldAbort, bool &shouldSkipAllErrors)
 {
-	progressCtx.NextFile(filePath);
+	progressCtx.NextFile(fileDisplayPath);
 	progressCtx.SetAlgorithm(hashAlgo);
 
 	shouldAbort = false;
@@ -501,14 +501,10 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 		return false;
 	}
 
-	wstring workDir;
 	int nFilesSkipped = 0;
 	std::vector<wstring> vMismatches, vMissing;
 	std::vector<size_t> existingFiles;
 	int64_t totalFilesSize = 0;
-
-	if (!GetPanelDir(PANEL_ACTIVE, workDir))
-		return false;
 
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_INDETERMINATE, NULL);
 
@@ -522,7 +518,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 		{
 			const FileHashInfo& fileInfo = hashes.GetFileInfo(i);
 
-			wstring strFullFilePath = MakeAbsPath(fileInfo.Filename, workDir);
+			wstring strFullFilePath = ConvertPathToNative(fileInfo.Filename);
 			if (IsFile(strFullFilePath, &fileSize))
 			{
 				existingFiles.push_back(i);
@@ -545,10 +541,10 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 		{
 			const FileHashInfo& fileInfo = hashes.GetFileInfo(existingFiles[i]);
 
-			wstring strFullFilePath = MakeAbsPath(fileInfo.Filename, workDir);
+			wstring strFullFilePath = ConvertPathToNative(fileInfo.Filename);
 			std::string hashValueStr;
 
-			if (RunGeneration(strFullFilePath, fileInfo.GetAlgo(), false, progressCtx, hashValueStr, fAborted, fAutoSkipErrors))
+			if (RunGeneration(strFullFilePath, fileInfo.Filename, fileInfo.GetAlgo(), false, progressCtx, hashValueStr, fAborted, fAutoSkipErrors))
 			{
 				if (!SameHash(fileInfo.HashStr, hashValueStr))
 					vMismatches.push_back(fileInfo.Filename);
@@ -752,6 +748,7 @@ static void RunGenerateHashes()
 
 	// Generation params
 	HashGenerationParams genParams;
+	std::wstring strOutputFilePath;
 
 	HashAlgoInfo *selectedHashInfo = GetAlgoInfo(genParams.Algorithm);
 	if (!selectedHashInfo) return;
@@ -773,14 +770,12 @@ static void RunGenerateHashes()
 		if (!AskForHashGenerationParams(genParams))
 			return;
 
-		wchar_t fullPath[PATH_BUFFER_SIZE];
-		FSF.ConvertPath(CPM_FULL, genParams.OutputFileName.c_str(), fullPath, ARRAY_SIZE(fullPath));
-		genParams.OutputFileName = fullPath;
-
 		if (genParams.OutputTarget == OT_SINGLEFILE)
 		{
+			strOutputFilePath = ConvertPathToNative(genParams.OutputFileName);
+			
 			// Check if hash file already exists
-			if (IsFile(genParams.OutputFileName))
+			if (IsFile(strOutputFilePath))
 			{
 				wchar_t wszMsgText[256] = {0};
 				swprintf_s(wszMsgText, ARRAY_SIZE(wszMsgText), GetLocMsg(MSG_DLG_OVERWRITE_FILE_TEXT), genParams.OutputFileName.c_str());
@@ -789,7 +784,7 @@ static void RunGenerateHashes()
 					continue;
 			}
 			// Check if we can write target file
-			else if (!CanCreateFile(genParams.OutputFileName.c_str()))
+			else if (!CanCreateFile(strOutputFilePath.c_str()))
 			{
 				DisplayMessage(MSG_DLG_ERROR, MSG_DLG_CANT_SAVE_HASHLIST, genParams.OutputFileName.c_str(), true, true);
 				continue;
@@ -831,7 +826,7 @@ static void RunGenerateHashes()
 			std::string hashValueStr;
 			bool fShouldAbort = false;
 
-			if (RunGeneration(strFullPath, genParams.Algorithm, optHashUppercase != FALSE, progressCtx, hashValueStr, fShouldAbort, fAutoSkipErrors))
+			if (RunGeneration(strFullPath, strNextFile, genParams.Algorithm, optHashUppercase != FALSE, progressCtx, hashValueStr, fShouldAbort, fAutoSkipErrors))
 			{
 				hashes.SetFileHash(genParams.StoreAbsPaths ? strFullPath : strNextFile, hashValueStr, genParams.Algorithm);
 			}
@@ -855,7 +850,7 @@ static void RunGenerateHashes()
 	bool saveSuccess = false;
 	if (genParams.OutputTarget == OT_SINGLEFILE)
 	{
-		saveSuccess = hashes.SaveList(genParams.OutputFileName.c_str(), genParams.OutputFileCodepage);
+		saveSuccess = hashes.SaveList(strOutputFilePath.c_str(), genParams.OutputFileCodepage);
 		if (!saveSuccess)
 		{
 			DisplayMessage(MSG_DLG_ERROR, MSG_DLG_CANT_SAVE_HASHLIST, genParams.OutputFileName.c_str(), true, true);
@@ -1055,8 +1050,8 @@ static void RunComparePanels()
 			std::string strHashValueActive;
 			std::string strHashValuePassive;
 
-			if (RunGeneration(strActvPath, cmpAlgo, false, progressCtx, strHashValueActive, fAborted, fSkipAllErrors)
-				&& RunGeneration(strPasvPath, cmpAlgo, false, progressCtx, strHashValuePassive, fAborted, fSkipAllErrors))
+			if (RunGeneration(strActvPath, strActvPath, cmpAlgo, false, progressCtx, strHashValueActive, fAborted, fSkipAllErrors)
+				&& RunGeneration(strPasvPath, strPasvPath, cmpAlgo, false, progressCtx, strHashValuePassive, fAborted, fSkipAllErrors))
 			{
 				if (!SameHash(strHashValueActive, strHashValuePassive))
 					vMismatches.push_back(strNextFile);
@@ -1086,7 +1081,7 @@ static void RunComparePanels()
 	}
 }
 
-void RunCompareWithClipboard(std::wstring &selectedFile)
+static void RunCompareWithClipboard(const std::wstring &selectedFile)
 {
 	std::string clipText;
 	if (!GetTextFromClipboard(clipText))
@@ -1125,7 +1120,7 @@ void RunCompareWithClipboard(std::wstring &selectedFile)
 
 	ProgressContext progressCtx(1, GetFileSize_i64(selectedFile.c_str()));
 
-	if (RunGeneration(selectedFile, algo, false, progressCtx, strHashValue, fAborted, fSkipAllErrors))
+	if (RunGeneration(selectedFile, selectedFile, algo, false, progressCtx, strHashValue, fAborted, fSkipAllErrors))
 	{
 		if (SameHash(strHashValue, clipText))
 			DisplayMessage(GetLocMsg(MSG_DLG_CALC_COMPLETE), GetLocMsg(MSG_DLG_FILE_CLIP_MATCH), NULL, false, true);
@@ -1224,7 +1219,9 @@ static bool CalculateHashByAlgoName(const wchar_t* algoName, const wchar_t* path
 	int algoIndex = GetAlgoIndexByName(algoName);
 	if (algoIndex < 0) return false;
 
-	int64_t fileSize = GetFileSize_i64(path);
+	wstring strFullPath = ConvertPathToNative(path);
+
+	int64_t fileSize = GetFileSize_i64(strFullPath.c_str());
 	if (fileSize <= 0) return false;
 
 	rhash_ids algo = SupportedHashes[algoIndex].AlgoId;
@@ -1233,7 +1230,7 @@ static bool CalculateHashByAlgoName(const wchar_t* algoName, const wchar_t* path
 
 	ProgressContext progressCtx(1, fileSize);
 
-	if (RunGeneration(path, algo, optHashUppercase != FALSE, progressCtx, strHashValue, fAborted, fSkipAllErrors))
+	if (RunGeneration(strFullPath, path, algo, optHashUppercase != FALSE, progressCtx, strHashValue, fAborted, fSkipAllErrors))
 	{
 		memset(hashBuf, 0, hashBufSize * sizeof(wchar_t));
 		MultiByteToWideChar(CP_UTF8, 0, strHashValue.c_str(), -1, hashBuf, (int) hashBufSize);
