@@ -3,8 +3,6 @@
 #include "Utils.h"
 
 #include <boost/regex.hpp>
-#include <random>
-#include <chrono>
 
 HashAlgoInfo SupportedHashes[] = {
 	{ RHASH_CRC32,     L"CRC32",     L".sfv",    "^(?<path>[^<>|?*\\n]+?)\\s+(?<hash>[A-Za-z\\d]{8})$",         8 },

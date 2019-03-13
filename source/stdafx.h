@@ -20,6 +20,8 @@
 #include <memory>
 #include <chrono>
 #include <numeric>
+#include <functional>
+#include <random>
 
 typedef std::vector<std::wstring> StringList;
 

@@ -5,9 +5,7 @@
 #error C++ only
 #endif
 
-#include <boost/function.hpp>
-
-typedef boost::function<void (intptr_t aItemUserData)> MenuAction;
+typedef std::function<void (intptr_t aItemUserData)> MenuAction;
 
 #define OPT_STR_VAL(str) (!str.empty() ? str.c_str() : nullptr)
 #define PTR2STR(ptr) (ptr ? ptr : L"")
