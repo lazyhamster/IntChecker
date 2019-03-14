@@ -280,19 +280,18 @@ bool HashList::DetectHashAlgo( const char* testStr, UINT codepage, const wchar_t
 
 bool HashList::TryParseBSD( const char* inputStr, UINT codepage, FileHashInfo &fileInfo )
 {
-	const boost::regex rx("^([\\w-]+)\\s+\\((.+)\\)\\s=\\s([A-Za-z\\d]+)$");
+	const boost::regex rx("^([\\w-]+)\\s+\\((.+)\\)\\s=\\s([A-Fa-f\\d]+)$");
 	boost::cmatch match;
 	
 	if (boost::regex_match(inputStr, match, rx))
 	{
-		std::wstring hashName = ConvertToUnicode(std::string(match[1].first, match[1].second), codepage);
-
+		std::string hashName = std::string(match[1].first, match[1].second);
 		for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
 		{
-			if (_wcsicmp(hashName.c_str(), SupportedHashes[i].AlgoName.c_str()) == 0)
+			if (_stricmp(hashName.c_str(), rhash_get_name(SupportedHashes[i].AlgoId)) == 0)
 			{
 				fileInfo.Filename = ConvertToUnicode(std::string(match[2].first, match[2].second), codepage);
-				fileInfo.HashStr = match[3].first;
+				fileInfo.HashStr = std::string(match[3].first, match[3].second);
 				fileInfo.HashAlgoIndex = i;
 				
 				return true;
