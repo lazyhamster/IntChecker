@@ -341,7 +341,7 @@ static int DisplayHashGenerateError(const std::wstring& fileName)
 
 static bool RunGeneration(const std::wstring& filePath, const std::wstring& fileDisplayPath, rhash_ids hashAlgo, bool useHashUppercase, ProgressContext& progressCtx, std::string& hashStr, bool &shouldAbort, bool &shouldSkipAllErrors)
 {
-	progressCtx.NextFile(fileDisplayPath);
+	progressCtx.NextFile(fileDisplayPath, GetFileSize_i64(filePath.c_str()));
 	progressCtx.SetAlgorithm(hashAlgo);
 
 	shouldAbort = false;

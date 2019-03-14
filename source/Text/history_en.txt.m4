@@ -2,6 +2,7 @@ Changes history:
 
 2.7.1
 - Fixed invalid elapsed time display in hash progress dialog when it is more then an hour.
+- Fixed problem with validating files from Directory Junctions.
 - Updated RHash library to 1.3.8 (should speed up some algorithms).
 
 2.7.0
