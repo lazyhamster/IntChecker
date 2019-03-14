@@ -16,7 +16,6 @@ struct HashAlgoInfo
 	std::wstring AlgoName;
 	std::wstring DefaultExt;
 	std::string ParseExpr;
-	short HashStrSize;
 };
 
 #define NUMBER_OF_SUPPORTED_HASHES 7
@@ -77,7 +76,7 @@ int GetAlgoIndex(rhash_ids algoId);
 int GetAlgoIndexByName(const wchar_t* name);
 
 // Returns list of algorithms that have matching hash pattern
-std::vector<int> DetectHashAlgo(std::string &testStr);
+std::vector<int> DetectHashAlgo(const std::string &testStr);
 
 bool SameHash(const std::string& hash1, const std::string& hash2);
 
