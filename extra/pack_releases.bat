@@ -8,16 +8,21 @@ IF "%PVER%" == "" GOTO :EMPTY_VERSION
 ECHO Version found: %PVER%
 ECHO.
 
-ECHO Verifying prerequisites
+ECHO Searching for Visual Studio
 
 IF DEFINED ProgramFiles(x86) (
-  SET DEVENV_EXE_PATH="%ProgramFiles(x86)%\Microsoft Visual Studio 12.0\Common7\IDE\devenv.exe"
+  SET VS_WHERE_PATH="%ProgramFiles(x86)%\Microsoft Visual Studio\Installer"
 ) ELSE (
-  SET DEVENV_EXE_PATH="%ProgramFiles%\Microsoft Visual Studio 12.0\Common7\IDE\devenv.exe"
+  SET VS_WHERE_PATH="%ProgramFiles%\Microsoft Visual Studio\Installer"
+)
+
+SET PATH=%PATH%;%VS_WHERE_PATH%
+for /f "usebackq tokens=1* delims=: " %%i in (`vswhere.exe -latest -requires Microsoft.VisualStudio.Workload.NativeDesktop`) do (
+	if /i "%%i"=="productPath" set DEVENV_EXE_PATH="%%j"
 )
 
 IF EXIST %DEVENV_EXE_PATH% GOTO VS_FOUND
-ECHO [ERROR] MS Visual Studio 2013 is not found. Exiting.
+ECHO [ERROR] MS Visual Studio 2017 is not found. Exiting.
 PAUSE
 EXIT 1
 
@@ -65,7 +70,7 @@ IF NOT EXIST ..\bin\Release-%~1-%~2\ EXIT /B 1
 ECHO Packing archive
 SET SCRIPTS=
 IF "%~1" == "Far3" SET SCRIPTS=.\*.lua
-rar.exe a -y -r -ep1 -apIntChecker2 -- ..\bin\IntChecker2_%~1_%~3_%PVER%.rar "..\bin\Release-%~1-%~2\*" %SCRIPTS% > nul
+rar.exe a -y -r -ep1 -apIntChecker2 -x*.iobj -x*.ipdb -- ..\bin\IntChecker2_%~1_%~3_%PVER%.rar "..\bin\Release-%~1-%~2\*" %SCRIPTS% > nul
 if NOT ERRORLEVEL == 0 EXIT /B 2
 ECHO Cleanup
 rmdir /s /q "..\bin\Release-%~1-%~2\"
