@@ -450,6 +450,7 @@
     <M4_Macro Include="Text\history_en.txt.m4" />
     <M4_Macro Include="Text\history_ru.txt.m4" />
     <M4_Macro Include="Text\IntCheckerEng.lng.m4" />
+    <M4_Macro Include="Text\IntCheckerPol.lng.m4" />
     <M4_Macro Include="Text\IntCheckerRus.hlf.m4" />
     <M4_Macro Include="Text\IntCheckerRus.lng.m4" />
     <M4_Macro Include="Text\IntCheckerSpa.lng.m4" />

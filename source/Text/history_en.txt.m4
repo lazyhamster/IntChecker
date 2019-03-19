@@ -1,5 +1,8 @@
 Changes history:
 
+2.7.2
+- Added Polish translation (thanks Andrzej Rudnik).
+
 2.7.1
 - Fixed invalid elapsed time display in hash progress dialog when it is more then an hour.
 - Fixed problem with validating files from Directory Junctions.
