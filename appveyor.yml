@@ -44,8 +44,10 @@ matrix:
 install:
   - SET PATH=%PATH%;C:\msys64\usr\bin
   - cd extra
-  - for /f %i in ('m4 -P version.txt.m4') do set PVER=%i
+  - m4 -P version.txt.m4 > version.txt
+  - SET /p PVER=<version.txt
   - appveyor UpdateBuild -Version %PVER%.%APPVEYOR_BUILD_NUMBER%
+  - DEL version.txt
 
 before_build:
 - cmd: >-
