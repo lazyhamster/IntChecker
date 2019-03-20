@@ -7,7 +7,8 @@ enum HashListFormat
 {
 	HLF_UNKNOWN,
 	HLF_SIMPLE,
-	HLF_BSD
+	HLF_BSD,
+	HLF_SFV
 };
 
 struct HashAlgoInfo
@@ -15,7 +16,6 @@ struct HashAlgoInfo
 	rhash_ids AlgoId;
 	std::wstring AlgoName;
 	std::wstring DefaultExt;
-	std::string ParseExpr;
 };
 
 #define NUMBER_OF_SUPPORTED_HASHES 7
@@ -39,9 +39,12 @@ private:
 
 	int GetFileRecordIndex(const wchar_t* fileName) const;
 	bool DumpStringToFile(const std::string& data, const wchar_t* filePath);
-	bool DetectHashAlgo(const char* testStr, UINT codepage, const wchar_t* filePath, int &foundAlgoIndex, HashListFormat &listFormat);
+	
+	bool DetectFormat(const char* testStr, UINT codepage, const wchar_t* filePath, int &foundAlgoIndex, HashListFormat &listFormat);
+	
 	bool TryParseBSD(const char* inputStr, UINT codepage, FileHashInfo &fileInfo);
 	bool TryParseSimple(const char* inputStr, UINT codepage, int hashAlgoIndex, FileHashInfo &fileInfo);
+	bool TryParseSfv(const char* inputStr, UINT codepage, int hashAlgoIndex, FileHashInfo &fileInfo);
 
 public:
 	HashList() {}

@@ -15,9 +15,9 @@ configuration:
   - Release-Far2
   - Release-Far3
   
-#platform:
-#  - Win32
-#  - x64
+platform:
+  - Win32
+  - x64
 
 build:
   project: IntChecker2.sln
@@ -28,13 +28,15 @@ test: off
 environment:
   VCINSTALLDIR: C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build
   BOOST_ROOT: C:\Libraries\boost_1_67_0
+  VC_ARCH: x86
+
+for:
+  -
   matrix:
-    - Platform: Win32
-      VC_ARCH: x86
-      BOOST_LIB_DIR: lib32-msvc-14.1
-    - Platform: x64
-      VC_ARCH: x64
-      BOOST_LIB_DIR: lib64-msvc-14.1
+    only:
+      - platform: x64
+  environment:
+    VC_ARCH: x64
 
 matrix:
   fast_finish: true
@@ -42,18 +44,14 @@ matrix:
 install:
   - SET PATH=%PATH%;C:\msys64\usr\bin
   - cd extra
-  - m4 -P version.txt.m4 > version.txt
-  - SET /p PVER=<version.txt
+  - for /f %i in ('m4 -P version.txt.m4') do set PVER=%i
   - appveyor UpdateBuild -Version %PVER%.%APPVEYOR_BUILD_NUMBER%
-  - DEL version.txt
 
 before_build:
 - cmd: >-
     "%VCINSTALLDIR%\vcvarsall.bat" %VC_ARCH%
 
     SET INCLUDE=%BOOST_ROOT%;%INCLUDE%
-
-    SET LIB=%BOOST_ROOT%\%BOOST_LIB_DIR%;%LIB%
 
     SET UseEnv=true
 

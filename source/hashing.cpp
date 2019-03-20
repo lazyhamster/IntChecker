@@ -2,17 +2,23 @@
 #include "hashing.h"
 #include "Utils.h"
 
-#include <boost/regex.hpp>
+#include <regex>
+#include <cctype>
 
 HashAlgoInfo SupportedHashes[] = {
-	{ RHASH_CRC32,     L"CRC32",     L".sfv",    "^(?<path>[^<>|?*\\n]+?)\\s+(?<hash>[A-Za-z\\d]{8})$" },
-	{ RHASH_MD5,       L"MD5",       L".md5",    "^(?<hash>[A-Za-z\\d]{32})\\s[\\s*](?<path>(?:\\\\\\\\\\?\\\\)?[^<>|?*\\n]+)$" },
-	{ RHASH_SHA1,      L"SHA1",      L".sha1",   "^(?<hash>[A-Za-z\\d]{40})\\s[\\s*](?<path>(?:\\\\\\\\\\?\\\\)?[^<>|?*\\n]+)$" },
-	{ RHASH_SHA256,    L"SHA-256",   L".sha256", "^(?<hash>[A-Za-z\\d]{64})\\s[\\s*](?<path>(?:\\\\\\\\\\?\\\\)?[^<>|?*\\n]+)$" },
-	{ RHASH_SHA512,    L"SHA-512",   L".sha512", "^(?<hash>[A-Za-z\\d]{128})\\s[\\s*](?<path>(?:\\\\\\\\\\?\\\\)?[^<>|?*\\n]+)$" },
-	{ RHASH_SHA3_512,  L"SHA3-512",  L".sha3",   "^(?<hash>[A-Za-z\\d]{128})\\s[\\s*](?<path>(?:\\\\\\\\\\?\\\\)?[^<>|?*\\n]+)$" },
-	{ RHASH_WHIRLPOOL, L"Whirlpool", L".wrpl",   "^(?<hash>[A-Za-z\\d]{128})\\s[\\s*](?<path>(?:\\\\\\\\\\?\\\\)?[^<>|?*\\n]+)$" }
+	{ RHASH_CRC32,     L"CRC32",     L".sfv" },
+	{ RHASH_MD5,       L"MD5",       L".md5" },
+	{ RHASH_SHA1,      L"SHA1",      L".sha1" },
+	{ RHASH_SHA256,    L"SHA-256",   L".sha256" },
+	{ RHASH_SHA512,    L"SHA-512",   L".sha512" },
+	{ RHASH_SHA3_512,  L"SHA3-512",  L".sha3" },
+	{ RHASH_WHIRLPOOL, L"Whirlpool", L".wrpl" }
 };
+
+static bool IsSfvAlgo(int algoIndex)
+{
+	return SupportedHashes[algoIndex].AlgoId == RHASH_CRC32;
+}
 
 static bool CanBeHash(const char* msg, int msgSize)
 {
@@ -187,7 +193,7 @@ bool HashList::LoadList( const wchar_t* filepath, UINT codepage, bool merge )
 		
 		if (listAlgoIndex < 0)
 		{
-			if (!DetectHashAlgo(readBuf, codepage, filepath, listAlgoIndex, listFormat))
+			if (!DetectFormat(readBuf, codepage, filepath, listAlgoIndex, listFormat))
 			{
 				fres = false;
 				break;
@@ -195,8 +201,22 @@ bool HashList::LoadList( const wchar_t* filepath, UINT codepage, bool merge )
 		}
 
 		FileHashInfo fileInfo;
-		if ((listFormat == HLF_SIMPLE && TryParseSimple(readBuf, codepage, listAlgoIndex, fileInfo))
-			|| (listFormat == HLF_BSD && TryParseBSD(readBuf, codepage, fileInfo)))
+		bool lineParsed = false;
+
+		switch (listFormat)
+		{
+		case HLF_BSD:
+			lineParsed = TryParseBSD(readBuf, codepage, fileInfo);
+			break;
+		case HLF_SIMPLE:
+			lineParsed = TryParseSimple(readBuf, codepage, listAlgoIndex, fileInfo);
+			break;
+		case HLF_SFV:
+			lineParsed = TryParseSfv(readBuf, codepage, listAlgoIndex, fileInfo);
+			break;
+		}
+
+		if (lineParsed)
 		{
 			parsedList.push_back(fileInfo);
 		}
@@ -237,16 +257,10 @@ bool HashList::DumpStringToFile(const std::string& data, const wchar_t* filePath
 	return retVal;
 }
 
-bool HashList::DetectHashAlgo( const char* testStr, UINT codepage, const wchar_t* filePath, int &foundAlgoIndex, HashListFormat &listFormat )
+bool HashList::DetectFormat( const char* testStr, UINT codepage, const wchar_t* filePath, int &foundAlgoIndex, HashListFormat &listFormat )
 {
 	FileHashInfo fileInfo;
-	int foundAlgo = -1;
-
-	// Some hashes have same length of hash string
-	// In this case we will distinguish algorithm by file extension
-
-	wstring path(filePath);
-	wstring ext = ExtractFileExt(path);
+	int possibleAlgoIndex = -1;
 
 	if (TryParseBSD(testStr, codepage, fileInfo))
 	{
@@ -255,23 +269,30 @@ bool HashList::DetectHashAlgo( const char* testStr, UINT codepage, const wchar_t
 		return true;
 	}
 
+	// Some hashes have same length of hash string
+	// In this case we will distinguish algorithm by file extension
+
+	wstring path(filePath);
+	wstring ext = ExtractFileExt(path);
+
 	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
 	{
-		if (TryParseSimple(testStr, codepage, i, fileInfo))
+		if ((IsSfvAlgo(i) && TryParseSfv(testStr, codepage, i, fileInfo))
+			|| (!IsSfvAlgo(i) && TryParseSimple(testStr, codepage, i, fileInfo)))
 		{
 			bool sameExt = (_wcsicmp(ext.c_str(), SupportedHashes[i].DefaultExt.c_str()) == 0);
-			if ((foundAlgo < 0) || sameExt)
+			if ((possibleAlgoIndex < 0) || sameExt)
 			{
-				foundAlgo = i;
+				possibleAlgoIndex = i;
 			}
 			if (sameExt) break;
 		}
 	}
 
-	if (foundAlgo >= 0)
+	if (possibleAlgoIndex >= 0)
 	{
-		foundAlgoIndex = foundAlgo;
-		listFormat = HLF_SIMPLE;
+		foundAlgoIndex = possibleAlgoIndex;
+		listFormat = IsSfvAlgo(possibleAlgoIndex) ? HLF_SFV : HLF_SIMPLE;
 		return true;
 	}
 	
@@ -280,18 +301,18 @@ bool HashList::DetectHashAlgo( const char* testStr, UINT codepage, const wchar_t
 
 bool HashList::TryParseBSD( const char* inputStr, UINT codepage, FileHashInfo &fileInfo )
 {
-	const boost::regex rx("^([\\w-]+)\\s+\\((.+)\\)\\s=\\s([A-Fa-f\\d]+)$");
-	boost::cmatch match;
+	const std::regex rx("^([\\w-]+)\\s+\\((.+)\\)\\s=\\s([A-Fa-f\\d]+)$");
+	std::cmatch match;
 	
-	if (boost::regex_match(inputStr, match, rx))
+	if (std::regex_match(inputStr, match, rx))
 	{
-		std::string hashName = std::string(match[1].first, match[1].second);
+		std::string hashName = match[1].str();
 		for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
 		{
 			if (_stricmp(hashName.c_str(), rhash_get_name(SupportedHashes[i].AlgoId)) == 0)
 			{
-				fileInfo.Filename = ConvertToUnicode(std::string(match[2].first, match[2].second), codepage);
-				fileInfo.HashStr = std::string(match[3].first, match[3].second);
+				fileInfo.Filename = ConvertToUnicode(match[2].str(), codepage);
+				fileInfo.HashStr = match[3].str();
 				fileInfo.HashAlgoIndex = i;
 				
 				return true;
@@ -304,18 +325,45 @@ bool HashList::TryParseBSD( const char* inputStr, UINT codepage, FileHashInfo &f
 
 bool HashList::TryParseSimple( const char* inputStr, UINT codepage, int hashAlgoIndex, FileHashInfo &fileInfo )
 {
-	boost::regex rx(SupportedHashes[hashAlgoIndex].ParseExpr);
-	boost::cmatch match;
+	const std::regex rx("^([A-Fa-f\\d]{32,128})\\s[\\s*]((?:\\\\\\\\\\?\\\\)?[^<>|?*\\n]+)$");
+	std::cmatch match;
 
-	if (boost::regex_match(inputStr, match, rx))
+	if (std::regex_match(inputStr, match, rx))
 	{
-		std::string strPath = match["path"];
+		std::string strPath = match[2].str();
+		std::string strHash = match[1].str();
 		
-		fileInfo.Filename = ConvertToUnicode(strPath, codepage);
-		fileInfo.HashStr = match["hash"];
-		fileInfo.HashAlgoIndex = hashAlgoIndex;
+		if (strHash.length() == rhash_get_hash_length(SupportedHashes[hashAlgoIndex].AlgoId))
+		{
+			fileInfo.Filename = ConvertToUnicode(strPath, codepage);
+			fileInfo.HashStr = strHash;
+			fileInfo.HashAlgoIndex = hashAlgoIndex;
 
-		return true;
+			return true;
+		}
+	}
+
+	return false;
+}
+
+bool HashList::TryParseSfv(const char* inputStr, UINT codepage, int hashAlgoIndex, FileHashInfo &fileInfo)
+{
+	const std::regex rx("^([^<>|?*\\n]+?)\\s+([A-Fa-f\\d]{8})$");
+	std::cmatch match;
+
+	if (std::regex_match(inputStr, match, rx))
+	{
+		std::string strPath = match[1].str();
+		std::string strHash = match[2].str();
+
+		if (strHash.length() == rhash_get_hash_length(SupportedHashes[hashAlgoIndex].AlgoId))
+		{
+			fileInfo.Filename = ConvertToUnicode(strPath, codepage);
+			fileInfo.HashStr = strHash;
+			fileInfo.HashAlgoIndex = hashAlgoIndex;
+
+			return true;
+		}
 	}
 
 	return false;
