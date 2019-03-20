@@ -18,7 +18,6 @@ Project is developed under MS Visual Studio 2017.
 
 Additional requirements (not included in source distribution):
 
-* [Boost C++ Libraries](https://www.boost.org/).
 * M4 Macro Processor (must be in %PATH%).
 
 # License

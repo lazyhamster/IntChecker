@@ -25,19 +25,6 @@ build:
 
 test: off
 
-environment:
-  VCINSTALLDIR: C:\Program Files (x86)\Microsoft Visual Studio\2017\Community\VC\Auxiliary\Build
-  BOOST_ROOT: C:\Libraries\boost_1_67_0
-  VC_ARCH: x86
-
-for:
-  -
-    matrix:
-      only:
-        - platform: x64
-    environment:
-      VC_ARCH: x64
-
 matrix:
   fast_finish: true
 
@@ -48,14 +35,6 @@ install:
   - SET /p PVER=<version.txt
   - appveyor UpdateBuild -Version %PVER%.%APPVEYOR_BUILD_NUMBER%
   - DEL version.txt
-
-before_build:
-- cmd: >-
-    "%VCINSTALLDIR%\vcvarsall.bat" %VC_ARCH%
-
-    SET INCLUDE=%BOOST_ROOT%;%INCLUDE%
-
-    SET UseEnv=true
 
 after_build:
 - cmd: >-

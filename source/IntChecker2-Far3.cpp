@@ -4,8 +4,6 @@
 #include <far3/DlgBuilder.hpp>
 #include <far3/PluginSettings.hpp>
 
-#include <boost/bind.hpp>
-
 #include "version.h"
 #include "Utils.h"
 
@@ -1389,20 +1387,20 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 
 		FarMenu openMenu(&FarSInfo, &GUID_PLUGIN_MAIN, &GUID_DIALOG_MENU, GetLocMsg(MSG_PLUGIN_NAME));
 
-		openMenu.AddItemEx(GetLocMsg(MSG_MENU_GENERATE), boost::bind(RunGenerateHashes));
-		openMenu.AddItemEx(GetLocMsg(MSG_MENU_COMPARE), boost::bind(RunComparePanels));
+		openMenu.AddItemEx(GetLocMsg(MSG_MENU_GENERATE), std::bind(RunGenerateHashes));
+		openMenu.AddItemEx(GetLocMsg(MSG_MENU_COMPARE), std::bind(RunComparePanels));
 
 		wstring selectedFilePath;
 		if ((pi.SelectedItemsNumber == 1) && GetSelectedPanelItemPath(selectedFilePath) && IsFile(selectedFilePath))
 		{
 			//TODO: use optDetectHashFiles
-			openMenu.AddItemEx(GetLocMsg(MSG_MENU_VALIDATE), boost::bind(RunValidateFiles, selectedFilePath.c_str(), false, false));
-			openMenu.AddItemEx(GetLocMsg(MSG_MENU_VALIDATE_WITH_PARAMS), boost::bind(RunValidateFiles, selectedFilePath.c_str(), false, true));
-			openMenu.AddItemEx(GetLocMsg(MSG_MENU_COMPARE_CLIP), boost::bind(RunCompareWithClipboard, selectedFilePath));
+			openMenu.AddItemEx(GetLocMsg(MSG_MENU_VALIDATE), std::bind(RunValidateFiles, selectedFilePath.c_str(), false, false));
+			openMenu.AddItemEx(GetLocMsg(MSG_MENU_VALIDATE_WITH_PARAMS), std::bind(RunValidateFiles, selectedFilePath.c_str(), false, true));
+			openMenu.AddItemEx(GetLocMsg(MSG_MENU_COMPARE_CLIP), std::bind(RunCompareWithClipboard, selectedFilePath));
 		}
 
 		openMenu.AddSeparator();
-		openMenu.AddItemEx(GetLocMsg(MSG_MENU_BENCHMARK), boost::bind(RunBenchmark));
+		openMenu.AddItemEx(GetLocMsg(MSG_MENU_BENCHMARK), std::bind(RunBenchmark));
 
 		openMenu.RunEx();
 	}
