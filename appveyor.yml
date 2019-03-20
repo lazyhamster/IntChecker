@@ -32,11 +32,11 @@ environment:
 
 for:
   -
-  matrix:
-    only:
-      - platform: x64
-  environment:
-    VC_ARCH: x64
+    matrix:
+      only:
+        - platform: x64
+    environment:
+      VC_ARCH: x64
 
 matrix:
   fast_finish: true
