@@ -20,41 +20,6 @@ static bool IsSfvAlgo(int algoIndex)
 	return SupportedHashes[algoIndex].AlgoId == RHASH_CRC32;
 }
 
-static bool CanBeHash(const char* msg, int msgSize)
-{
-	for (int i = 0; i < msgSize; i++)
-	{
-		if (msg[i] <= 31 || !isxdigit(msg[i]))
-			return false;
-	}
-	return true;
-}
-
-static bool CanBePath(const char* msg, int msgSize)
-{
-	const char* IllegalPathChars = "<>\"|?*";
-	for (int i = 0; i < msgSize; i++)
-	{
-		if (!msg[i]) break;
-		if ((msg[i] <= 31) || (strchr(IllegalPathChars, msg[i]) != NULL))
-			return false;
-	}
-	return true;
-}
-
-static bool CanBePath(const wchar_t* str)
-{
-	const wchar_t* IllegalPathChars = L"<>\"|?*";
-
-	size_t strLen = wcslen(str);
-	for (size_t i = 0; i < strLen; i++)
-	{
-		if ((str[i] <= 31) || (wcschr(IllegalPathChars, str[i]) != NULL))
-			return false;
-	}
-	return true;
-}
-
 static bool IsComment(char* line)
 {
 	char* strPtr = line;
@@ -71,11 +36,6 @@ static bool IsComment(char* line)
 		strPtr++;
 	}
 	return true;
-}
-
-static bool IsDelimChar(char c)
-{
-	return isspace(c) || (c == '*');
 }
 
 HashAlgoInfo* GetAlgoInfo(rhash_ids algoId)
