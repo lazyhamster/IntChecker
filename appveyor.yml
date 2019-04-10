@@ -49,4 +49,4 @@ after_build:
     7z a -r -sdel -bd -- IntChecker2_%configuration:~-4%_%P_ARCH%_%PVER%.7z .\export\*
 
 artifacts:
-  - path: *.7z
+  - path: '*.7z'
