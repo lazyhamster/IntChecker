@@ -16,6 +16,10 @@ bool CanCreateFile(const wchar_t* path);
 
 void TrimRight(char* str);
 void TrimStr(std::string &str);
+void TrimLeft(wchar_t* str);
+void TrimRight(wchar_t* str);
+void TrimStr(wchar_t* str);
+
 bool SameText(const wchar_t* str1, const wchar_t* str2);
 
 typedef bool (CALLBACK *FilterCompareProc)(const WIN32_FIND_DATA*, HANDLE);

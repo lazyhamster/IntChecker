@@ -1371,6 +1371,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 		wchar_t wszLocalNameBuffer[PATH_BUFFER_SIZE] = {0};
 
 		wcscpy_s(wszLocalNameBuffer, ARRAY_SIZE(wszLocalNameBuffer), cmdInfo->CommandLine);
+		TrimStr(wszLocalNameBuffer);
 		FSF.Unquote(wszLocalNameBuffer);
 		FSF.ConvertPath(CPM_FULL, wszLocalNameBuffer, wszLocalNameBuffer, ARRAY_SIZE(wszLocalNameBuffer));
 		

@@ -109,6 +109,43 @@ void TrimRight( char* str )
 	}
 }
 
+void TrimLeft(wchar_t* str)
+{
+	if (!str) return;
+
+	size_t strLen = wcslen(str);
+	while ((strLen > 0) && iswspace(str[0]))
+	{
+		wmemmove(str, str + 1, strLen);
+		strLen--;
+	}
+}
+
+void TrimRight(wchar_t* str)
+{
+	if (!str) return;
+	
+	size_t strLen = wcslen(str);
+	while (strLen > 0)
+	{
+		wchar_t lastChar = str[strLen - 1];
+		if (iswspace(lastChar))
+		{
+			str[strLen - 1] = 0;
+			strLen--;
+			continue;
+		}
+
+		break;
+	}
+}
+
+void TrimStr(wchar_t* str)
+{
+	TrimLeft(str);
+	TrimRight(str);
+}
+
 static std::wstring GetFullPath(const wchar_t* path)
 {
 	wchar_t tmpBuf[PATH_BUFFER_SIZE];

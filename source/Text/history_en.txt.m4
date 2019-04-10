@@ -2,6 +2,7 @@ Changes history:
 
 2.7.2
 - Added Polish translation (thanks Andrzej Rudnik).
+- Added whitespace trimming around file name supplied through prefix (previously spaces were treated as part of the file name).
 
 2.7.1
 - Fixed invalid elapsed time display in hash progress dialog when it is more then an hour.
