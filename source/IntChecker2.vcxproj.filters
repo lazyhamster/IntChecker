@@ -61,6 +61,18 @@
     <None Include="IntChecker2-Far2.def">
       <Filter>Source Files</Filter>
     </None>
+    <None Include="Text\IntCheckerEng.lng">
+      <Filter>Text</Filter>
+    </None>
+    <None Include="Text\IntCheckerPol.lng">
+      <Filter>Text</Filter>
+    </None>
+    <None Include="Text\IntCheckerRus.lng">
+      <Filter>Text</Filter>
+    </None>
+    <None Include="Text\IntCheckerSpa.lng">
+      <Filter>Text</Filter>
+    </None>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Far3Guids.h">
@@ -122,28 +134,16 @@
     <M4_Macro Include="Text\readme_ru.txt.m4">
       <Filter>Text</Filter>
     </M4_Macro>
-    <M4_Macro Include="Text\IntCheckerEng.lng.m4">
-      <Filter>Text</Filter>
-    </M4_Macro>
-    <M4_Macro Include="Text\IntCheckerRus.lng.m4">
-      <Filter>Text</Filter>
-    </M4_Macro>
     <M4_Macro Include="version.h.m4">
       <Filter>Text</Filter>
     </M4_Macro>
     <M4_Macro Include="Text\history_en.txt.m4">
       <Filter>Text</Filter>
     </M4_Macro>
-    <M4_Macro Include="Text\IntCheckerSpa.lng.m4">
-      <Filter>Text</Filter>
-    </M4_Macro>
     <M4_Macro Include="Text\license.txt.m4">
       <Filter>Text</Filter>
     </M4_Macro>
     <M4_Macro Include="Text\IntCheckerRus.hlf.m4">
-      <Filter>Text</Filter>
-    </M4_Macro>
-    <M4_Macro Include="Text\IntCheckerPol.lng.m4">
       <Filter>Text</Filter>
     </M4_Macro>
   </ItemGroup>

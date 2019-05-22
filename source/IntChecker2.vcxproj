@@ -419,6 +419,34 @@
   <ItemGroup>
     <None Include="IntChecker2-Far3.def" />
     <None Include="IntChecker2-Far2.def" />
+    <CustomBuild Include="Text\IntCheckerEng.lng">
+      <FileType>Document</FileType>
+      <Command>copy /y %(Identity) $(OutDir) &gt; nul</Command>
+      <Message>Processing %(Identity)</Message>
+      <Outputs>$(OutDir)%(Filename)%(Extension)</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
+    <CustomBuild Include="Text\IntCheckerPol.lng">
+      <FileType>Document</FileType>
+      <Command>copy /y %(Identity) $(OutDir) &gt; nul</Command>
+      <Message>Processing %(Identity)</Message>
+      <Outputs>$(OutDir)%(Filename)%(Extension)</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
+    <CustomBuild Include="Text\IntCheckerRus.lng">
+      <FileType>Document</FileType>
+      <Command>copy /y %(Identity) $(OutDir) &gt; nul</Command>
+      <Message>Processing %(Identity)</Message>
+      <Outputs>$(OutDir)%(Filename)%(Extension)</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
+    <CustomBuild Include="Text\IntCheckerSpa.lng">
+      <FileType>Document</FileType>
+      <Command>copy /y %(Identity) $(OutDir) &gt; nul</Command>
+      <Message>Processing %(Identity)</Message>
+      <Outputs>$(OutDir)%(Filename)%(Extension)</Outputs>
+      <LinkObjects>false</LinkObjects>
+    </CustomBuild>
     <None Include="version.m4i" />
   </ItemGroup>
   <ItemGroup>
@@ -449,11 +477,7 @@
     <M4_Macro Include="Text\FILE_ID.DIZ.m4" />
     <M4_Macro Include="Text\history_en.txt.m4" />
     <M4_Macro Include="Text\history_ru.txt.m4" />
-    <M4_Macro Include="Text\IntCheckerEng.lng.m4" />
-    <M4_Macro Include="Text\IntCheckerPol.lng.m4" />
     <M4_Macro Include="Text\IntCheckerRus.hlf.m4" />
-    <M4_Macro Include="Text\IntCheckerRus.lng.m4" />
-    <M4_Macro Include="Text\IntCheckerSpa.lng.m4" />
     <M4_Macro Include="Text\license.txt.m4" />
     <M4_Macro Include="Text\readme_ru.txt.m4" />
     <M4_Macro Include="version.h.m4">
