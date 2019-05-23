@@ -36,6 +36,8 @@ after_build:
 
     xcopy bin\%configuration%-%platform%\* export\IntChecker2 /E /I /Y > nul
 
+    xcopy source\Text\*.txt export\IntChecker2 /E /I /Y > nul
+
     IF "%configuration%" == "Release-Far3" xcopy extra\scripts\* export\IntChecker2\scripts /E /I /Y > nul
 
     IF "%platform%" == "Win32" (SET P_ARCH=x86) ELSE (SET P_ARCH=%platform%)

@@ -70,7 +70,7 @@ IF NOT EXIST ..\bin\Release-%~1-%~2\ EXIT /B 1
 ECHO Packing archive
 SET SCRIPTS=
 IF "%~1" == "Far3" SET SCRIPTS=.\*.lua
-rar.exe a -y -r -ep1 -apIntChecker2 -x*.iobj -x*.ipdb -- ..\bin\IntChecker2_%~1_%~3_%PVER%.rar "..\bin\Release-%~1-%~2\*" %SCRIPTS% > nul
+rar.exe a -y -r -ep1 -apIntChecker2 -x*.iobj -x*.ipdb -- ..\bin\IntChecker2_%~1_%~3_%PVER%.rar "..\bin\Release-%~1-%~2\*" "..\source\Text\*.txt" %SCRIPTS% > nul
 if NOT ERRORLEVEL == 0 EXIT /B 2
 ECHO Cleanup
 rmdir /s /q "..\bin\Release-%~1-%~2\"

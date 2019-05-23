@@ -13,11 +13,6 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav</Extensions>
     </Filter>
-    <Filter Include="Text">
-      <UniqueIdentifier>{0e4cdaab-c19f-49ec-96b9-171143f0e397}</UniqueIdentifier>
-      <Extensions>*.lng</Extensions>
-      <ParseFiles>false</ParseFiles>
-    </Filter>
     <Filter Include="Header Files\depends">
       <UniqueIdentifier>{a0861177-bc27-4bc6-83b5-a66e453a5b41}</UniqueIdentifier>
     </Filter>
@@ -26,6 +21,14 @@
     </Filter>
     <Filter Include="Header Files\depends\helpers">
       <UniqueIdentifier>{6fe6f40c-e0ca-452b-9a99-a491c299b67d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\m4">
+      <UniqueIdentifier>{044c6747-ee68-423c-b506-50a69763c551}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Source Files\Text">
+      <UniqueIdentifier>{0e4cdaab-c19f-49ec-96b9-171143f0e397}</UniqueIdentifier>
+      <Extensions>*.lng</Extensions>
+      <ParseFiles>false</ParseFiles>
     </Filter>
   </ItemGroup>
   <ItemGroup>
@@ -55,23 +58,11 @@
     <None Include="IntChecker2-Far3.def">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="version.m4i">
-      <Filter>Text</Filter>
-    </None>
     <None Include="IntChecker2-Far2.def">
       <Filter>Source Files</Filter>
     </None>
-    <None Include="Text\IntCheckerEng.lng">
-      <Filter>Text</Filter>
-    </None>
-    <None Include="Text\IntCheckerPol.lng">
-      <Filter>Text</Filter>
-    </None>
-    <None Include="Text\IntCheckerRus.lng">
-      <Filter>Text</Filter>
-    </None>
-    <None Include="Text\IntCheckerSpa.lng">
-      <Filter>Text</Filter>
+    <None Include="version.m4i">
+      <Filter>Source Files\m4</Filter>
     </None>
   </ItemGroup>
   <ItemGroup>
@@ -125,31 +116,47 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <M4_Macro Include="Text\FILE_ID.DIZ.m4">
-      <Filter>Text</Filter>
+    <M4_Macro Include="m4\FILE_ID.DIZ.m4">
+      <Filter>Source Files\m4</Filter>
     </M4_Macro>
-    <M4_Macro Include="Text\history_ru.txt.m4">
-      <Filter>Text</Filter>
+    <M4_Macro Include="m4\readme_ru.txt.m4">
+      <Filter>Source Files\m4</Filter>
     </M4_Macro>
-    <M4_Macro Include="Text\readme_ru.txt.m4">
-      <Filter>Text</Filter>
+    <M4_Macro Include="m4\version.h.m4">
+      <Filter>Source Files\m4</Filter>
     </M4_Macro>
-    <M4_Macro Include="version.h.m4">
-      <Filter>Text</Filter>
-    </M4_Macro>
-    <M4_Macro Include="Text\history_en.txt.m4">
-      <Filter>Text</Filter>
-    </M4_Macro>
-    <M4_Macro Include="Text\license.txt.m4">
-      <Filter>Text</Filter>
-    </M4_Macro>
-    <M4_Macro Include="Text\IntCheckerRus.hlf.m4">
-      <Filter>Text</Filter>
+    <M4_Macro Include="m4\IntCheckerRus.hlf.m4">
+      <Filter>Source Files\m4</Filter>
     </M4_Macro>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="IntChecker2.rc">
       <Filter>Resource Files</Filter>
     </ResourceCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <CustomBuild Include="Text\IntCheckerEng.lng">
+      <Filter>Source Files\Text</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Text\IntCheckerPol.lng">
+      <Filter>Source Files\Text</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Text\IntCheckerRus.lng">
+      <Filter>Source Files\Text</Filter>
+    </CustomBuild>
+    <CustomBuild Include="Text\IntCheckerSpa.lng">
+      <Filter>Source Files\Text</Filter>
+    </CustomBuild>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Text\history_en.txt">
+      <Filter>Source Files\Text</Filter>
+    </Text>
+    <Text Include="Text\history_ru.txt">
+      <Filter>Source Files\Text</Filter>
+    </Text>
+    <Text Include="Text\license.txt">
+      <Filter>Source Files\Text</Filter>
+    </Text>
   </ItemGroup>
 </Project>

@@ -474,18 +474,20 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <M4_Macro Include="Text\FILE_ID.DIZ.m4" />
-    <M4_Macro Include="Text\history_en.txt.m4" />
-    <M4_Macro Include="Text\history_ru.txt.m4" />
-    <M4_Macro Include="Text\IntCheckerRus.hlf.m4" />
-    <M4_Macro Include="Text\license.txt.m4" />
-    <M4_Macro Include="Text\readme_ru.txt.m4" />
-    <M4_Macro Include="version.h.m4">
+    <M4_Macro Include="m4\FILE_ID.DIZ.m4" />
+    <M4_Macro Include="m4\IntCheckerRus.hlf.m4" />
+    <M4_Macro Include="m4\readme_ru.txt.m4" />
+    <M4_Macro Include="m4\version.h.m4">
       <OutputFile>$(ProjectDir)%(Filename)</OutputFile>
     </M4_Macro>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="IntChecker2.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="Text\history_en.txt" />
+    <Text Include="Text\history_ru.txt" />
+    <Text Include="Text\license.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
