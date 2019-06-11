@@ -29,7 +29,7 @@ struct FileHashInfo
 
 	rhash_ids GetAlgo() const { return (HashAlgoIndex >= 0) ? SupportedHashes[HashAlgoIndex].AlgoId : RHASH_HASH_COUNT; }
 	std::wstring ToString() const;
-	void Serialize(std::stringstream& dest, UINT codepage) const;
+	void Serialize(std::stringstream& dest, UINT codepage, bool stripFilePath) const;
 };
 
 class HashList
@@ -39,6 +39,7 @@ private:
 
 	int GetFileRecordIndex(const wchar_t* fileName) const;
 	bool DumpStringToFile(const std::string& data, const wchar_t* filePath);
+	void WriteHashFileHeader(std::stringstream &sstr);
 	
 	bool DetectFormat(const char* testStr, UINT codepage, const wchar_t* filePath, int &foundAlgoIndex, HashListFormat &listFormat);
 	
@@ -51,6 +52,7 @@ public:
 
 	bool SaveList(const wchar_t* filepath, UINT codepage);
 	bool SaveListSeparate(const wchar_t* baseDir, UINT codepage, int &successCount, int &failCount);
+	bool SaveListEachDir(const wchar_t* baseDir, UINT codepage, int &successCount, int &failCount);
 	bool LoadList(const wchar_t* filepath, UINT codepage, bool merge);
 
 	void SetFileHash(const std::wstring &fileName, std::string hashVal, rhash_ids hashAlgo);
