@@ -1,11 +1,11 @@
-#ifndef FARCOLOR_HPP_57151931_4591_44A5_92CF_8E51D1FBC57E
+﻿#ifndef FARCOLOR_HPP_57151931_4591_44A5_92CF_8E51D1FBC57E
 #define FARCOLOR_HPP_57151931_4591_44A5_92CF_8E51D1FBC57E
 #pragma once
 
 /*
 farcolor.hpp
 
-Colors Index for FAR Manager 3.0 build 5354
+Colors Index for FAR Manager 3.0 build 5400
 */
 /*
 Copyright © 1996 Eugene Roshal

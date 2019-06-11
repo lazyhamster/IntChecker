@@ -6,7 +6,7 @@
 /*
 plugin.hpp
 
-Plugin API for Far Manager 3.0 build 5354
+Plugin API for Far Manager 3.0 build 5400
 */
 /*
 Copyright © 1996 Eugene Roshal
@@ -44,7 +44,7 @@ other possible license with no implications from the above license on them.
 #define FARMANAGERVERSION_MAJOR 3
 #define FARMANAGERVERSION_MINOR 0
 #define FARMANAGERVERSION_REVISION 0
-#define FARMANAGERVERSION_BUILD 5354
+#define FARMANAGERVERSION_BUILD 5400
 #define FARMANAGERVERSION_STAGE VS_RELEASE
 
 #ifndef RC_INVOKED
@@ -2266,7 +2266,7 @@ struct PluginStartupInfo
 	FARAPIREGEXPCONTROL    RegExpControl;
 	FARAPIMACROCONTROL     MacroControl;
 	FARAPISETTINGSCONTROL  SettingsControl;
-	void                  *Private;
+	const void*            Private;
 	void* Instance;
 };
 
