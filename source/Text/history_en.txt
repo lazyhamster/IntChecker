@@ -1,5 +1,9 @@
 Changes history:
 
+2.7.3
+- Added ability to save hashes to one file for each directory.
+- Minor fixes.
+
 2.7.2
 - Added Polish translation (thanks Andrzej Rudnik).
 - Added whitespace trimming around file name supplied through prefix (previously spaces were treated as part of the file name).

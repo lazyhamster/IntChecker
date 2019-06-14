@@ -23,6 +23,7 @@
 "Single File"
 "Separate hash files"
 "Display"
+"Directory hash files"
 
 "OK"
 "Cancel"
@@ -79,6 +80,7 @@
 "Single &File"
 "&Separate hash files"
 "&Display"
+"Directory hash files"
 "File Encoding"
 
 "&1. CRC32"

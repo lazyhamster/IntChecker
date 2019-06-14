@@ -23,6 +23,7 @@
 "Archivo Simple"
 "Archivos hash separados"
 "Visualización"
+"*Directory hash files*"
 
 "Aceptar"
 "Cancelar"
@@ -79,6 +80,7 @@
 "&Archivo Simple"
 "Archivos hash &separados"
 "&Visualización"
+"*Directory hash files*"
 "Codificación de Archivo"
 
 "&1. CRC32"

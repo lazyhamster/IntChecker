@@ -22,7 +22,8 @@
 "Domyślne wyjście do"
 "Pojedynczy plik"
 "Osobne pliki kontrolne"
-"&Ekran"
+"Ekran"
+"*Directory hash files*"
 
 "OK"
 "Anuluj"
@@ -79,6 +80,7 @@
 "&Pojedynczy plik"
 "&Osobne pliki"
 "&Ekran"
+"*Directory hash files*"
 "Kodowanie pliku"
 
 "&1. CRC32"

@@ -573,9 +573,9 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 
 static intptr_t WINAPI HashParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t Param1, void* Param2)
 {
-	const int nTextBoxIndex = 14;
-	const int nUseFilterBoxIndex = 18;
-	const int nFilterButtonIndex = 23;
+	const int nTextBoxIndex = 15;
+	const int nUseFilterBoxIndex = 19;
+	const int nFilterButtonIndex = 24;
 
 	if (Msg == DN_BTNCLICK)
 	{
@@ -627,7 +627,7 @@ static bool AskForHashGenerationParams(HashGenerationParams& genParams)
 {
 	int algoIndex = GetAlgoIndex(genParams.Algorithm);
 	int algoNames[] = {MSG_ALGO_CRC, MSG_ALGO_MD5, MSG_ALGO_SHA1, MSG_ALGO_SHA256, MSG_ALGO_SHA512, MSG_ALGO_SHA3_512, MSG_ALGO_WHIRLPOOL};
-	int targetIndex = genParams.OutputTarget;
+	int targetIndex = 0;
 	int doRecurse = genParams.Recursive;
 	int doStoreAbsPath = genParams.StoreAbsPaths;
 	
@@ -654,15 +654,20 @@ static bool AskForHashGenerationParams(HashGenerationParams& genParams)
 	dlgBuilder.AddSeparator();
 	dlgBuilder.AddText(MSG_GEN_TARGET);
 	
-	int radioMsgIds[] = {MSG_GEN_TO_FILE, MSG_GEN_TO_SEPARATE, MSG_GEN_TO_SCREEN};
-	auto firstRadio = dlgBuilder.AddRadioButtons(&targetIndex, ARRAY_SIZE(radioMsgIds), radioMsgIds);
+	const int displayTargetsMsgIds[] = {MSG_GEN_TO_FILE, MSG_GEN_TO_SEPARATE, MSG_GEN_TO_DIRS, MSG_GEN_TO_SCREEN};
+	const HashOutputTargets displayTargetValues[] = {OT_SINGLEFILE, OT_SEPARATEFILES, OT_SEPARATEDIRS, OT_DISPLAY};
+	for (int i = 0; i < _countof(displayTargetValues); ++i)
+		if (displayTargetValues[i] == genParams.OutputTarget) targetIndex = i;
+	
+	auto firstRadio = dlgBuilder.AddRadioButtons(&targetIndex, _countof(displayTargetsMsgIds), displayTargetsMsgIds);
 	firstRadio[1].Y1++;
 	firstRadio[2].Y1++;
+	firstRadio[3].Y1++;
 	
 	auto editFileName = dlgBuilder.AddEditField(outputFileBuf, MAX_PATH, 30);
 	editFileName->Flags = DIF_EDITEXPAND|DIF_EDITPATH|DIF_FOCUS;
 	editFileName->X1 += 2;
-	editFileName->Y1 -= 2;
+	editFileName->Y1 -= 3;
 	
 	dlgBuilder.AddSeparator();
 	dlgBuilder.AddCheckbox(MSG_GEN_RECURSE, &doRecurse, 0, false);
@@ -683,7 +688,7 @@ static bool AskForHashGenerationParams(HashGenerationParams& genParams)
 		genParams.Recursive = doRecurse != 0;
 		genParams.StoreAbsPaths = doStoreAbsPath != 0;
 		genParams.Algorithm = SupportedHashes[algoIndex].AlgoId;
-		genParams.OutputTarget = (HashOutputTargets) targetIndex;
+		genParams.OutputTarget = displayTargetValues[targetIndex];
 		genParams.OutputFileName = outputFileBuf;
 		genParams.OutputFileCodepage = codePageValues[selectedCP];
 
@@ -863,6 +868,11 @@ static void RunGenerateHashes()
 	{
 		saveSuccess = true;
 		DisplayHashListOnScreen(hashes);
+	}
+	else if (genParams.OutputTarget == OT_SEPARATEDIRS)
+	{
+		int numGood, numBad;
+		saveSuccess = hashes.SaveListEachDir(strPanelDir.c_str(), genParams.OutputFileCodepage, numGood, numBad);
 	}
 	else
 	{
@@ -1315,8 +1325,8 @@ intptr_t WINAPI ConfigureW(const ConfigureInfo* Info)
 			selectedCP = i;
 	}
 
-	const int outputTargetNames[] = {MSG_CONFIG_OUTPUT_SINGLE_FILE, MSG_CONFIG_OUTPUT_SEPARATE_FILE, MSG_CONFIG_OUTPUT_DISPLAY};
-	const int outputTargetValues[] = {OT_SINGLEFILE, OT_SEPARATEFILES, OT_DISPLAY};
+	const int outputTargetNames[] = {MSG_CONFIG_OUTPUT_SINGLE_FILE, MSG_CONFIG_OUTPUT_SEPARATE_FILE, MSG_CONFIG_OUTPUT_SEPARATE_DIRS, MSG_CONFIG_OUTPUT_DISPLAY};
+	const int outputTargetValues[] = {OT_SINGLEFILE, OT_SEPARATEFILES, OT_SEPARATEDIRS, OT_DISPLAY};
 	int selectedOutput = 0;
 	for (int i = 0; i < ARRAY_SIZE(outputTargetNames); i++)
 	{

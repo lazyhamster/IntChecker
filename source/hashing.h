@@ -32,14 +32,16 @@ struct FileHashInfo
 	void Serialize(std::stringstream& dest, UINT codepage, bool stripFilePath) const;
 };
 
+typedef std::vector<FileHashInfo> FileHashList;
+
 class HashList
 {
 private:
-	std::vector<FileHashInfo> m_HashList;
+	FileHashList m_HashList;
 
 	int GetFileRecordIndex(const wchar_t* fileName) const;
 	bool DumpStringToFile(const std::string& data, const wchar_t* filePath);
-	void WriteHashFileHeader(std::stringstream &sstr);
+	bool SaveHashesToFile(const std::wstring &filePath, FileHashList &hashList, UINT codepage, bool stripPathInfo);
 	
 	bool DetectFormat(const char* testStr, UINT codepage, const wchar_t* filePath, int &foundAlgoIndex, HashListFormat &listFormat);
 	

@@ -9,9 +9,10 @@ static FARSTANDARDFUNCTIONS FSF;
 
 enum HashOutputTargets
 {
-	OT_SINGLEFILE = 0,
-	OT_SEPARATEFILES = 1,
-	OT_DISPLAY = 2
+	OT_SINGLEFILE = 0,		// One single hash file for all selected input files
+	OT_SEPARATEFILES = 1,	// One hash file per one input file
+	OT_DISPLAY = 2,
+	OT_SEPARATEDIRS = 3		// One hash file per one directory
 };
 
 // Plugin settings
