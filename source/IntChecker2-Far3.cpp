@@ -177,12 +177,20 @@ static bool GetFarWindowSize(RectSize &size)
 	return false;
 }
 
-static const wchar_t* GetMacroStringValue(OpenMacroInfo *macroInfo, int index)
+static const wchar_t* GetMacroStringValue(OpenMacroInfo *macroInfo, size_t index, const wchar_t* defaultValue = L"")
 {
-	if (macroInfo->Values[index].Type == FMVT_STRING)
+	if ((index < macroInfo->Count) && (macroInfo->Values[index].Type == FMVT_STRING))
 		return macroInfo->Values[index].String;
 
-	return L"";
+	return defaultValue;
+}
+
+static bool GetMacroBoolValue(OpenMacroInfo *macroInfo, size_t index, bool defaultValue = false)
+{
+	if ((index < macroInfo->Count) && (macroInfo->Values[index].Type == FMVT_BOOLEAN))
+		return (bool) macroInfo->Values[index].Boolean;
+
+	return defaultValue;
 }
 
 // --------------------------------------- Local functions ---------------------------------------------------
@@ -1222,7 +1230,7 @@ static void RunBenchmark()
 	dlgBuilder.ShowDialog();
 }
 
-static bool CalculateHashByAlgoName(const wchar_t* algoName, const wchar_t* path, wchar_t* hashBuf, size_t hashBufSize)
+static bool CalculateHashByAlgoName(const wchar_t* algoName, const wchar_t* path, wchar_t* hashBuf, size_t hashBufSize, bool fQuiet)
 {
 	int algoIndex = GetAlgoIndexByName(algoName);
 	if (algoIndex < 0) return false;
@@ -1234,11 +1242,12 @@ static bool CalculateHashByAlgoName(const wchar_t* algoName, const wchar_t* path
 
 	rhash_ids algo = SupportedHashes[algoIndex].AlgoId;
 	std::string strHashValue;
-	bool fAborted = false, fSkipAllErrors = false;
+	bool fAborted = false, fSkipAllErrors = fQuiet;
 
 	ProgressContext progressCtx(1, fileSize);
 
-	if (RunGeneration(strFullPath, path, algo, optHashUppercase != FALSE, progressCtx, strHashValue, fAborted, fSkipAllErrors))
+	bool genResult = RunGeneration(strFullPath, path, algo, optHashUppercase != FALSE, progressCtx, strHashValue, fAborted, fSkipAllErrors);
+	if (genResult)
 	{
 		memset(hashBuf, 0, hashBufSize * sizeof(wchar_t));
 		MultiByteToWideChar(CP_UTF8, 0, strHashValue.c_str(), -1, hashBuf, (int) hashBufSize);
@@ -1247,7 +1256,7 @@ static bool CalculateHashByAlgoName(const wchar_t* algoName, const wchar_t* path
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);
 	FarAdvControl(ACTL_PROGRESSNOTIFY, 0, NULL);
 	
-	return true;
+	return genResult;
 }
 
 static void WINAPI FreeMacroCall(void *CallbackData, struct FarMacroValue *Values, size_t Count)
@@ -1421,18 +1430,19 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 
 		if (macroInfo->StructSize != sizeof(OpenMacroInfo))
 			return 0;
-		if (macroInfo->Count != 3)
+		if (macroInfo->Count < 3)
 			return 0;
 
 		const wchar_t* strOp = GetMacroStringValue(macroInfo, 0);
 		const wchar_t* strAlgoName = GetMacroStringValue(macroInfo, 1);
 		const wchar_t* strTarget = GetMacroStringValue(macroInfo, 2);
+		bool fQuiet = GetMacroBoolValue(macroInfo, 3, false);
 
 		if (SameText(strOp, L"gethash"))
 		{
 			static wchar_t hashValue[256] = { 0 };
 			
-			if (CalculateHashByAlgoName(strAlgoName, strTarget, hashValue, _countof(hashValue)))
+			if (CalculateHashByAlgoName(strAlgoName, strTarget, hashValue, _countof(hashValue), fQuiet))
 			{
 				FarMacroValue *macroVal = new FarMacroValue();
 				macroVal->Type = FMVT_STRING;

@@ -2,6 +2,8 @@ Changes history:
 
 2.7.3
 - Added ability to save hashes to one file for each directory.
+- Fixed return of the previous file hash from macros when current file is not readable.
+- Added optional parameter Quiet to macros calls of bool type. If set to true then error messages will not be shown.
 - Minor fixes.
 
 2.7.2
