@@ -1230,8 +1230,10 @@ static void RunBenchmark()
 	dlgBuilder.ShowDialog();
 }
 
-static bool CalculateHashByAlgoName(const wchar_t* algoName, const wchar_t* path, wchar_t* hashBuf, size_t hashBufSize, bool fQuiet)
+static bool CalculateHashByAlgoName(const wchar_t* algoName, const wchar_t* path, wchar_t* hashBuf, size_t hashBufSize, bool fQuiet, bool &fAborted)
 {
+	fAborted = false;
+	
 	int algoIndex = GetAlgoIndexByName(algoName);
 	if (algoIndex < 0) return false;
 
@@ -1242,7 +1244,7 @@ static bool CalculateHashByAlgoName(const wchar_t* algoName, const wchar_t* path
 
 	rhash_ids algo = SupportedHashes[algoIndex].AlgoId;
 	std::string strHashValue;
-	bool fAborted = false, fSkipAllErrors = fQuiet;
+	bool fSkipAllErrors = fQuiet;
 
 	ProgressContext progressCtx(1, fileSize);
 
@@ -1441,12 +1443,13 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 		if (SameText(strOp, L"gethash"))
 		{
 			static wchar_t hashValue[256] = { 0 };
+			bool fCalcAborted = false;
 			
-			if (CalculateHashByAlgoName(strAlgoName, strTarget, hashValue, _countof(hashValue), fQuiet))
+			if (CalculateHashByAlgoName(strAlgoName, strTarget, hashValue, _countof(hashValue), fQuiet, fCalcAborted) || fCalcAborted)
 			{
 				FarMacroValue *macroVal = new FarMacroValue();
 				macroVal->Type = FMVT_STRING;
-				macroVal->String = hashValue;
+				macroVal->String = fCalcAborted ? L"userabort" : hashValue;
 
 				FarMacroCall *macroCall = new FarMacroCall();
 				macroCall->StructSize = sizeof(FarMacroCall);
