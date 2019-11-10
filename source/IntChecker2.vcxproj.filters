@@ -53,6 +53,9 @@
     <ClCompile Include="IntChecker2-Far2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="trust.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="IntChecker2-Far3.def">
@@ -113,6 +116,9 @@
     </ClInclude>
     <ClInclude Include="..\depends\farhelpers\Far3Menu.hpp">
       <Filter>Header Files\depends\helpers</Filter>
+    </ClInclude>
+    <ClInclude Include="trust.h">
+      <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>

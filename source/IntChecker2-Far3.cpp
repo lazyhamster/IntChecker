@@ -6,6 +6,7 @@
 
 #include "version.h"
 #include "Utils.h"
+#include "trust.h"
 
 #include <InitGuid.h>
 #include "Far3Guids.h"
@@ -1230,6 +1231,49 @@ static void RunBenchmark()
 	dlgBuilder.ShowDialog();
 }
 
+static void RunVerifySignature(const std::wstring& path)
+{
+	bool isError = false;
+	const wchar_t* messageText = nullptr;
+	
+	VerificationResult vr = VerifyPeSignature(path.c_str());
+	switch (vr)
+	{
+	case VR_SIGNATURE_VALID:
+		messageText = L"Signature is valid";
+		break;
+	case VR_NO_SIGNATURE:
+		messageText = L"File is not signed or signature is not recognized";
+		break;
+	case VR_SIGNATURE_UNTRUSTED:
+		messageText = L"Signature is invalid";
+		isError = true;
+		break;
+	case VR_SIGNATURE_NOTALLOWED:
+		messageText = L"Signature is not allowed by admin policy";
+		isError = true;
+		break;
+	case VR_FILE_ERROR:
+		messageText = L"Error reading file";
+		isError = true;
+		break;
+	case VR_PROVIDER_UNKNOWN:
+		messageText = L"Unknown trust provider";
+		isError = true;
+		break;
+	case VR_INVALID_SIGNATURE:
+		messageText = L"Invalid signature";
+		isError = true;
+		break;
+	default:
+		messageText = L"Something went wrong";
+		isError = true;
+		break;
+	}
+
+	DisplayMessage(L"Validation complete", messageText, nullptr, isError, true);
+}
+
 static bool CalculateHashByAlgoName(const wchar_t* algoName, const wchar_t* path, wchar_t* hashBuf, size_t hashBufSize, bool fQuiet, bool &fAborted)
 {
 	fAborted = false;
@@ -1419,6 +1463,12 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 			openMenu.AddItemEx(GetLocMsg(MSG_MENU_VALIDATE), std::bind(RunValidateFiles, selectedFilePath.c_str(), false, false));
 			openMenu.AddItemEx(GetLocMsg(MSG_MENU_VALIDATE_WITH_PARAMS), std::bind(RunValidateFiles, selectedFilePath.c_str(), false, true));
 			openMenu.AddItemEx(GetLocMsg(MSG_MENU_COMPARE_CLIP), std::bind(RunCompareWithClipboard, selectedFilePath));
+
+			if (FileCanHaveSignature(selectedFilePath.c_str()))
+			{
+				openMenu.AddSeparator();
+				openMenu.AddItemEx(GetLocMsg(MSG_MENU_SIGNATURE), std::bind(RunVerifySignature, selectedFilePath));
+			}
 		}
 
 		openMenu.AddSeparator();
