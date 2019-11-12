@@ -1,19 +1,23 @@
 #ifndef trust_h__
 #define trust_h__
 
-enum VerificationResult
+struct CertificateInfo
 {
-	VR_UNKNOWN,
-	VR_SIGNATURE_VALID,
-	VR_NO_SIGNATURE,
-	VR_SIGNATURE_UNTRUSTED,
-	VR_SIGNATURE_NOTALLOWED,
-	VR_FILE_ERROR,
-	VR_PROVIDER_UNKNOWN,
-	VR_INVALID_SIGNATURE
+	std::wstring IssuerName;
+	std::wstring SubjectName;
+	std::wstring SignatureAlgorithm;
+};
+
+struct DigitalSignatureInfo
+{
+	std::wstring ProgramName;
+	std::wstring PublisherLink;
+	std::wstring MoreInfoLink;
+	
+	CertificateInfo CertInfo;
 };
 
 bool FileCanHaveSignature(const wchar_t* path);
-VerificationResult VerifyPeSignature(const wchar_t* path);
+long VerifyPeSignature(const wchar_t* path);
 
 #endif // trust_h__

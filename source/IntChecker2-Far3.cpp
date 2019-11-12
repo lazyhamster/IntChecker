@@ -1236,37 +1236,54 @@ static void RunVerifySignature(const std::wstring& path)
 	bool isError = false;
 	const wchar_t* messageText = nullptr;
 	
-	VerificationResult vr = VerifyPeSignature(path.c_str());
-	switch (vr)
+	long errCode = VerifyPeSignature(path.c_str());
+	
+	switch (errCode)
 	{
-	case VR_SIGNATURE_VALID:
-		messageText = L"Signature is valid";
+	case ERROR_SUCCESS:
+		messageText = L"File signature is valid";
 		break;
-	case VR_NO_SIGNATURE:
+	case TRUST_E_NOSIGNATURE:
 		messageText = L"File is not signed or signature is not recognized";
 		break;
-	case VR_SIGNATURE_UNTRUSTED:
-		messageText = L"Signature is invalid";
+	case TRUST_E_EXPLICIT_DISTRUST:
+		messageText = L"The certificate was explicitly marked as untrusted by the user.";
 		isError = true;
 		break;
-	case VR_SIGNATURE_NOTALLOWED:
-		messageText = L"Signature is not allowed by admin policy";
+	case TRUST_E_SUBJECT_NOT_TRUSTED:
+		messageText = L"The subject is not trusted for the specified action.";
 		isError = true;
 		break;
-	case VR_FILE_ERROR:
-		messageText = L"Error reading file";
+	case CRYPT_E_SECURITY_SETTINGS:
+		messageText = L"The cryptographic operation failed due to a local security option setting.";
 		isError = true;
 		break;
-	case VR_PROVIDER_UNKNOWN:
-		messageText = L"Unknown trust provider";
+	case CRYPT_E_FILE_ERROR:
+		messageText = L"File reading error.";
 		isError = true;
 		break;
-	case VR_INVALID_SIGNATURE:
-		messageText = L"Invalid signature";
+	case TRUST_E_PROVIDER_UNKNOWN:
+		messageText = L"Unknown trust provider.";
+		isError = true;
+		break;
+	case TRUST_E_BAD_DIGEST:
+		messageText = L"The digital signature of the object did not verify.";
+		isError = true;
+		break;
+	case TRUST_E_NO_SIGNER_CERT:
+		messageText = L"The certificate for the signer of the message is invalid or not found.";
+		isError = true;
+		break;
+	case CERT_E_UNTRUSTEDROOT:
+		messageText = L"Root certificate is not trusted by the trust provider.";
+		isError = true;
+		break;
+	case CERT_E_CHAINING:
+		messageText = L"A certificate chain could not be built to a trusted root authority.";
 		isError = true;
 		break;
 	default:
-		messageText = L"Something went wrong";
+		messageText = L"Something went wrong. Unrecognized response.";
 		isError = true;
 		break;
 	}
