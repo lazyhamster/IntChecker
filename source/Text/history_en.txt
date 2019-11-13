@@ -1,5 +1,9 @@
 Changes history:
 
+2.8.0
+- Added digital signature verification for PE files.
+- Macro-function 'gethash' now returns string 'userabort' if user aborted operation.
+
 2.7.3
 - Added ability to save hashes to one file for each directory.
 - Fixed return of the previous file hash from macros when current file is not readable.

@@ -1236,7 +1236,8 @@ static void RunVerifySignature(const std::wstring& path)
 	bool isError = false;
 	const wchar_t* messageText = nullptr;
 	
-	long errCode = VerifyPeSignature(path.c_str());
+	SignedFileInformation fileInfo;
+	long errCode = VerifyPeSignature(path.c_str(), fileInfo);
 	
 	switch (errCode)
 	{
@@ -1244,7 +1245,7 @@ static void RunVerifySignature(const std::wstring& path)
 		messageText = L"File signature is valid";
 		break;
 	case TRUST_E_NOSIGNATURE:
-		messageText = L"File is not signed or signature is not recognized";
+		messageText = GetLocMsg(MSG_DLG_NOSIGNATURE);
 		break;
 	case TRUST_E_EXPLICIT_DISTRUST:
 		messageText = L"The certificate was explicitly marked as untrusted by the user.";
@@ -1259,7 +1260,7 @@ static void RunVerifySignature(const std::wstring& path)
 		isError = true;
 		break;
 	case CRYPT_E_FILE_ERROR:
-		messageText = L"File reading error.";
+		messageText = GetLocMsg(MSG_DLG_FILE_ERROR);
 		isError = true;
 		break;
 	case TRUST_E_PROVIDER_UNKNOWN:
@@ -1288,7 +1289,7 @@ static void RunVerifySignature(const std::wstring& path)
 		break;
 	}
 
-	DisplayMessage(L"Validation complete", messageText, nullptr, isError, true);
+	DisplayMessage(GetLocMsg(MSG_DLG_OPERATION_COMPLETE), messageText, nullptr, isError, true);
 }
 
 static bool CalculateHashByAlgoName(const wchar_t* algoName, const wchar_t* path, wchar_t* hashBuf, size_t hashBufSize, bool fQuiet, bool &fAborted)

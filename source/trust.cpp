@@ -11,6 +11,18 @@ bool FileCanHaveSignature(const wchar_t* path)
 	return (_wcsicmp(ext, L".exe") == 0);
 }
 
+static std::wstring GetAlgorithmName(const CRYPT_ALGORITHM_IDENTIFIER &algoId)
+{
+	if (algoId.pszObjId)
+	{
+		PCCRYPT_OID_INFO pOidInfo = CryptFindOIDInfo(CRYPT_OID_INFO_OID_KEY, algoId.pszObjId, 0);
+		if (pOidInfo && pOidInfo->pwszName)
+			return pOidInfo->pwszName;
+	}
+
+	return L"";
+}
+
 static bool GetCertificateInfo(HCERTSTORE hStore, PCMSG_SIGNER_INFO pSignerInfo, CertificateInfo& decodedInfo)
 {
 	CERT_INFO certInfo = {0};
@@ -29,13 +41,7 @@ static bool GetCertificateInfo(HCERTSTORE hStore, PCMSG_SIGNER_INFO pSignerInfo,
 	dwRetSize = CertGetNameString(pCertContext, CERT_NAME_SIMPLE_DISPLAY_TYPE, 0, NULL, wszNameBuf, _countof(wszNameBuf));
 	decodedInfo.SubjectName = dwRetSize > 1 ? wszNameBuf : L"";
 
-	decodedInfo.SignatureAlgorithm = L"";
-	if (pCertContext->pCertInfo && pCertContext->pCertInfo->SignatureAlgorithm.pszObjId)
-	{
-		PCCRYPT_OID_INFO pOidInfo = CryptFindOIDInfo(CRYPT_OID_INFO_OID_KEY, pCertContext->pCertInfo->SignatureAlgorithm.pszObjId, 0);
-		if (pOidInfo && pOidInfo->pwszName)
-			decodedInfo.SignatureAlgorithm = pOidInfo->pwszName;
-	}
+	decodedInfo.SignatureAlgorithm = pCertContext->pCertInfo ? GetAlgorithmName(pCertContext->pCertInfo->SignatureAlgorithm) : L"";
 
 	CertFreeCertificateContext(pCertContext);
 	return true;
@@ -103,17 +109,17 @@ static bool GetSignatureInfo(const wchar_t* path, std::vector<DigitalSignatureIn
 		CERT_QUERY_FORMAT_FLAG_BINARY, 0, &dwEncodingType, &dwContentType, &dwFormatType, &hStore, &hMsg, nullptr);
 	if (!fResult) return false;
 
-	DWORD dwParamSize;
-	DWORD dwNumSigners;
 	size_t nSigNumber = signatures.size();
+	
+	DWORD dwNumSigners;
+	DWORD dwParamSize = sizeof(dwNumSigners);
 
-	dwParamSize = sizeof(dwNumSigners);
 	fResult = CryptMsgGetParam(hMsg, CMSG_SIGNER_COUNT_PARAM, 0, &dwNumSigners, &dwParamSize);
 	if (fResult)
 	{
 		for (DWORD i = 0; i < dwNumSigners; ++i)
 		{
-			DWORD dwSignerInfoSize;
+			DWORD dwSignerInfoSize = 0;
 
 			fResult = CryptMsgGetParam(hMsg, CMSG_SIGNER_INFO_PARAM, i, nullptr, &dwSignerInfoSize);
 			if (fResult)
@@ -126,6 +132,9 @@ static bool GetSignatureInfo(const wchar_t* path, std::vector<DigitalSignatureIn
 					if (GetCertificateInfo(hStore, pSignerInfo, signatureInfo.CertInfo)
 						&& GetProgAndPublisherInfo(pSignerInfo, signatureInfo))
 					{
+						signatureInfo.HashAlgorithm = GetAlgorithmName(pSignerInfo->HashAlgorithm);
+						signatureInfo.HashEncryptionAlgorithm = GetAlgorithmName(pSignerInfo->HashEncryptionAlgorithm);
+						
 						signatures.push_back(signatureInfo);
 					}
 				}
@@ -140,7 +149,7 @@ static bool GetSignatureInfo(const wchar_t* path, std::vector<DigitalSignatureIn
 	return (signatures.size() > nSigNumber);
 }
 
-long VerifyPeSignature(const wchar_t* path)
+long VerifyPeSignature(const wchar_t* path, SignedFileInformation &fileInfo)
 {
 	WINTRUST_FILE_INFO wtfi = { 0 };
 	wtfi.cbStruct = sizeof(WINTRUST_FILE_INFO);
@@ -160,9 +169,7 @@ long VerifyPeSignature(const wchar_t* path)
 	
 	if (lStatus == ERROR_SUCCESS)
 	{
-		//TODO: get certificate info
-		std::vector<DigitalSignatureInfo> signatures;
-		GetSignatureInfo(path, signatures);
+		GetSignatureInfo(path, fileInfo.Signatures);
 	}
 
 	wtData.dwStateAction = WTD_STATEACTION_CLOSE;

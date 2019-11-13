@@ -73,6 +73,9 @@
 "Wybierz parametry"
 "Testuję %s"
 "Czas:"
+"*Operation complete"
+"*File is not signed or signature is not recognized"
+"*File reading error"
 
 "Generuj"
 "Algorytm"
