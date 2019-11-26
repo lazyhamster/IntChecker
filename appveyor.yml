@@ -60,3 +60,16 @@ deploy:
     prerelease: false
     on:
       APPVEYOR_REPO_TAG: true        # deploy on tag push only
+  - provider: BinTray
+    username: lazyhamster
+    api_key:
+      secure: zxzGL5vd4v2+QjlatWuQg3E7IPrt5a5sJ9bPIwfBonZ2bnShrU3wnjYuUhr19cvL
+    subject: lazyhamster
+    repo: FAR-Plugins
+    package: IntChecker
+    version: $(PVER)
+    publish: true
+    override: true
+    explode: false
+    on:
+      branch: master
