@@ -1380,11 +1380,11 @@ void WINAPI ExitFARW(const ExitInfo* Info)
 
 intptr_t WINAPI ConfigureW(const ConfigureInfo* Info)
 {
-	LPCWSTR *algoList = new LPCWSTR[NUMBER_OF_SUPPORTED_HASHES];
+	std::vector<const wchar_t*> vAlgList;
 	int selectedAlgo = 0;
-	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
+	for (int i = 0; i < _countof(SupportedHashes); i++)
 	{
-		algoList[i] = SupportedHashes[i].AlgoName.c_str();
+		vAlgList.push_back(SupportedHashes[i].AlgoName.c_str());
 		if (SupportedHashes[i].AlgoId == optDefaultAlgo)
 			selectedAlgo = i;
 	}
@@ -1392,7 +1392,7 @@ intptr_t WINAPI ConfigureW(const ConfigureInfo* Info)
 	const wchar_t* codePageNames[] = {L"UTF-8", L"ANSI", L"OEM"};
 	const UINT codePageValues[] = {CP_UTF8, CP_ACP, CP_OEMCP};
 	int selectedCP = 0;
-	for (int i = 0; i < ARRAY_SIZE(codePageValues); i++)
+	for (int i = 0; i < _countof(codePageValues); i++)
 	{
 		if (codePageValues[i] == optListDefaultCodepage)
 			selectedCP = i;
@@ -1401,7 +1401,7 @@ intptr_t WINAPI ConfigureW(const ConfigureInfo* Info)
 	const int outputTargetNames[] = {MSG_CONFIG_OUTPUT_SINGLE_FILE, MSG_CONFIG_OUTPUT_SEPARATE_FILE, MSG_CONFIG_OUTPUT_SEPARATE_DIRS, MSG_CONFIG_OUTPUT_DISPLAY};
 	const int outputTargetValues[] = {OT_SINGLEFILE, OT_SEPARATEFILES, OT_SEPARATEDIRS, OT_DISPLAY};
 	int selectedOutput = 0;
-	for (int i = 0; i < ARRAY_SIZE(outputTargetNames); i++)
+	for (int i = 0; i < _countof(outputTargetValues); i++)
 	{
 		if (outputTargetValues[i] == optDefaultOutputTarget)
 			selectedOutput = i;
@@ -1410,7 +1410,7 @@ intptr_t WINAPI ConfigureW(const ConfigureInfo* Info)
 	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_CONFIG, GetLocMsg(MSG_CONFIG_TITLE), L"IntCheckerConfig");
 
 	dlgBuilder.AddText(MSG_CONFIG_DEFAULT_ALGO);
-	dlgBuilder.AddComboBox(&selectedAlgo, NULL, 15, algoList, NUMBER_OF_SUPPORTED_HASHES, DIF_DROPDOWNLIST);
+	dlgBuilder.AddComboBox(&selectedAlgo, NULL, 15, vAlgList.data(), vAlgList.size(), DIF_DROPDOWNLIST);
 	dlgBuilder.AddCheckbox(MSG_CONFIG_REMEMBER_LAST_ALGO, (BOOL*) &optRememberLastUsedAlgo);
 
 	dlgBuilder.AddSeparator();
