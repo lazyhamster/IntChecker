@@ -29,7 +29,7 @@ void IncludeTrailingPathDelim(wchar_t *pathBuf, size_t bufMaxSize)
 		wcscat_s(pathBuf, bufMaxSize, L"\\");
 }
 
-void IncludeTrailingPathDelim(wstring &pathStr)
+void IncludeTrailingPathDelim(std::wstring &pathStr)
 {
 	size_t nStrLen = pathStr.length();
 	if ((nStrLen > 0) && (pathStr[nStrLen - 1] != '\\'))
@@ -40,13 +40,23 @@ int64_t GetFileSize_i64(const wchar_t* path)
 {
 	WIN32_FIND_DATA fd = {0};
 	HANDLE hFind = FindFirstFile(path, &fd);
-	if (hFind != INVALID_HANDLE_VALUE)
-	{
-		FindClose(hFind);
-		return ((int64_t)fd.nFileSizeHigh << 32) + fd.nFileSizeLow;
-	}
+	if (hFind == INVALID_HANDLE_VALUE)
+		return 0;
 
-	return 0;
+	FindClose(hFind);
+	if ((fd.dwFileAttributes & FILE_ATTRIBUTE_REPARSE_POINT) && (fd.dwReserved0 == IO_REPARSE_TAG_SYMLINK))
+	{
+		// We have a symlink
+		HANDLE hLinkTarget = CreateFile(path, GENERIC_READ, FILE_SHARE_READ, NULL, OPEN_EXISTING, 0, 0);
+		if (hLinkTarget == INVALID_HANDLE_VALUE)
+			return 0;
+
+		int64_t nTargetSize = GetFileSize_i64(hLinkTarget);
+		CloseHandle(hLinkTarget);
+
+		return nTargetSize;
+	}
+	return ((int64_t)fd.nFileSizeHigh << 32) + fd.nFileSizeLow;
 }
 
 int64_t GetFileSize_i64(HANDLE hFile)

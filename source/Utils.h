@@ -4,7 +4,7 @@
 bool CheckEsc();
 
 void IncludeTrailingPathDelim(wchar_t *pathBuf, size_t bufMaxSize);
-void IncludeTrailingPathDelim(wstring &pathStr);
+void IncludeTrailingPathDelim(std::wstring &pathStr);
 std::wstring ExtractFileName(const std::wstring& fullPath);
 std::wstring ExtractFileExt(const std::wstring& path);
 std::wstring PrependLongPrefix(const std::wstring &basePath);

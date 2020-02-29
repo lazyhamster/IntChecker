@@ -3,6 +3,7 @@ Changes history:
 2.8.0
 - Added digital signature verification for PE files.
 - Macro-function 'gethash' now returns string 'userabort' if user aborted operation.
+- Fixed issue with calculating hash for symlink wwith macro command.
 
 2.7.3
 - Added ability to save hashes to one file for each directory.
