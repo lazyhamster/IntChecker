@@ -7,8 +7,15 @@
 
 bool FileCanHaveSignature(const wchar_t* path)
 {
+	static const wchar_t* SignatureExtensions[] = { L".exe", L".dll", L".msi" };
+	
 	const wchar_t* ext = PathFindExtension(path);
-	return (_wcsicmp(ext, L".exe") == 0);
+	for (int i = 0; i < _countof(SignatureExtensions); ++i)
+	{
+		if (_wcsicmp(ext, SignatureExtensions[i]) == 0)
+			return true;
+	}
+	return false;
 }
 
 static std::wstring GetAlgorithmName(const CRYPT_ALGORITHM_IDENTIFIER &algoId)
@@ -99,7 +106,7 @@ static bool GetProgAndPublisherInfo(PCMSG_SIGNER_INFO pSignerInfo, DigitalSignat
 	return false;
 }
 
-static bool GetSignatureInfo(const wchar_t* path, std::vector<DigitalSignatureInfo> &signatures)
+bool GetDigitalSignatureInfo(const wchar_t* path, SignedFileInformation &info)
 {
 	DWORD dwEncodingType, dwContentType, dwFormatType;
 	HCERTSTORE hStore = nullptr;
@@ -109,8 +116,6 @@ static bool GetSignatureInfo(const wchar_t* path, std::vector<DigitalSignatureIn
 		CERT_QUERY_FORMAT_FLAG_BINARY, 0, &dwEncodingType, &dwContentType, &dwFormatType, &hStore, &hMsg, nullptr);
 	if (!fResult) return false;
 
-	size_t nSigNumber = signatures.size();
-	
 	DWORD dwNumSigners;
 	DWORD dwParamSize = sizeof(dwNumSigners);
 
@@ -135,7 +140,7 @@ static bool GetSignatureInfo(const wchar_t* path, std::vector<DigitalSignatureIn
 						signatureInfo.HashAlgorithm = GetAlgorithmName(pSignerInfo->HashAlgorithm);
 						signatureInfo.HashEncryptionAlgorithm = GetAlgorithmName(pSignerInfo->HashEncryptionAlgorithm);
 						
-						signatures.push_back(signatureInfo);
+						info.Signatures.push_back(signatureInfo);
 					}
 				}
 				LocalFree(pSignerInfo);
@@ -146,10 +151,10 @@ static bool GetSignatureInfo(const wchar_t* path, std::vector<DigitalSignatureIn
 	if (hStore) CertCloseStore(hStore, 0);
 	if (hMsg) CryptMsgClose(hMsg);
 
-	return (signatures.size() > nSigNumber);
+	return info.Signatures.size() > 0;
 }
 
-long VerifyPeSignature(const wchar_t* path, SignedFileInformation &fileInfo)
+long VerifyPeSignature(const wchar_t* path)
 {
 	WINTRUST_FILE_INFO wtfi = { 0 };
 	wtfi.cbStruct = sizeof(WINTRUST_FILE_INFO);
@@ -166,11 +171,6 @@ long VerifyPeSignature(const wchar_t* path, SignedFileInformation &fileInfo)
 	GUID pgActionId = WINTRUST_ACTION_GENERIC_VERIFY_V2;
 
 	LONG lStatus = WinVerifyTrust(NULL, &pgActionId, &wtData);
-	
-	if (lStatus == ERROR_SUCCESS)
-	{
-		GetSignatureInfo(path, fileInfo.Signatures);
-	}
 
 	wtData.dwStateAction = WTD_STATEACTION_CLOSE;
 	WinVerifyTrust(0, &pgActionId, &wtData);

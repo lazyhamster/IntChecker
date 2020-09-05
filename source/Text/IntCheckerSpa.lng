@@ -10,6 +10,7 @@
 "&Comparar con Portapapeles"
 "*Run Benchmark"
 "*Verify Digital Signature"
+"*Get Digital Signature Information"
 
 "Configuración"
 "Usar &prefijo"
@@ -24,7 +25,7 @@
 "Archivo Simple"
 "Archivos hash separados"
 "Visualización"
-"*Directory hash files*"
+"*Directory hash files"
 
 "Aceptar"
 "Cancelar"

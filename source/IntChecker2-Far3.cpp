@@ -1231,13 +1231,17 @@ static void RunBenchmark()
 	dlgBuilder.ShowDialog();
 }
 
-static void RunVerifySignature(const std::wstring& path)
+static void RunVerifySignatures()
 {
 	bool isError = false;
 	const wchar_t* messageText = nullptr;
 	
+	std::wstring path = L"";
+	GetSelectedPanelItemPath(path);
+	//TODO: get all selected files
+	
 	SignedFileInformation fileInfo;
-	long errCode = VerifyPeSignature(path.c_str(), fileInfo);
+	long errCode = VerifyPeSignature(path.c_str());
 	
 	switch (errCode)
 	{
@@ -1290,6 +1294,12 @@ static void RunVerifySignature(const std::wstring& path)
 	}
 
 	DisplayMessage(GetLocMsg(MSG_DLG_OPERATION_COMPLETE), messageText, nullptr, isError, true);
+}
+
+static void RunGetSignatureInfo(const std::wstring& path)
+{
+	//TODO: implement dialog
+	DisplayMessage(L"TODO", L"Not implemented yet", nullptr, false, true);
 }
 
 static bool CalculateHashByAlgoName(const wchar_t* algoName, const wchar_t* path, wchar_t* hashBuf, size_t hashBufSize, bool fQuiet, bool &fAborted)
@@ -1469,24 +1479,27 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 			return NULL;
 		}
 
+		std::wstring selectedFilePath;
+		bool isSingleFileSelected = (pi.SelectedItemsNumber == 1) && GetSelectedPanelItemPath(selectedFilePath) && IsFile(selectedFilePath);
+
 		FarMenu openMenu(&FarSInfo, &GUID_PLUGIN_MAIN, &GUID_DIALOG_MENU, GetLocMsg(MSG_PLUGIN_NAME));
 
 		openMenu.AddItemEx(GetLocMsg(MSG_MENU_GENERATE), std::bind(RunGenerateHashes));
 		openMenu.AddItemEx(GetLocMsg(MSG_MENU_COMPARE), std::bind(RunComparePanels));
 
-		wstring selectedFilePath;
-		if ((pi.SelectedItemsNumber == 1) && GetSelectedPanelItemPath(selectedFilePath) && IsFile(selectedFilePath))
+		if (isSingleFileSelected)
 		{
 			//TODO: use optDetectHashFiles
 			openMenu.AddItemEx(GetLocMsg(MSG_MENU_VALIDATE), std::bind(RunValidateFiles, selectedFilePath.c_str(), false, false));
 			openMenu.AddItemEx(GetLocMsg(MSG_MENU_VALIDATE_WITH_PARAMS), std::bind(RunValidateFiles, selectedFilePath.c_str(), false, true));
 			openMenu.AddItemEx(GetLocMsg(MSG_MENU_COMPARE_CLIP), std::bind(RunCompareWithClipboard, selectedFilePath));
+		}
 
-			if (FileCanHaveSignature(selectedFilePath.c_str()))
-			{
-				openMenu.AddSeparator();
-				openMenu.AddItemEx(GetLocMsg(MSG_MENU_SIGNATURE), std::bind(RunVerifySignature, selectedFilePath));
-			}
+		openMenu.AddSeparator();
+		openMenu.AddItemEx(GetLocMsg(MSG_MENU_VERIFY_SIGNATURE), std::bind(RunVerifySignatures));
+		if (isSingleFileSelected && FileCanHaveSignature(selectedFilePath.c_str()))
+		{
+			openMenu.AddItemEx(GetLocMsg(MSG_MENU_SIGNATURE_INFO), std::bind(RunGetSignatureInfo, selectedFilePath));
 		}
 
 		openMenu.AddSeparator();
