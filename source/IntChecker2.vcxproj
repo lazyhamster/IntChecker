@@ -182,6 +182,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>IntChecker2-Far2.def</ModuleDefinitionFile>
@@ -206,6 +207,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>IntChecker2-Far2.def</ModuleDefinitionFile>
@@ -227,6 +229,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>IntChecker2-Far2.def</ModuleDefinitionFile>
@@ -254,6 +257,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>IntChecker2-Far2.def</ModuleDefinitionFile>
@@ -277,6 +281,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>IntChecker2-Far3.def</ModuleDefinitionFile>
@@ -301,6 +306,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>IntChecker2-Far3.def</ModuleDefinitionFile>
@@ -322,6 +328,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>IntChecker2-Far3.def</ModuleDefinitionFile>
@@ -350,6 +357,7 @@
       <PrecompiledHeader>Use</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <ModuleDefinitionFile>IntChecker2-Far3.def</ModuleDefinitionFile>
@@ -457,6 +465,7 @@
     <ClInclude Include="..\depends\far3\PluginSettings.hpp" />
     <ClInclude Include="..\depends\farhelpers\Far2Menu.hpp" />
     <ClInclude Include="..\depends\farhelpers\Far3Menu.hpp" />
+    <ClInclude Include="..\depends\farhelpers\Far3Panel.hpp" />
     <ClInclude Include="trust.h" />
     <ClInclude Include="Far3Guids.h" />
     <ClInclude Include="FarCommon.h" />

@@ -120,6 +120,9 @@
     <ClInclude Include="trust.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="..\depends\farhelpers\Far3Panel.hpp">
+      <Filter>Header Files\depends\helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <M4_Macro Include="m4\FILE_ID.DIZ.m4">

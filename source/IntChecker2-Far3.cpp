@@ -13,6 +13,7 @@
 
 #include "FarCommon.h"
 #include "farhelpers/Far3Menu.hpp"
+#include "farhelpers/Far3Panel.hpp"
 
 // --------------------------------------- Service functions -------------------------------------------------
 
@@ -62,108 +63,6 @@ static bool ConfirmMessage(const wchar_t* headerText, const wchar_t* messageText
 static bool ConfirmMessage(int headerMsgID, int textMsgID, bool isWarning)
 {
 	return ConfirmMessage(GetLocMsg(headerMsgID), GetLocMsg(textMsgID), isWarning);
-}
-
-static bool GetPanelDir(HANDLE hPanel, wstring& dirStr)
-{
-	bool ret = false;
-
-	size_t nBufSize = FarSInfo.PanelControl(hPanel, FCTL_GETPANELDIRECTORY, 0, NULL);
-	FarPanelDirectory *panelDir = (FarPanelDirectory*) malloc(nBufSize);
-	panelDir->StructSize = sizeof(FarPanelDirectory);
-	if (FarSInfo.PanelControl(hPanel, FCTL_GETPANELDIRECTORY, nBufSize, panelDir))
-	{
-		dirStr.assign(panelDir->Name);
-		IncludeTrailingPathDelim(dirStr);
-		ret = true;
-	}
-
-	free(panelDir);
-	return ret;
-}
-
-static bool GetSelectedPanelItemPath(wstring& nameStr)
-{
-	nameStr.clear();
-
-	PanelInfo pi = {sizeof(PanelInfo)};
-	if (FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, &pi))
-		if ((pi.SelectedItemsNumber == 1) && (pi.PanelType == PTYPE_FILEPANEL))
-		{
-			wstring strNameBuffer;
-			GetPanelDir(PANEL_ACTIVE, strNameBuffer);
-			
-			size_t itemBufSize = FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETCURRENTPANELITEM, 0, NULL);
-			PluginPanelItem *PPI = (PluginPanelItem*)malloc(itemBufSize);
-			if (PPI)
-			{
-				FarGetPluginPanelItem FGPPI={sizeof(FarGetPluginPanelItem), itemBufSize, PPI};
-				FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETCURRENTPANELITEM, 0, &FGPPI);
-
-				strNameBuffer.append(PPI->FileName);
-				nameStr = strNameBuffer;
-
-				free(PPI);
-			}
-		}
-
-	return (nameStr.size() > 0);
-}
-
-static bool PathMatchFileFilter(const PluginPanelItem* item, HANDLE fileFilter)
-{
-	if (fileFilter != INVALID_HANDLE_VALUE)
-	{
-		return FarSInfo.FileFilterControl(fileFilter, FFCTL_ISFILEINFILTER, 0, (void *) item) != FALSE;
-	}
-	return true;
-}
-
-static bool CALLBACK FindMatchFileFilter(const WIN32_FIND_DATA* data, HANDLE fileFilter)
-{
-	if (fileFilter != INVALID_HANDLE_VALUE)
-	{
-		PluginPanelItem item = {0};
-		item.FileName = data->cFileName;
-		item.AlternateFileName = data->cAlternateFileName;
-		item.FileSize = data->nFileSizeLow + ((unsigned long long)data->nFileSizeHigh << 32);
-		item.FileAttributes = data->dwFileAttributes;
-		item.CreationTime = data->ftCreationTime;
-		item.LastWriteTime = data->ftLastWriteTime;
-		item.LastAccessTime = data->ftLastAccessTime;
-
-		return PathMatchFileFilter(&item, fileFilter);
-	}
-	return true;
-}
-
-static void GetSelectedPanelFiles(PanelInfo &pi, wstring &panelDir, StringList &vDest, int64_t &totalSize, bool recursive, HANDLE fileFilter)
-{
-	
-	for (size_t i = 0; i < pi.SelectedItemsNumber; i++)
-	{
-		size_t requiredBytes = FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETSELECTEDPANELITEM, i, NULL);
-		PluginPanelItem *PPI = (PluginPanelItem*)malloc(requiredBytes);
-		if (PPI)
-		{
-			FarGetPluginPanelItem FGPPI = {sizeof(FarGetPluginPanelItem), requiredBytes, PPI};
-			FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETSELECTEDPANELITEM, i, &FGPPI);
-			if (wcscmp(PPI->FileName, L"..") && wcscmp(PPI->FileName, L".") && PathMatchFileFilter(PPI, fileFilter))
-			{
-				if ((PPI->FileAttributes & FILE_ATTRIBUTE_DIRECTORY) == 0)
-				{
-					vDest.push_back(PPI->FileName);
-					totalSize += PPI->FileSize;
-				}
-				else
-				{
-					wstring strSelectedDir = panelDir + PPI->FileName;
-					PrepareFilesList(strSelectedDir.c_str(), PPI->FileName, vDest, totalSize, recursive, FindMatchFileFilter, fileFilter);
-				}
-			}
-			free(PPI);
-		}
-	}
 }
 
 static bool GetFarWindowSize(RectSize &size)
@@ -301,37 +200,6 @@ static bool CALLBACK FileHashingProgress(HANDLE context, int64_t bytesProcessed)
 	return true;
 }
 
-static void SelectFilesOnPanel(HANDLE hPanel, std::vector<std::wstring> &fileNames, bool exclusive)
-{
-	if (!exclusive && (fileNames.size() == 0)) return;
-
-	PanelInfo pi = {sizeof(PanelInfo), 0};
-	if (!FarSInfo.PanelControl(hPanel, FCTL_GETPANELINFO, 0, &pi))
-		return;
-
-	FarSInfo.PanelControl(hPanel, FCTL_BEGINSELECTION, 0, NULL);
-
-	for (size_t i = 0; i < pi.ItemsNumber; i++)
-	{
-		size_t nSize = FarSInfo.PanelControl(hPanel, FCTL_GETPANELITEM, i, NULL);
-		PluginPanelItem *PPI = (PluginPanelItem*) malloc(nSize);
-		if (PPI)
-		{
-			FarGetPluginPanelItem gppi = {sizeof(FarGetPluginPanelItem), nSize, PPI};
-			FarSInfo.PanelControl(hPanel, FCTL_GETPANELITEM, i, &gppi);
-			bool isNameInList = std::find(fileNames.begin(), fileNames.end(), PPI->FileName) != fileNames.end();
-			if (isNameInList || exclusive)
-			{
-				FarSInfo.PanelControl(hPanel, FCTL_SETSELECTION, i, (void*)(UINT_PTR)(isNameInList ? TRUE : FALSE));
-			}
-			free(PPI);
-		}
-	}
-
-	FarSInfo.PanelControl(hPanel, FCTL_ENDSELECTION, 0, NULL);
-	FarSInfo.PanelControl(hPanel, FCTL_REDRAWPANEL, 0, NULL);
-}
-
 static int DisplayHashGenerateError(const std::wstring& fileName)
 {
 	static const wchar_t* DlgLines[7];
@@ -384,7 +252,7 @@ static bool RunGeneration(const std::wstring& filePath, const std::wstring& file
 	return true;
 }
 
-static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, std::vector<std::wstring> &vMissingList, int numSkipped)
+static void DisplayValidationResults(Far3Panel& panel, std::vector<std::wstring> &vMismatchList, std::vector<std::wstring> &vMissingList, int numSkipped)
 {
 	if (vMismatchList.size() == 0 && vMissingList.size() == 0)
 	{
@@ -459,7 +327,11 @@ static void DisplayValidationResults(std::vector<std::wstring> &vMismatchList, s
 				vSameFolderFiles.push_back(nextFile);
 		}
 
-		SelectFilesOnPanel(PANEL_ACTIVE, vSameFolderFiles, true);
+		panel.SetItemsSelection([&vSameFolderFiles](const wchar_t* aItemName)
+		{
+			bool isNameInList = std::find(vSameFolderFiles.begin(), vSameFolderFiles.end(), aItemName) != vSameFolderFiles.end();
+			return isNameInList ? 1 : -1;
+		});
 	}
 }
 
@@ -567,7 +439,10 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 		} // for
 
 		if (!fAborted)
-			DisplayValidationResults(vMismatches, vMissing, nFilesSkipped);
+		{
+			Far3Panel activePanel(&FarSInfo, PANEL_ACTIVE);
+			DisplayValidationResults(activePanel, vMismatches, vMissing, nFilesSkipped);
+		}
 	}
 	else
 	{
@@ -748,11 +623,9 @@ static void DisplayHashListOnScreen(const HashList &list)
 	delete [] listBoxItems;
 }
 
-static void RunGenerateHashes()
+static void RunGenerateHashes(Far3Panel& panel)
 {
-	// Check panel for compatibility
-	PanelInfo pi = {sizeof(PanelInfo), 0};
-	if (!FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, &pi) || (pi.SelectedItemsNumber <= 0))
+	if (!panel.HasSelectedItems())
 	{
 		DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_NO_FILES_SELECTED), NULL, true, true);
 		return;
@@ -768,10 +641,10 @@ static void RunGenerateHashes()
 	if (optAutoExtension) genParams.OutputFileName += selectedHashInfo->DefaultExt;
 
 	// If only one file is selected then offer it's name as base for hash file name
-	if (pi.SelectedItemsNumber == 1)
+	if (panel.GetSelectedItemsNumber() == 1)
 	{
-		wstring strSelectedFile;
-		if (GetSelectedPanelItemPath(strSelectedFile) && (strSelectedFile != L".."))
+		auto strSelectedFile = panel.GetSelectedItemPath();
+		if (!strSelectedFile.empty() && (strSelectedFile != L".."))
 		{
 			genParams.OutputFileName = ExtractFileName(strSelectedFile) + selectedHashInfo->DefaultExt;
 		}
@@ -806,10 +679,10 @@ static void RunGenerateHashes()
 		break;
 	}
 
-	StringList filesToProcess;
+	std::vector<PanelFileInfo> filesToProcess;
 	int64_t totalFilesSize = 0;
 	HashList hashes;
-	wstring strPanelDir;
+	std::wstring strPanelDir = panel.GetPanelDirectory();
 
 	// Win7 only feature
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_INDETERMINATE, NULL);
@@ -819,8 +692,7 @@ static void RunGenerateHashes()
 		FarScreenSave screen;
 		DisplayMessage(GetLocMsg(MSG_DLG_PROCESSING), GetLocMsg(MSG_DLG_PREPARE_LIST), NULL, false, false);
 
-		GetPanelDir(PANEL_ACTIVE, strPanelDir);
-		GetSelectedPanelFiles(pi, strPanelDir, filesToProcess, totalFilesSize, genParams.Recursive, genParams.FileFilter);
+		panel.GetSelectedFiles(genParams.Recursive, genParams.FileFilter, filesToProcess, totalFilesSize);
 	}
 
 	{
@@ -830,17 +702,16 @@ static void RunGenerateHashes()
 
 		bool continueSave = true;
 		bool fAutoSkipErrors = false;
-		for (auto cit = filesToProcess.begin(); cit != filesToProcess.end(); cit++)
+		for (auto cit = filesToProcess.begin(); cit != filesToProcess.end(); ++cit)
 		{
-			wstring strNextFile = *cit;
-			wstring strFullPath = strPanelDir + strNextFile;
+			const PanelFileInfo& pfiNextFile = *cit;
 			
 			std::string hashValueStr;
 			bool fShouldAbort = false;
 
-			if (RunGeneration(strFullPath, strNextFile, genParams.Algorithm, optHashUppercase != FALSE, progressCtx, hashValueStr, fShouldAbort, fAutoSkipErrors))
+			if (RunGeneration(pfiNextFile.FullPath, pfiNextFile.PanelPath, genParams.Algorithm, optHashUppercase != FALSE, progressCtx, hashValueStr, fShouldAbort, fAutoSkipErrors))
 			{
-				hashes.SetFileHash(genParams.StoreAbsPaths ? strFullPath : strNextFile, hashValueStr, genParams.Algorithm);
+				hashes.SetFileHash(genParams.StoreAbsPaths ? pfiNextFile.FullPath : pfiNextFile.PanelPath, hashValueStr, genParams.Algorithm);
 			}
 			else if (fShouldAbort)
 			{
@@ -892,8 +763,7 @@ static void RunGenerateHashes()
 	// Clear selection if requested
 	if (saveSuccess && optClearSelectionOnComplete)
 	{
-		for (int i = (int) pi.SelectedItemsNumber - 1; i >=0; i--)
-			FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_CLEARSELECTION, i, NULL);
+		panel.ClearSelection();
 	}
 
 	if (optRememberLastUsedAlgo)
@@ -902,7 +772,7 @@ static void RunGenerateHashes()
 		SaveSettings();
 	}
 
-	FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_REDRAWPANEL, 0, NULL);
+	panel.RedrawPanel();
 }
 
 static intptr_t WINAPI CompareParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t Param1, void* Param2)
@@ -977,25 +847,18 @@ static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive, HANDLE
 
 static void RunComparePanels()
 {
-	PanelInfo piActv = {sizeof(PanelInfo), 0}, piPasv = {sizeof(PanelInfo), 0};
-	if (!FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, &piActv)
-		|| !FarSInfo.PanelControl(PANEL_PASSIVE, FCTL_GETPANELINFO, 0, &piPasv))
-		return;
-
-	if (piActv.PanelType != PTYPE_FILEPANEL || piPasv.PanelType != PTYPE_FILEPANEL || piActv.PluginHandle || piPasv.PluginHandle)
+	Far3Panel activePanel(&FarSInfo, PANEL_ACTIVE);
+	Far3Panel passivePanel(&FarSInfo, PANEL_PASSIVE);
+	
+	if (!activePanel.IsValid() || !passivePanel.IsValid() || !activePanel.HasSelectedItems()) return;
+	if (!activePanel.IsReadablePanel() || !passivePanel.IsReadablePanel())
 	{
 		DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_FILE_PANEL_REQUIRED), NULL, true, true);
 		return;
 	}
 
-	// Nothing selected on the panel
-	if (piActv.SelectedItemsNumber == 0) return;
-
-	wstring strActivePanelDir, strPassivePanelDir;
-		
-	GetPanelDir(PANEL_ACTIVE, strActivePanelDir);
-	GetPanelDir(PANEL_PASSIVE, strPassivePanelDir);
-
+	std::wstring strActivePanelDir = activePanel.GetPanelDirectory();
+	std::wstring strPassivePanelDir = passivePanel.GetPanelDirectory();
 	if (strActivePanelDir == strPassivePanelDir)
 	{
 		DisplayMessage(GetLocMsg(MSG_DLG_ERROR), GetLocMsg(MSG_DLG_NO_COMPARE_SELF), NULL, true, true);
@@ -1009,7 +872,7 @@ static void RunComparePanels()
 	if (!AskForCompareParams(cmpAlgo, recursive, fileFilter))
 		return;
 
-	StringList vSelectedFiles;
+	std::vector<PanelFileInfo> vSelectedFiles;
 	int64_t totalFilesSize = 0;
 
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_INDETERMINATE, NULL);
@@ -1019,7 +882,7 @@ static void RunComparePanels()
 		FarScreenSave screen;
 		DisplayMessage(GetLocMsg(MSG_DLG_PROCESSING), GetLocMsg(MSG_DLG_PREPARE_LIST), NULL, false, false);
 
-		GetSelectedPanelFiles(piActv, strActivePanelDir, vSelectedFiles, totalFilesSize, true, fileFilter);
+		activePanel.GetSelectedFiles(true, fileFilter, vSelectedFiles, totalFilesSize);
 	}
 
 	if (fileFilter != INVALID_HANDLE_VALUE)
@@ -1038,18 +901,18 @@ static void RunComparePanels()
 
 		for (auto cit = vSelectedFiles.begin(); cit != vSelectedFiles.end(); cit++)
 		{
-			wstring strNextFile = *cit;
+			PanelFileInfo pfiNextFile = *cit;
 
-			wstring strActvPath = strActivePanelDir + strNextFile;
-			wstring strPasvPath = strPassivePanelDir + strNextFile;
+			wstring strActvPath = PathJoin(strActivePanelDir, pfiNextFile.PanelPath);
+			wstring strPasvPath = PathJoin(strPassivePanelDir, pfiNextFile.PanelPath);
 
-			int64_t nActivePanelFileSize = GetFileSize_i64(strActvPath.c_str());
+			int64_t nActivePanelFileSize = pfiNextFile.Size;
 			int64_t nPassivePanelFileSize;
 
 			// Does opposite file exists at all?
 			if (!IsFile(strPasvPath, &nPassivePanelFileSize))
 			{
-				vMissing.push_back(strNextFile);
+				vMissing.push_back(pfiNextFile.PanelPath);
 				progressCtx.CurrentFileIndex += 2;
 				progressCtx.TotalProcessedBytes += nActivePanelFileSize * 2;
 				continue;
@@ -1058,7 +921,7 @@ static void RunComparePanels()
 			// For speed compare file sizes first
 			if (nActivePanelFileSize != nPassivePanelFileSize)
 			{
-				vMismatches.push_back(strNextFile);
+				vMismatches.push_back(pfiNextFile.PanelPath);
 				progressCtx.CurrentFileIndex += 2;
 				progressCtx.TotalProcessedBytes += nActivePanelFileSize * 2;
 				continue;
@@ -1071,7 +934,7 @@ static void RunComparePanels()
 				&& RunGeneration(strPasvPath, strPasvPath, cmpAlgo, false, progressCtx, strHashValuePassive, fAborted, fSkipAllErrors))
 			{
 				if (!SameHash(strHashValueActive, strHashValuePassive))
-					vMismatches.push_back(strNextFile);
+					vMismatches.push_back(pfiNextFile.PanelPath);
 			}
 			else
 			{
@@ -1088,7 +951,7 @@ static void RunComparePanels()
 
 	if (!fAborted)
 	{
-		DisplayValidationResults(vMismatches, vMissing, nFilesSkipped);
+		DisplayValidationResults(activePanel, vMismatches, vMissing, nFilesSkipped);
 	}
 
 	if (optRememberLastUsedAlgo)
@@ -1235,9 +1098,8 @@ static void RunVerifySignatures()
 {
 	bool isError = false;
 	const wchar_t* messageText = nullptr;
-	
+
 	std::wstring path = L"";
-	GetSelectedPanelItemPath(path);
 	//TODO: get all selected files
 	
 	SignedFileInformation fileInfo;
@@ -1473,18 +1335,19 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 	}
 	else if (OInfo->OpenFrom == OPEN_PLUGINSMENU)
 	{
-		PanelInfo pi = {sizeof(PanelInfo), 0};
-		if (!FarSInfo.PanelControl(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, &pi) || (pi.PanelType != PTYPE_FILEPANEL) || ((pi.PluginHandle != NULL) && !(pi.Flags & PFLAGS_REALNAMES)))
+		Far3Panel activePanel(&FarSInfo, PANEL_ACTIVE);
+		if (!activePanel.IsValid() || !activePanel.IsReadablePanel())
 		{
+			DisplayMessage(MSG_DLG_ERROR, MSG_DLG_INVALID_PANEL_TYPE, NULL, true, true);
 			return NULL;
 		}
 
-		std::wstring selectedFilePath;
-		bool isSingleFileSelected = (pi.SelectedItemsNumber == 1) && GetSelectedPanelItemPath(selectedFilePath) && IsFile(selectedFilePath);
+		std::wstring selectedFilePath = activePanel.GetSelectedItemPath();
+		bool isSingleFileSelected = !selectedFilePath.empty() && (activePanel.GetSelectedItemsNumber() == 1) && IsFile(selectedFilePath);
 
 		FarMenu openMenu(&FarSInfo, &GUID_PLUGIN_MAIN, &GUID_DIALOG_MENU, GetLocMsg(MSG_PLUGIN_NAME));
 
-		openMenu.AddItemEx(GetLocMsg(MSG_MENU_GENERATE), std::bind(RunGenerateHashes));
+		openMenu.AddItemEx(GetLocMsg(MSG_MENU_GENERATE), std::bind(RunGenerateHashes, activePanel));
 		openMenu.AddItemEx(GetLocMsg(MSG_MENU_COMPARE), std::bind(RunComparePanels));
 
 		if (isSingleFileSelected)
