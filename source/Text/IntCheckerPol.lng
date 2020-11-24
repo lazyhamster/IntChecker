@@ -9,7 +9,7 @@
 "Weryfikuj pliki (parametry)"
 "Porównaj ze &schowkiem"
 "Uruchom &Benchmark"
-"*Verify Digital Signature"
+"Weryfikuj podpis cyfrowy"
 
 "Konfiguracja"
 "Użyj &przedrostka"
@@ -73,9 +73,9 @@
 "Wybierz parametry"
 "Testuję %s"
 "Czas:"
-"*Operation complete"
-"*File is not signed or signature is not recognized"
-"*File reading error"
+"Operacja zakończona"
+"Plik nie jest podpisany lub podpis nie został rozpoznany"
+"Błąd odczytu pliku"
 
 "Generuj"
 "Algorytm"
