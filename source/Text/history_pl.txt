@@ -1,0 +1,125 @@
+Historia zmian:
+
+2.8.0
+- Dodana weryfikacja podpisu cyfrowego dla plików PE.
+- Funkcja makro 'gethash' zwraca teraz tekst 'userabort', jeżeli użytkownik przerwał operację.
+- Poprawione błędy obliczania sum dla linków symbolicznych za pomocą poleceń makro.
+
+2.7.3
+- Dodano możliwość zapisania obliczonych sum do jednego pliku dla każdego folderu.
+- Naprawiono zwracanie hash poprzedniego pliku z makr, gdy bieżący plik nie jest dostępny.
+- Dodano opcjonalny parametr "Quiet" do wywołań makr typu bool (true/false). Jeśli ma wartość true, komunikaty o błędach nie będą wyświetlane.
+- Drobne poprawki.
+
+2.7.2
+- Dodane polskie tłumaczenie (autor Andrzej Rudnik).
+- Added whitespace trimming around file name supplied through prefix (previously spaces were treated as part of the file name).
+
+2.7.1
+- Fixed invalid elapsed time display in hash progress dialog when it is more then an hour.
+- Fixed problem with validating files from Directory Junctions.
+- Uaktualniono bibliotekę RHash do wersji 1.3.8 (powinna przyspieszać przy niektórych algorytmach).
+
+2.7.0
+- Dodano możliwość użycia wtyczki w skryptach lua (np. IntChecker.GetFileHash.lua).
+- Dodany prosty benchmark do testowania prędkości obliczania sum.
+- Added validation option to ignore missing files.
+- Fixed loading of the hashlists that have paths stored in UNC format.
+- Allowed SFV files to have variable amount of spaces between file path and checksum.
+- Uaktualnione hiszpańskie tłumaczenie (dziękuję Mauro72).
+
+2.6.2
+- Naprawiono zepsutą opcję wielkich liter w hash (regresja).
+
+2.6.1
+- Naprawiony błąd podczas obliczania szybkości wyliczania.
+
+2.6.0
+- Nowe okno postępu obliczania.
+
+2.5.1
+- Naprawiono problemy z oknem porównywania paneli (regresja).
+
+2.5.0
+- Dodano możliwość użycia algorytmu SHA3-512.
+- Naprawiono włączanie/wyłączanie przycisku filtru w oknie dialogowym generowania skrótu.
+- Drobne poprawki.
+
+2.4.3
+- Dodano nową opcję ustawień, aby wybrać domyślny cel w oknie dialogowym generowania skrótu.
+- Naprawiono problem z nieprawidłowym odczytem niektórych ustawień przy starcie.
+
+2.4.2
+- Naprawiono awarię podczas sprawdzania poprawności plików z łączeniem katalogów w ścieżce.
+- Naprawiono tworzenie plików dla niektórych nazw z cyrylicą.
+- Dodano możliwość wyboru strony kodowej pliku hash do weryfikacji.
+
+2.4.1
+- Naprawiono przetwarzanie ścieżek w stylu Linuksa w plikach skrótu.
+- Naprawiono problem z uszkodzeniem prefiksu w Far3 x64.
+- Dodano możliwość wyboru strony kodowej pliku wyjściowego podczas generowania skrótów.
+
+2.4.0
+- Dodano obsługę filtrów plików w generowaniu skrótów (tylko Far3).
+- Drobne poprawki.
+
+2.3.5
+- Naprawiono problem z udziałami sieciowymi.
+- Dodano możliwość kopiowania wyników weryfikacji plików do schowka.
+
+2.3.4
+- Nowa opcja ustawień: domyślna strona kodowa dla list skrótów.
+- Okno dialogowe wyświetlania listy skrótów zostało dostosowane do rozmiaru okna Far.
+- Drobne poprawki.
+
+2.3.3
+- Dodano sprawdzenie, czy plik hash można zapisać przed wygenerowaniem.
+
+2.3.2
+- Dodano opcję ustawień, aby zapisać ostatnio używany algorytm skrótu.
+- Usunięto limit wielkości obliczanych plików.
+
+2.3.1
+- Dodane hiszpańskie tłumaczenie (autor Mauro72).
+
+2.3.0
+- Dodano możliwość porównania sumy pliku z zawartością schowka.
+- Teraz wtyczka działa z panelami, które mają ustawioną flagę PFLAGS_REALNAMES (eksperymentalna).
+- Drobne poprawki.
+
+2.2.1
+- Dodano przycisk „Pomiń wszystko” do okna dialogowego po wystąpieniu błędu.
+- Dodana opcja do zapisywania sum kontrolnych wielkimi literami.
+- Naprawiona awaria przy porównywaniu paneli z SHA-512 i Whirlpool.
+
+2.2.0
+- Poprawiony błąd dla plików ze ścieżką powyżej 256 znaków.
+- Zwiększona maksymalna wielkość pliku kontrolnego do 10MB.
+- Dodano sprawdzanie rozszerzenia pliku listy skrótów dla skrótów o tej samej długości.
+- Poprawiony zły algorytm wykrywania w niektórych przypadkach.
+- Dodana obsługa plików kontrolnych w formacie BSD.
+
+2.1.0
+- Poprawione odczytywanie plików kontrolnych ze znakami nie-łacińskimi.
+- Drobne poprawki..
+
+2.0.4
+- Poprawiony panel porównywania w Far3.
+- Poprawione błędy w oknie dialogowym wyników w panelu porównywania.
+
+2.0.3
+- Uaktualniona biblioteka RHash do wersji 1.3.2.
+To uaktualnienie rozwiązuje kilka rzadkich błędów podczas używania SHA512.
+
+2.0.2
+- Poprawiona obsługa plików kontrolnych ze ścieżkami względnymi.
+
+2.0.1
+- Poprawiony przedrostek w Far3.
+- Teraz wtyczka nie działa w innym panelu wtyczki.
+- Dodana opcja zapisania pełnej ścieżki w plikach kontrolnych.
+- Poprawione zaznaczanie brakujących plików po walidacji w Far3.
+- Drobne zmiany.
+
+2.0
+- Nowa wersja, całkowite przepisane od wersji 1.x.
