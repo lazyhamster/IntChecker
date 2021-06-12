@@ -1210,7 +1210,7 @@ static void RunVerifySignatures(Far3Panel &panel)
 				DlgLines[4] = GetLocMsg(MSG_BTN_CANCEL);
 
 				intptr_t btnNum = FarSInfo.Message(&GUID_PLUGIN_MAIN, &GUID_MESSAGE_BOX, FMSG_WARNING, NULL, DlgLines, ARRAY_SIZE(DlgLines), 2);
-				if (btnNum == 4)
+				if (btnNum == 1)
 				{
 					allOk = false;
 					break;
