@@ -552,6 +552,7 @@ static bool AskForHashGenerationParams(HashGenerationParams& genParams)
 	editFileName->Flags = DIF_EDITEXPAND|DIF_EDITPATH|DIF_FOCUS;
 	editFileName->X1 += 2;
 	editFileName->Y1 -= 3;
+	editFileName->Y2 = editFileName->Y1;
 	
 	dlgBuilder.AddSeparator();
 	dlgBuilder.AddCheckbox(MSG_GEN_RECURSE, &doRecurse, 0, false);
