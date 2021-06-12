@@ -1,17 +1,17 @@
 /* ed2k.c - an implementation of EDonkey 2000 Hash Algorithm.
  *
- * Copyright: 2006-2012 Aleksey Kravchenko <rhash.admin@gmail.com>
+ * Copyright (c) 2006, Aleksey Kravchenko <rhash.admin@gmail.com>
  *
- * Permission is hereby granted,  free of charge,  to any person  obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction,  including without limitation
- * the rights to  use, copy, modify,  merge, publish, distribute, sublicense,
- * and/or sell copies  of  the Software,  and to permit  persons  to whom the
- * Software is furnished to do so.
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted.
  *
- * This program  is  distributed  in  the  hope  that it will be useful,  but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  Use this program  at  your own risk!
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE  INCLUDING ALL IMPLIED WARRANTIES OF  MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT,  OR CONSEQUENTIAL DAMAGES  OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE,  DATA OR PROFITS,  WHETHER IN AN ACTION OF CONTRACT,  NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION,  ARISING OUT OF  OR IN CONNECTION  WITH THE USE  OR
+ * PERFORMANCE OF THIS SOFTWARE.
  *
  * This file implements eMule-compatible version of algorithm.
  * Note that eDonkey and eMule ed2k hashes are different only for
@@ -39,7 +39,7 @@
  *
  * @param ctx context to initialize
  */
-void rhash_ed2k_init(ed2k_ctx *ctx)
+void rhash_ed2k_init(ed2k_ctx* ctx)
 {
 	rhash_md4_init(&ctx->md4_context);
 	rhash_md4_init(&ctx->md4_context_inner);
@@ -54,7 +54,7 @@ void rhash_ed2k_init(ed2k_ctx *ctx)
  * @param msg message chunk
  * @param size length of the message chunk
  */
-void rhash_ed2k_update(ed2k_ctx *ctx, const unsigned char* msg, size_t size)
+void rhash_ed2k_update(ed2k_ctx* ctx, const unsigned char* msg, size_t size)
 {
 	unsigned char chunk_md4_hash[16];
 	unsigned blockleft = ED2K_CHUNK_SIZE - (unsigned)ctx->md4_context_inner.length;
@@ -91,7 +91,7 @@ void rhash_ed2k_update(ed2k_ctx *ctx, const unsigned char* msg, size_t size)
  * @param ctx the algorithm context containing current hashing state
  * @param result calculated hash in binary form
  */
-void rhash_ed2k_final(ed2k_ctx *ctx, unsigned char result[16])
+void rhash_ed2k_final(ed2k_ctx* ctx, unsigned char result[16])
 {
 	/* check if hashed message size is greater or equal to ED2K_CHUNK_SIZE */
 	if ( ctx->md4_context.length ) {

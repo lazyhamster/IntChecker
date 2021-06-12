@@ -68,7 +68,7 @@ extern "C" {
       defined(__POWERPC__) || defined(POWERPC) || defined(__powerpc) || \
       defined(__powerpc__) || defined(__powerpc64__) || defined(__ppc__) || \
       defined(__hpux)  || defined(_MIPSEB) || defined(mc68000) || \
-      defined(__s390__) || defined(__s390x__) || defined(sel)
+      defined(__s390__) || defined(__s390x__) || defined(sel) || defined(__hppa__)
 # define RHASH_BYTE_ORDER RHASH_BYTE_ORDER_BE
 #else
 #  error "Can't detect CPU architechture"
@@ -99,8 +99,9 @@ extern "C" {
 #define I64(x) x##ULL
 #endif
 
-
-#ifndef __STRICT_ANSI__
+#if defined(_MSC_VER)
+#define RHASH_INLINE __inline
+#elif defined(__GNUC__) && !defined(__STRICT_ANSI__)
 #define RHASH_INLINE inline
 #elif defined(__GNUC__)
 #define RHASH_INLINE __inline__
@@ -120,7 +121,7 @@ unsigned rhash_ctz(unsigned); /* define as function */
 void rhash_swap_copy_str_to_u32(void* to, int index, const void* from, size_t length);
 void rhash_swap_copy_str_to_u64(void* to, int index, const void* from, size_t length);
 void rhash_swap_copy_u64_to_str(void* to, const void* from, size_t length);
-void rhash_u32_mem_swap(unsigned *p, int length_in_u32);
+void rhash_u32_mem_swap(unsigned* p, int length_in_u32);
 
 /* bswap definitions */
 #if (defined(__GNUC__) && (__GNUC__ >= 4) && (__GNUC__ > 4 || __GNUC_MINOR__ >= 3)) || \
@@ -162,9 +163,9 @@ static RHASH_INLINE uint64_t bswap_64(uint64_t x)
 # define le2me_32(x) bswap_32(x)
 # define le2me_64(x) bswap_64(x)
 
-# define be32_copy(to, index, from, length) memcpy((to) + (index), (from), (length))
+# define be32_copy(to, index, from, length) memcpy((char*)(to) + (index), (from), (length))
 # define le32_copy(to, index, from, length) rhash_swap_copy_str_to_u32((to), (index), (from), (length))
-# define be64_copy(to, index, from, length) memcpy((to) + (index), (from), (length))
+# define be64_copy(to, index, from, length) memcpy((char*)(to) + (index), (from), (length))
 # define le64_copy(to, index, from, length) rhash_swap_copy_str_to_u64((to), (index), (from), (length))
 # define me64_to_be_str(to, from, length) memcpy((to), (from), (length))
 # define me64_to_le_str(to, from, length) rhash_swap_copy_u64_to_str((to), (from), (length))
@@ -176,9 +177,9 @@ static RHASH_INLINE uint64_t bswap_64(uint64_t x)
 # define le2me_64(x) (x)
 
 # define be32_copy(to, index, from, length) rhash_swap_copy_str_to_u32((to), (index), (from), (length))
-# define le32_copy(to, index, from, length) memcpy((to) + (index), (from), (length))
+# define le32_copy(to, index, from, length) memcpy((char*)(to) + (index), (from), (length))
 # define be64_copy(to, index, from, length) rhash_swap_copy_str_to_u64((to), (index), (from), (length))
-# define le64_copy(to, index, from, length) memcpy((to) + (index), (from), (length))
+# define le64_copy(to, index, from, length) memcpy((char*)(to) + (index), (from), (length))
 # define me64_to_be_str(to, from, length) rhash_swap_copy_u64_to_str((to), (from), (length))
 # define me64_to_le_str(to, from, length) memcpy((to), (from), (length))
 #endif /* IS_BIG_ENDIAN */

@@ -1,28 +1,28 @@
 /* rhash_torrent.c - functions to make a torrent file.
  *
- * Copyright: 2013-2014 Aleksey Kravchenko <rhash.admin@gmail.com>
+ * Copyright (c) 2013, Aleksey Kravchenko <rhash.admin@gmail.com>
  *
- * Permission is hereby granted,  free of charge,  to any person  obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction,  including without limitation
- * the rights to  use, copy, modify,  merge, publish, distribute, sublicense,
- * and/or sell copies  of  the Software,  and to permit  persons  to whom the
- * Software is furnished to do so.
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted.
  *
- * This program  is  distributed  in  the  hope  that it will be useful,  but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  Use this program  at  your own risk!
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE  INCLUDING ALL IMPLIED WARRANTIES OF  MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT,  OR CONSEQUENTIAL DAMAGES  OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE,  DATA OR PROFITS,  WHETHER IN AN ACTION OF CONTRACT,  NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION,  ARISING OUT OF  OR IN CONNECTION  WITH THE USE  OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
-#include <assert.h>
 
 /* modifier for Windows DLL */
 #if (defined(_WIN32) || defined(__CYGWIN__) ) && defined(RHASH_EXPORTS)
 # define RHASH_API __declspec(dllexport)
 #endif
 
+#include "rhash_torrent.h"
 #include "algorithms.h"
 #include "torrent.h"
-#include "rhash_torrent.h"
+#include <assert.h>
 
 /* obtain torrent context from rhash context */
 #define BT_CTX(rctx) ((torrent_ctx*)(((rhash_context_ext*)rctx)->bt_ctx))
@@ -64,7 +64,7 @@ RHASH_API size_t rhash_torrent_get_default_piece_length(unsigned long long total
 
 RHASH_API const rhash_str* rhash_torrent_generate_content(rhash ctx)
 {
-	torrent_ctx *tc = BT_CTX(ctx);
+	torrent_ctx* tc = BT_CTX(ctx);
 	if (!tc || tc->error || !tc->content.str) return 0;
 	return (rhash_str*)(&tc->content);
 }

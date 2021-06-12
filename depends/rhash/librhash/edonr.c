@@ -1,24 +1,24 @@
 /* edonr.c - an implementation of EDON-R 256/224/384/512 hash functions
  *
- * Copyright: 2011-2012 Aleksey Kravchenko <rhash.admin@gmail.com>
+ * Copyright (c) 2011, Aleksey Kravchenko <rhash.admin@gmail.com>
  *
- * Permission is hereby granted,  free of charge,  to any person  obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction,  including without limitation
- * the rights to  use, copy, modify,  merge, publish, distribute, sublicense,
- * and/or sell copies  of  the Software,  and to permit  persons  to whom the
- * Software is furnished to do so.
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted.
  *
- * This program  is  distributed  in  the  hope  that it will be useful,  but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  Use this program  at  your own risk!
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE  INCLUDING ALL IMPLIED WARRANTIES OF  MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT,  OR CONSEQUENTIAL DAMAGES  OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE,  DATA OR PROFITS,  WHETHER IN AN ACTION OF CONTRACT,  NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION,  ARISING OUT OF  OR IN CONNECTION  WITH THE USE  OR
+ * PERFORMANCE OF THIS SOFTWARE.
  *
  * This implementation is based on the article:
  *    D. Gligoroski, R. S. Odegard, M. Mihova, S. J. Knapskog, ...,
  *    Cryptographic Hash Function EDON-R - Submission to NIST, 2008
  *
  * EDON-R has been designed to be much more efficient than SHA-2
- * cryptographic hash functions, offering same or better security.
+ * cryptographic hash functions, offering the same or better security.
  */
 
 #include <string.h>
@@ -30,7 +30,7 @@
  *
  * @param ctx context to initialize
  */
-void rhash_edonr256_init(edonr_ctx *ctx)
+void rhash_edonr256_init(edonr_ctx* ctx)
 {
 	static const unsigned EDONR256_H0[16] = {
 		0x40414243, 0x44454647, 0x48494a4b, 0x4c4d4e4f, 0x50515253, 0x54555657,
@@ -48,7 +48,7 @@ void rhash_edonr256_init(edonr_ctx *ctx)
  *
  * @param ctx context to initialize
  */
-void rhash_edonr224_init(struct edonr_ctx *ctx)
+void rhash_edonr224_init(struct edonr_ctx* ctx)
 {
 	static const unsigned EDONR224_H0[16] = {
 		0x00010203, 0x04050607, 0x08090a0b, 0x0c0d0e0f, 0x10111213, 0x14151617,
@@ -66,7 +66,7 @@ void rhash_edonr224_init(struct edonr_ctx *ctx)
  *
  * @param ctx context to initialize
  */
-void rhash_edonr512_init(edonr_ctx *ctx)
+void rhash_edonr512_init(edonr_ctx* ctx)
 {
 	static const uint64_t EDONR512_H0[16] = {
 		I64(0x8081828384858687), I64(0x88898a8b8c8d8e8f), I64(0x9091929394959697),
@@ -87,7 +87,7 @@ void rhash_edonr512_init(edonr_ctx *ctx)
  *
  * @param ctx context to initialize
  */
-void rhash_edonr384_init(struct edonr_ctx *ctx)
+void rhash_edonr384_init(struct edonr_ctx* ctx)
 {
 	static const uint64_t EDONR384_H0[16] = {
 		I64(0x0001020304050607), I64(0x08090a0b0c0d0e0f), I64(0x1011121314151617),
@@ -301,7 +301,7 @@ void rhash_edonr384_init(struct edonr_ctx *ctx)
  * @param hash algorithm state
  * @param block the message block to process
  */
-static void rhash_edonr256_process_block(unsigned hash[16], const unsigned *block, size_t count)
+static void rhash_edonr256_process_block(unsigned hash[16], const unsigned* block, size_t count)
 {
 	while (1) {
 		uint32_t t0,  t1,  t2,  t3,  t4,  t5,  t6,  t7;
@@ -311,34 +311,34 @@ static void rhash_edonr256_process_block(unsigned hash[16], const unsigned *bloc
 		uint32_t p24, p25, p26, p27, p28, p29, p30, p31;
 
 		/* First row of quasigroup e-transformations */
-		Q256( block[15], block[14], block[13], block[12], block[11], block[10], block[ 9], block[ 8],
+		Q256(block[15], block[14], block[13], block[12], block[11], block[10], block[ 9], block[ 8],
 			block[ 0], block[ 1], block[ 2], block[ 3], block[ 4], block[ 5], block[ 6], block[ 7],
 			p16, p17, p18, p19, p20, p21, p22, p23);
-		Q256( p16, p17, p18, p19, p20, p21, p22, p23,
+		Q256(p16, p17, p18, p19, p20, p21, p22, p23,
 			block[ 8], block[ 9], block[10], block[11], block[12], block[13], block[14], block[15],
 			p24, p25, p26, p27, p28, p29, p30, p31);
 
 		/* Second row of quasigroup e-transformations */
-		Q256( hash[ 8], hash[ 9], hash[10], hash[11], hash[12], hash[13], hash[14], hash[15],
+		Q256(hash[ 8], hash[ 9], hash[10], hash[11], hash[12], hash[13], hash[14], hash[15],
 			p16,  p17, p18, p19, p20, p21, p22, p23,
 			p16,  p17, p18, p19, p20, p21, p22, p23);
-		Q256( p16,  p17, p18, p19, p20, p21, p22, p23,
+		Q256(p16,  p17, p18, p19, p20, p21, p22, p23,
 			p24, p25, p26, p27, p28, p29, p30, p31,
 			p24, p25, p26, p27, p28, p29, p30, p31);
 
 		/* Third row of quasigroup e-transformations */
-		Q256( p16,  p17, p18, p19, p20, p21, p22, p23,
+		Q256(p16,  p17, p18, p19, p20, p21, p22, p23,
 			hash[ 0], hash[ 1], hash[ 2], hash[ 3], hash[ 4], hash[ 5], hash[ 6], hash[ 7],
 			p16,  p17, p18, p19, p20, p21, p22, p23);
-		Q256( p24, p25, p26, p27, p28, p29, p30, p31,
+		Q256(p24, p25, p26, p27, p28, p29, p30, p31,
 			p16,  p17, p18, p19, p20, p21, p22, p23,
 			p24, p25, p26, p27, p28, p29, p30, p31);
 
 		/* Fourth row of quasigroup e-transformations */
-		Q256( block[ 7], block[ 6], block[ 5], block[ 4], block[ 3], block[ 2], block[ 1], block[ 0],
+		Q256(block[ 7], block[ 6], block[ 5], block[ 4], block[ 3], block[ 2], block[ 1], block[ 0],
 			p16,  p17, p18, p19, p20, p21, p22, p23,
 			hash[ 0], hash[ 1], hash[ 2], hash[ 3], hash[ 4], hash[ 5], hash[ 6], hash[ 7]);
-		Q256( hash[ 0], hash[ 1], hash[ 2], hash[ 3], hash[ 4], hash[ 5], hash[ 6], hash[ 7],
+		Q256(hash[ 0], hash[ 1], hash[ 2], hash[ 3], hash[ 4], hash[ 5], hash[ 6], hash[ 7],
 			p24, p25, p26, p27, p28, p29, p30, p31,
 			hash[ 8], hash[ 9], hash[10], hash[11], hash[12], hash[13], hash[14], hash[15]);
 
@@ -353,7 +353,7 @@ static void rhash_edonr256_process_block(unsigned hash[16], const unsigned *bloc
  * @param hash algorithm state
  * @param block the message block to process
  */
-static void rhash_edonr512_process_block(uint64_t hash[16], const uint64_t *block, size_t count)
+static void rhash_edonr512_process_block(uint64_t hash[16], const uint64_t* block, size_t count)
 {
 	while (1) {
 		uint64_t t0,  t1,  t2,  t3,  t4,  t5,  t6,  t7;
@@ -363,39 +363,39 @@ static void rhash_edonr512_process_block(uint64_t hash[16], const uint64_t *bloc
 		uint64_t p24, p25, p26, p27, p28, p29, p30, p31;
 
 		/* First row of quasigroup e-transformations */
-		Q512( block[15], block[14], block[13], block[12], block[11], block[10], block[ 9], block[ 8],
+		Q512(block[15], block[14], block[13], block[12], block[11], block[10], block[ 9], block[ 8],
 			block[ 0], block[ 1], block[ 2], block[ 3], block[ 4], block[ 5], block[ 6], block[ 7],
 			p16, p17, p18, p19, p20, p21, p22, p23);
-		Q512( p16, p17, p18, p19, p20, p21, p22, p23,
+		Q512(p16, p17, p18, p19, p20, p21, p22, p23,
 			block[ 8], block[ 9], block[10], block[11], block[12], block[13], block[14], block[15],
 			p24, p25, p26, p27, p28, p29, p30, p31);
 
 		/* Second row of quasigroup e-transformations */
-		Q512( hash[ 8], hash[ 9], hash[10], hash[11], hash[12], hash[13], hash[14], hash[15],
+		Q512(hash[ 8], hash[ 9], hash[10], hash[11], hash[12], hash[13], hash[14], hash[15],
 			p16,  p17, p18, p19, p20, p21, p22, p23,
 			p16,  p17, p18, p19, p20, p21, p22, p23);
-		Q512( p16,  p17, p18, p19, p20, p21, p22, p23,
+		Q512(p16,  p17, p18, p19, p20, p21, p22, p23,
 			p24, p25, p26, p27, p28, p29, p30, p31,
 			p24, p25, p26, p27, p28, p29, p30, p31);
 
 		/* Third row of quasigroup e-transformations */
-		Q512( p16,  p17, p18, p19, p20, p21, p22, p23,
+		Q512(p16,  p17, p18, p19, p20, p21, p22, p23,
 			hash[ 0], hash[ 1], hash[ 2], hash[ 3], hash[ 4], hash[ 5], hash[ 6], hash[ 7],
 			p16,  p17, p18, p19, p20, p21, p22, p23);
-		Q512( p24, p25, p26, p27, p28, p29, p30, p31,
+		Q512(p24, p25, p26, p27, p28, p29, p30, p31,
 			p16,  p17, p18, p19, p20, p21, p22, p23,
 			p24, p25, p26, p27, p28, p29, p30, p31);
 
 		/* Fourth row of quasigroup e-transformations */
-		Q512( block[ 7], block[ 6], block[ 5], block[ 4], block[ 3], block[ 2], block[ 1], block[ 0],
+		Q512(block[ 7], block[ 6], block[ 5], block[ 4], block[ 3], block[ 2], block[ 1], block[ 0],
 			p16,  p17, p18, p19, p20, p21, p22, p23,
 			hash[ 0], hash[ 1], hash[ 2], hash[ 3], hash[ 4], hash[ 5], hash[ 6], hash[ 7]);
-		Q512( hash[ 0], hash[ 1], hash[ 2], hash[ 3], hash[ 4], hash[ 5], hash[ 6], hash[ 7],
+		Q512(hash[ 0], hash[ 1], hash[ 2], hash[ 3], hash[ 4], hash[ 5], hash[ 6], hash[ 7],
 			p24, p25, p26, p27, p28, p29, p30, p31,
 			hash[ 8], hash[ 9], hash[10], hash[11], hash[12], hash[13], hash[14], hash[15]);
 
 		if (!--count) return;
-		block += edonr256_block_size / sizeof(uint64_t);
+		block += edonr512_block_size / sizeof(uint64_t);
 	};
 }
 
@@ -407,7 +407,7 @@ static void rhash_edonr512_process_block(uint64_t hash[16], const uint64_t *bloc
  * @param msg message chunk
  * @param size length of the message chunk
  */
-void rhash_edonr256_update(edonr_ctx *ctx, const unsigned char *msg, size_t size)
+void rhash_edonr256_update(edonr_ctx* ctx, const unsigned char* msg, size_t size)
 {
 	size_t index = (size_t)ctx->length & 63;
 	ctx->length += size;
@@ -415,7 +415,7 @@ void rhash_edonr256_update(edonr_ctx *ctx, const unsigned char *msg, size_t size
 	/* fill partial block */
 	if (index) {
 		size_t left = edonr256_block_size - index;
-		le32_copy((char*)ctx->u.data256.message, index, msg, (size < left ? size : left));
+		le32_copy(ctx->u.data256.message, index, msg, (size < left ? size : left));
 		if (size < left) return;
 
 		/* process partial block */
@@ -458,7 +458,7 @@ void rhash_edonr256_update(edonr_ctx *ctx, const unsigned char *msg, size_t size
  * @param ctx the algorithm context containing current hashing state
  * @param result calculated hash in binary form
  */
-void rhash_edonr256_final(edonr_ctx *ctx, unsigned char* result)
+void rhash_edonr256_final(edonr_ctx* ctx, unsigned char* result)
 {
 	size_t index = ((unsigned)ctx->length & 63) >> 2;
 	unsigned shift = ((unsigned)ctx->length & 3) * 8;
@@ -501,7 +501,7 @@ void rhash_edonr256_final(edonr_ctx *ctx, unsigned char* result)
  * @param msg message chunk
  * @param size length of the message chunk
  */
-void rhash_edonr512_update(edonr_ctx *ctx, const unsigned char *msg, size_t size)
+void rhash_edonr512_update(edonr_ctx* ctx, const unsigned char* msg, size_t size)
 {
 	size_t index = (size_t)ctx->length & 127;
 	ctx->length += size;
@@ -509,7 +509,7 @@ void rhash_edonr512_update(edonr_ctx *ctx, const unsigned char *msg, size_t size
 	/* fill partial block */
 	if (index) {
 		size_t left = edonr512_block_size - index;
-		le64_copy((char*)ctx->u.data512.message, index, msg, (size < left ? size : left));
+		le64_copy(ctx->u.data512.message, index, msg, (size < left ? size : left));
 		if (size < left) return;
 
 		/* process partial block */
@@ -551,7 +551,7 @@ void rhash_edonr512_update(edonr_ctx *ctx, const unsigned char *msg, size_t size
  * @param ctx the algorithm context containing current hashing state
  * @param result calculated hash in binary form
  */
-void rhash_edonr512_final(edonr_ctx *ctx, unsigned char* result)
+void rhash_edonr512_final(edonr_ctx* ctx, unsigned char* result)
 {
 	size_t index = ((unsigned)ctx->length & 127) >> 3;
 	unsigned shift = ((unsigned)ctx->length & 7) * 8;

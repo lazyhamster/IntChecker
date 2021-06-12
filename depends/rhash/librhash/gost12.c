@@ -2,18 +2,18 @@
  * the Russian cryptographic standard.
  * See also RFC 6986.
  *
- * Copyright: 2019 Aleksey Kravchenko <rhash.admin@gmail.com>
+ * Copyright (c) 2019, Aleksey Kravchenko <rhash.admin@gmail.com>
  *
- * Permission is hereby granted,  free of charge,  to any person  obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction,  including without limitation
- * the rights to  use, copy, modify,  merge, publish, distribute, sublicense,
- * and/or sell copies  of  the Software,  and to permit  persons  to whom the
- * Software is furnished to do so.
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted.
  *
- * This program  is  distributed  in  the  hope  that it will be useful,  but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  Use this program  at  your own risk!
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE  INCLUDING ALL IMPLIED WARRANTIES OF  MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT,  OR CONSEQUENTIAL DAMAGES  OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE,  DATA OR PROFITS,  WHETHER IN AN ACTION OF CONTRACT,  NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION,  ARISING OUT OF  OR IN CONNECTION  WITH THE USE  OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
 
 #include "gost12.h"
@@ -619,7 +619,7 @@ static const uint64_t zero_512[8] = { 0,0,0,0,0,0,0,0 };
  * @param ctx context to initialize
  * @param hash_size the size of the digest in bytes
  */
-static RHASH_INLINE void rhash_gost12_init(gost12_ctx *ctx, size_t hash_size)
+static RHASH_INLINE void rhash_gost12_init(gost12_ctx* ctx, size_t hash_size)
 {
 	memset(ctx, 0, sizeof(gost12_ctx));
 	memset(ctx->h, (hash_size == 64 ? 0 : 1), 64);
@@ -632,7 +632,7 @@ static RHASH_INLINE void rhash_gost12_init(gost12_ctx *ctx, size_t hash_size)
  * @param ctx context to initialize
  * @param hash_size the size of the digest in bytes
  */
-void rhash_gost12_256_init(gost12_ctx *ctx)
+void rhash_gost12_256_init(gost12_ctx* ctx)
 {
 	rhash_gost12_init(ctx, gost12_256_hash_size);
 }
@@ -643,7 +643,7 @@ void rhash_gost12_256_init(gost12_ctx *ctx)
  * @param ctx context to initialize
  * @param hash_size the size of the digest in bytes
  */
-void rhash_gost12_512_init(gost12_ctx *ctx)
+void rhash_gost12_512_init(gost12_ctx* ctx)
 {
 	rhash_gost12_init(ctx, gost12_512_hash_size);
 }
@@ -793,14 +793,14 @@ static RHASH_INLINE void add_uint512(uint64_t sum[], const uint64_t x[])
 
 static const uint64_t stage2_constant[8] = { I64(512), 0, 0, 0, 0, 0, 0, 0 };
 
-static RHASH_INLINE void rhash_gost12_stage2(gost12_ctx *ctx, uint64_t m[])
+static RHASH_INLINE void rhash_gost12_stage2(gost12_ctx* ctx, uint64_t m[])
 {
 	g_N(ctx->N, ctx->h, m);
 	add_uint512(ctx->N, stage2_constant);
 	add_uint512(ctx->S, m);
 }
 
-void rhash_gost12_update(gost12_ctx *ctx, const unsigned char* msg, size_t size)
+void rhash_gost12_update(gost12_ctx* ctx, const unsigned char* msg, size_t size)
 {
 	if (ctx->index)
 	{
@@ -841,7 +841,7 @@ void rhash_gost12_update(gost12_ctx *ctx, const unsigned char* msg, size_t size)
 	}
 }
 
-void rhash_gost12_final(gost12_ctx *ctx, unsigned char result[32])
+void rhash_gost12_final(gost12_ctx* ctx, unsigned char* result)
 {
 	uint64_t unprocessed_bits_count[8] = { 0,0,0,0,0,0,0,0 };
 	size_t index_u64 = ctx->index >> 3;

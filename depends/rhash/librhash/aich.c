@@ -1,18 +1,18 @@
 /* aich.c - an implementation of EMule AICH Algorithm.
  * Description: http://www.amule.org/wiki/index.php/AICH.
  *
- * Copyright: 2008-2012 Aleksey Kravchenko <rhash.admin@gmail.com>
+ * Copyright (c) 2008, Aleksey Kravchenko <rhash.admin@gmail.com>
  *
- * Permission is hereby granted,  free of charge,  to any person  obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction,  including without limitation
- * the rights to  use, copy, modify,  merge, publish, distribute, sublicense,
- * and/or sell copies  of  the Software,  and to permit  persons  to whom the
- * Software is furnished to do so.
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted.
  *
- * This program  is  distributed  in  the  hope  that it will be useful,  but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  Use this program  at  your own risk!
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE  INCLUDING ALL IMPLIED WARRANTIES OF  MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT,  OR CONSEQUENTIAL DAMAGES  OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE,  DATA OR PROFITS,  WHETHER IN AN ACTION OF CONTRACT,  NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION,  ARISING OUT OF  OR IN CONNECTION  WITH THE USE  OR
+ * PERFORMANCE OF THIS SOFTWARE.
  *
  * The AICH Algorithm:
  *
@@ -67,13 +67,13 @@
  *
  * @param ctx context to initialize
  */
-void rhash_aich_init(aich_ctx *ctx)
+void rhash_aich_init(aich_ctx* ctx)
 {
 	memset(ctx, 0, sizeof(aich_ctx));
 
 #ifdef USE_OPENSSL
 	{
-		rhash_hash_info *sha1_info = &rhash_info_table[3];
+		rhash_hash_info* sha1_info = &rhash_info_table[3];
 		assert(sha1_info->info->hash_id == RHASH_SHA1);
 		assert(sha1_info->context_size <= (sizeof(sha1_ctx) + sizeof(unsigned long)));
 		ctx->sha_init = sha1_info->init;
@@ -118,16 +118,20 @@ static void rhash_aich_chunk_table_extend(aich_ctx* ctx, unsigned chunk_num)
 	if (index >= ctx->allocated) {
 		/* resize the table by allocating some extra space */
 		size_t new_size = (ctx->allocated == 0 ? 64 : ctx->allocated * 2);
+		void** new_block;
 		assert(index == ctx->allocated);
 
-		/* re-allocate the chunk table to contain new_size void*-pointers */
-		ctx->chunk_table = (void**)realloc(ctx->chunk_table, new_size * sizeof(void*));
-		if (ctx->chunk_table == 0) {
+		/* re-size the chunk table to new_size */
+		new_block = (void**)realloc(ctx->chunk_table, new_size * sizeof(void*));
+		if (new_block == 0) {
+			free(ctx->chunk_table);
+			ctx->chunk_table = 0;
 			ctx->error = 1;
 			return;
 		}
 
-		memset(ctx->chunk_table + ctx->allocated, 0, (new_size - ctx->allocated) * sizeof(void*));
+		memset(new_block + ctx->allocated, 0, (new_size - ctx->allocated) * sizeof(void*));
+		ctx->chunk_table = new_block;
 		ctx->allocated = new_size;
 	}
 
@@ -176,7 +180,7 @@ void rhash_aich_cleanup(aich_ctx* ctx)
  * @param type the type of hash to calculate, can be one of constants
  *   AICH_HASH_LEFT_BRANCH, AICH_HASH_RIGHT_BRANCH or AICH_HASH_FULL_TREE.
  */
-static void rhash_aich_hash_tree(aich_ctx *ctx, unsigned char* result, int type)
+static void rhash_aich_hash_tree(aich_ctx* ctx, unsigned char* result, int type)
 {
 	unsigned index = 0; /* leaf index */
 	unsigned blocks;
@@ -254,7 +258,7 @@ static void rhash_aich_hash_tree(aich_ctx *ctx, unsigned char* result, int type)
  * @param type the actions to take, can be combination of bits AICH_PROCESS_FINAL_BLOCK
  *             and AICH_PROCESS_FLUSH_BLOCK
  */
-static void rhash_aich_process_block(aich_ctx *ctx, int type)
+static void rhash_aich_process_block(aich_ctx* ctx, int type)
 {
 	assert(type != 0);
 	assert(ctx->index <= ED2K_CHUNK_SIZE);
@@ -316,7 +320,7 @@ static void rhash_aich_process_block(aich_ctx *ctx, int type)
  * @param msg message chunk
  * @param size length of the message chunk
  */
-void rhash_aich_update(aich_ctx *ctx, const unsigned char* msg, size_t size)
+void rhash_aich_update(aich_ctx* ctx, const unsigned char* msg, size_t size)
 {
 	if (ctx->error) return;
 
@@ -351,7 +355,7 @@ void rhash_aich_update(aich_ctx *ctx, const unsigned char* msg, size_t size)
  * @param ctx the algorithm context containing current hashing state
  * @param result calculated hash in binary form
  */
-void rhash_aich_final(aich_ctx *ctx, unsigned char result[20])
+void rhash_aich_final(aich_ctx* ctx, unsigned char result[20])
 {
 	uint64_t total_size =
 		((uint64_t)ctx->chunks_number * ED2K_CHUNK_SIZE) + ctx->index;

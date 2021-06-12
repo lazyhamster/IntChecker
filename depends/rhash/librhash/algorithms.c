@@ -1,17 +1,17 @@
 /* algorithms.c - the algorithms supported by the rhash library
  *
- * Copyright: 2011-2012 Aleksey Kravchenko <rhash.admin@gmail.com>
+ * Copyright (c) 2011, Aleksey Kravchenko <rhash.admin@gmail.com>
  *
- * Permission is hereby granted,  free of charge,  to any person  obtaining a
- * copy of this software and associated documentation files (the "Software"),
- * to deal in the Software without restriction,  including without limitation
- * the rights to  use, copy, modify,  merge, publish, distribute, sublicense,
- * and/or sell copies  of  the Software,  and to permit  persons  to whom the
- * Software is furnished to do so.
+ * Permission to use, copy, modify, and/or distribute this software for any
+ * purpose with or without fee is hereby granted.
  *
- * This program  is  distributed  in  the  hope  that it will be useful,  but
- * WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY
- * or FITNESS FOR A PARTICULAR PURPOSE.  Use this program  at  your own risk!
+ * THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
+ * REGARD TO THIS SOFTWARE  INCLUDING ALL IMPLIED WARRANTIES OF  MERCHANTABILITY
+ * AND FITNESS.  IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
+ * INDIRECT,  OR CONSEQUENTIAL DAMAGES  OR ANY DAMAGES WHATSOEVER RESULTING FROM
+ * LOSS OF USE,  DATA OR PROFITS,  WHETHER IN AN ACTION OF CONTRACT,  NEGLIGENCE
+ * OR OTHER TORTIOUS ACTION,  ARISING OUT OF  OR IN CONNECTION  WITH THE USE  OR
+ * PERFORMANCE OF THIS SOFTWARE.
  */
 
 #include <stdio.h>
@@ -23,6 +23,8 @@
 
 /* header files of all supported hash sums */
 #include "aich.h"
+#include "blake2b.h"
+#include "blake2s.h"
 #include "crc32.h"
 #include "ed2k.h"
 #include "edonr.h"
@@ -94,6 +96,8 @@ rhash_info info_sha384 = { RHASH_SHA384,     F_BE64, 48, "SHA-384", "sha384" };
 rhash_info info_sha512 = { RHASH_SHA512,     F_BE64, 64, "SHA-512", "sha512" };
 rhash_info info_edr256 = { RHASH_EDONR256,   F_LE32, 32, "EDON-R256", "edon-r256" };
 rhash_info info_edr512 = { RHASH_EDONR512,   F_LE64, 64, "EDON-R512", "edon-r512" };
+rhash_info info_blake2s = { RHASH_BLAKE2S,   F_LE32, 32, "BLAKE2S", "blake2s" };
+rhash_info info_blake2b = { RHASH_BLAKE2B,   F_LE64, 64, "BLAKE2B", "blake2b" };
 rhash_info info_sha3_224 = { RHASH_SHA3_224, F_LE64, 28, "SHA3-224", "sha3-224" };
 rhash_info info_sha3_256 = { RHASH_SHA3_256, F_LE64, 32, "SHA3-256", "sha3-256" };
 rhash_info info_sha3_384 = { RHASH_SHA3_384, F_LE64, 48, "SHA3-384", "sha3-384" };
@@ -107,7 +111,6 @@ rhash_info info_sha3_512 = { RHASH_SHA3_512, F_LE64, 64, "SHA3-512", "sha3-512" 
 #define fin(name) ((pfinal_t)(name##_final))
 #define iuf(name) ini(name), upd(name), fin(name)
 #define iuf2(name1, name2) ini(name1), upd(name2), fin(name2)
-#define diuf(name) dgshft(name), ini(name), upd(name), fin(name)
 
 /* information about all supported hash functions */
 rhash_hash_info rhash_hash_info_default[RHASH_HASH_COUNT] =
@@ -141,6 +144,8 @@ rhash_hash_info rhash_hash_info_default[RHASH_HASH_COUNT] =
 	{ &info_crc32c, sizeof(uint32_t), 0, iuf(rhash_crc32c), 0 }, /* 32 bit */
 	{ &info_snf128, sizeof(snefru_ctx), dgshft(snefru), iuf2(rhash_snefru128, rhash_snefru), 0 }, /* 128 bit */
 	{ &info_snf256, sizeof(snefru_ctx), dgshft(snefru), iuf2(rhash_snefru256, rhash_snefru), 0 }, /* 256 bit */
+	{ &info_blake2s, sizeof(blake2s_ctx),  dgshft(blake2s), iuf(rhash_blake2s), 0 },  /* 256 bit */
+	{ &info_blake2b, sizeof(blake2b_ctx),  dgshft(blake2b), iuf(rhash_blake2b), 0 },  /* 512 bit */
 };
 
 /**
@@ -170,9 +175,8 @@ void rhash_init_algorithms(unsigned mask)
 const rhash_info* rhash_info_by_id(unsigned hash_id)
 {
 	hash_id &= RHASH_ALL_HASHES;
-	/* check that only one bit is set */
-	if (hash_id != (hash_id & -(int)hash_id)) return NULL;
-	/* note: alternative condition is (hash_id == 0 || (hash_id & (hash_id - 1)) != 0) */
+	/* check that one and only one bit is set */
+	if (!hash_id || (hash_id & (hash_id - 1)) != 0) return NULL;
 	return rhash_info_table[rhash_ctz(hash_id)].info;
 }
 
