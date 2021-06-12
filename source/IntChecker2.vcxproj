@@ -491,6 +491,7 @@
     <M4_Macro Include="m4\FILE_ID.DIZ.m4" />
     <M4_Macro Include="m4\IntCheckerPol.hlf.m4" />
     <M4_Macro Include="m4\IntCheckerRus.hlf.m4" />
+    <M4_Macro Include="m4\readme_pl.txt.m4" />
     <M4_Macro Include="m4\readme_ru.txt.m4" />
     <M4_Macro Include="m4\version.h.m4">
       <OutputFile>$(ProjectDir)%(Filename)</OutputFile>
