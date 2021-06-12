@@ -144,7 +144,7 @@ public:
 		return strPath;
 	}
 
-	void GetSelectedFiles(bool recursive, HANDLE fileFilter, std::vector<PanelFileInfo>& selectedFiles, int64_t& totalFilesSize)
+	void GetSelectedFiles(bool recursive, HANDLE fileFilter, std::vector<PanelFileInfo>& selectedFiles)
 	{
 		std::wstring strPanelPath = GetPanelDirectory();
 		
@@ -168,7 +168,6 @@ public:
 						info.Size = PPI->FileSize;
 						
 						selectedFiles.push_back(info);
-						totalFilesSize += PPI->FileSize;
 					}
 					else if (recursive)
 					{
@@ -185,7 +184,6 @@ public:
 									info.Size = p.file_size();
 
 									selectedFiles.push_back(info);
-									totalFilesSize += info.Size;
 								}
 							}
 					}

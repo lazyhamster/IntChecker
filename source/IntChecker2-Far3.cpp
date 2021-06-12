@@ -692,7 +692,8 @@ static void RunGenerateHashes(Far3Panel& panel)
 		FarScreenSave screen;
 		DisplayMessage(GetLocMsg(MSG_DLG_PROCESSING), GetLocMsg(MSG_DLG_PREPARE_LIST), NULL, false, false);
 
-		panel.GetSelectedFiles(genParams.Recursive, genParams.FileFilter, filesToProcess, totalFilesSize);
+		panel.GetSelectedFiles(genParams.Recursive, genParams.FileFilter, filesToProcess);
+		std::for_each(filesToProcess.begin(), filesToProcess.end(), [&totalFilesSize](PanelFileInfo nextItem) { totalFilesSize += nextItem.Size; });
 	}
 
 	{
@@ -873,8 +874,7 @@ static void RunComparePanels()
 		return;
 
 	std::vector<PanelFileInfo> vSelectedFiles;
-	int64_t totalFilesSize = 0;
-
+	
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_INDETERMINATE, NULL);
 
 	// Prepare files list
@@ -882,7 +882,7 @@ static void RunComparePanels()
 		FarScreenSave screen;
 		DisplayMessage(GetLocMsg(MSG_DLG_PROCESSING), GetLocMsg(MSG_DLG_PREPARE_LIST), NULL, false, false);
 
-		activePanel.GetSelectedFiles(true, fileFilter, vSelectedFiles, totalFilesSize);
+		activePanel.GetSelectedFiles(true, fileFilter, vSelectedFiles);
 	}
 
 	if (fileFilter != INVALID_HANDLE_VALUE)
@@ -895,6 +895,9 @@ static void RunComparePanels()
 	int nFilesSkipped = 0;
 	bool fAborted = false;
 	bool fSkipAllErrors = false;
+
+	int64_t totalFilesSize = 0;
+	std::for_each(vSelectedFiles.begin(), vSelectedFiles.end(), [&totalFilesSize](PanelFileInfo nextItem) { totalFilesSize += nextItem.Size; });
 
 	{
 		ProgressContext progressCtx((int)vSelectedFiles.size() * 2, totalFilesSize * 2);
@@ -1094,68 +1097,132 @@ static void RunBenchmark()
 	dlgBuilder.ShowDialog();
 }
 
-static void RunVerifySignatures()
+static const wchar_t* GetVerificationErrorText(long errCode)
 {
-	bool isError = false;
-	const wchar_t* messageText = nullptr;
+	const wchar_t* errText;
 
-	std::wstring path = L"";
-	//TODO: get all selected files
-	
-	SignedFileInformation fileInfo;
-	long errCode = VerifyPeSignature(path.c_str());
-	
 	switch (errCode)
 	{
 	case ERROR_SUCCESS:
-		messageText = L"File signature is valid";
+		errText = L"File signature is valid";
 		break;
 	case TRUST_E_NOSIGNATURE:
-		messageText = GetLocMsg(MSG_DLG_NOSIGNATURE);
+		errText = GetLocMsg(MSG_DLG_NOSIGNATURE);
 		break;
 	case TRUST_E_EXPLICIT_DISTRUST:
-		messageText = L"The certificate was explicitly marked as untrusted by the user.";
-		isError = true;
+		errText = L"The certificate was explicitly marked as untrusted by the user.";
 		break;
 	case TRUST_E_SUBJECT_NOT_TRUSTED:
-		messageText = L"The subject is not trusted for the specified action.";
-		isError = true;
+		errText = L"The subject is not trusted for the specified action.";
 		break;
 	case CRYPT_E_SECURITY_SETTINGS:
-		messageText = L"The cryptographic operation failed due to a local security option setting.";
-		isError = true;
+		errText = L"The cryptographic operation failed due to a local security option setting.";
 		break;
 	case CRYPT_E_FILE_ERROR:
-		messageText = GetLocMsg(MSG_DLG_FILE_ERROR);
-		isError = true;
+		errText = GetLocMsg(MSG_DLG_FILE_ERROR);
 		break;
 	case TRUST_E_PROVIDER_UNKNOWN:
-		messageText = L"Unknown trust provider.";
-		isError = true;
+		errText = L"Unknown trust provider.";
 		break;
 	case TRUST_E_BAD_DIGEST:
-		messageText = L"The digital signature of the object did not verify.";
-		isError = true;
+		errText = L"The digital signature of the object did not verify.";
 		break;
 	case TRUST_E_NO_SIGNER_CERT:
-		messageText = L"The certificate for the signer of the message is invalid or not found.";
-		isError = true;
+		errText = L"The certificate for the signer of the message is invalid or not found.";
 		break;
 	case CERT_E_UNTRUSTEDROOT:
-		messageText = L"Root certificate is not trusted by the trust provider.";
-		isError = true;
+		errText = L"Root certificate is not trusted by the trust provider.";
 		break;
 	case CERT_E_CHAINING:
-		messageText = L"A certificate chain could not be built to a trusted root authority.";
-		isError = true;
+		errText = L"A certificate chain could not be built to a trusted root authority.";
 		break;
 	default:
-		messageText = L"Something went wrong. Unrecognized response.";
-		isError = true;
+		errText = L"Something went wrong. Unrecognized response.";
 		break;
 	}
 
-	DisplayMessage(GetLocMsg(MSG_DLG_OPERATION_COMPLETE), messageText, nullptr, isError, true);
+	return errText;
+}
+
+static void RunVerifySignatures(Far3Panel &panel)
+{
+	if (!panel.HasSelectedItems())
+	{
+		DisplayMessage(MSG_DLG_NO_FILES_SELECTED, MSG_DLG_ERROR, nullptr, true, true);
+		return;
+	}
+
+	std::vector<PanelFileInfo> filesToVerify;
+	bool allOk = true;
+	
+	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_INDETERMINATE, NULL);
+
+	// Prepare files list
+	{
+		FarScreenSave screen;
+		DisplayMessage(GetLocMsg(MSG_DLG_PROCESSING), GetLocMsg(MSG_DLG_PREPARE_LIST), NULL, false, false);
+
+		panel.GetSelectedFiles(true, INVALID_HANDLE_VALUE, filesToVerify);
+
+		auto rm_it = std::remove_if(filesToVerify.begin(), filesToVerify.end(), [](PanelFileInfo &item) { return !FileCanHaveSignature(item.PanelPath.c_str()); });
+		filesToVerify.erase(rm_it, filesToVerify.end());
+		if (filesToVerify.size() == 0)
+		{
+			DisplayMessage(MSG_DLG_ERROR, MSG_DLG_NO_FILES_SELECTED, NULL, true, true);
+			return;
+		}
+	}
+
+	{
+		std::wstring strShortName;
+		std::wstring strFileNum;
+
+		for (size_t i = 0; i < filesToVerify.size(); ++i)
+		{
+			const PanelFileInfo &nextItem = filesToVerify[i];
+
+			long errCode;
+			{
+				FarScreenSave screen;
+
+				strShortName = ShortenPath(nextItem.PanelPath, 50);
+				strFileNum = FormatString(L"File %ul / %ul", i, filesToVerify.size());
+				
+				static const wchar_t* InfoLines[3];
+				InfoLines[0] = GetLocMsg(MSG_DLG_PROCESSING);
+				InfoLines[1] = strFileNum.c_str();
+				InfoLines[2] = strShortName.c_str();
+
+				FarSInfo.Message(&GUID_PLUGIN_MAIN, &GUID_MESSAGE_BOX, 0, NULL, InfoLines, ARRAY_SIZE(InfoLines), 0);
+
+
+				errCode = VerifyPeSignature(nextItem.FullPath.c_str());
+			}
+
+			if (errCode != ERROR_SUCCESS)
+			{
+				static const wchar_t* DlgLines[5];
+				DlgLines[0] = GetLocMsg(MSG_DLG_ERROR);
+				DlgLines[1] = GetVerificationErrorText(errCode);
+				DlgLines[2] = nextItem.PanelPath.c_str();
+				DlgLines[3] = GetLocMsg(MSG_BTN_OK);
+				DlgLines[4] = GetLocMsg(MSG_BTN_CANCEL);
+
+				intptr_t btnNum = FarSInfo.Message(&GUID_PLUGIN_MAIN, &GUID_MESSAGE_BOX, FMSG_WARNING, NULL, DlgLines, ARRAY_SIZE(DlgLines), 2);
+				if (btnNum == 4)
+				{
+					allOk = false;
+					break;
+				}
+			}
+		}
+	}
+
+	if (allOk)
+		DisplayMessage(MSG_DLG_VALIDATION_COMPLETE, MSG_DLG_OPERATION_COMPLETE, nullptr, false, true);
+	
+	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);
+	FarAdvControl(ACTL_PROGRESSNOTIFY, 0, NULL);
 }
 
 static void RunGetSignatureInfo(const std::wstring& path)
@@ -1359,7 +1426,7 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 		}
 
 		openMenu.AddSeparator();
-		openMenu.AddItemEx(GetLocMsg(MSG_MENU_VERIFY_SIGNATURE), std::bind(RunVerifySignatures));
+		openMenu.AddItemEx(GetLocMsg(MSG_MENU_VERIFY_SIGNATURE), std::bind(RunVerifySignatures, activePanel));
 		if (isSingleFileSelected && FileCanHaveSignature(selectedFilePath.c_str()))
 		{
 			openMenu.AddItemEx(GetLocMsg(MSG_MENU_SIGNATURE_INFO), std::bind(RunGetSignatureInfo, selectedFilePath));
