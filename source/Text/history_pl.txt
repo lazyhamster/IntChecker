@@ -4,6 +4,7 @@ Historia zmian:
 - Dodana weryfikacja podpisu cyfrowego dla plików PE.
 - Funkcja makro 'gethash' zwraca teraz tekst 'userabort', jeżeli użytkownik przerwał operację.
 - Poprawione błędy obliczania sum dla linków symbolicznych za pomocą poleceń makro.
+- Poprawione błędy graficzne przy generowaniu okien dialogwych w nowszych wersjach Far (podziękiękowanie dla ctapmex).
 
 2.7.3
 - Dodano możliwość zapisania obliczonych sum do jednego pliku dla każdego folderu.
