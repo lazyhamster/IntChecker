@@ -9,8 +9,8 @@
 "Weryfikuj pliki (parametry)"
 "Porównaj ze &schowkiem"
 "Uruchom &Benchmark"
-"*Verify Digital Signature"
-"*Get Digital Signature Information"
+"Weryfikuj podpis cyfrowy"
+"Pobierz informacje o podpisie cyfrowym
 
 "Konfiguracja"
 "Użyj &przedrostka"
@@ -74,10 +74,10 @@
 "Wybierz parametry"
 "Testuję %s"
 "Czas:"
-"*Operation complete"
-"*File is not signed or signature is not recognized"
-"*File reading error"
-"*Invalid panel type"
+"Operacja zakończona"
+"Plik nie jest podpisany lub podpis nie został rozpoznany
+"Błąd odczytu pliku"
+"Nieprawidłowy typ panelu"
 
 "Generuj"
 "Algorytm"
