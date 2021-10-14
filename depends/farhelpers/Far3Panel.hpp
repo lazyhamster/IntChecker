@@ -175,12 +175,14 @@ public:
 							if (!p.is_directory())
 							{
 								auto strEntryPath = p.path().native();
-								std::wstring strItemPath = PathJoin(strPanelPath, strEntryPath);
-								if (PathMatchFileFilter(strItemPath, fileFilter))
+								std::wstring strRelativePath = strEntryPath.substr(strPanelPath.size());
+								if (strRelativePath[0] == '\\') strRelativePath.erase(0, 1);
+								
+								if (PathMatchFileFilter(strEntryPath, fileFilter))
 								{
 									PanelFileInfo info;
-									info.FullPath = strItemPath;
-									info.PanelPath = strEntryPath;
+									info.FullPath = strEntryPath;
+									info.PanelPath = strRelativePath;
 									info.Size = p.file_size();
 
 									selectedFiles.push_back(info);
