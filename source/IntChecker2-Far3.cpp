@@ -1430,7 +1430,9 @@ HANDLE WINAPI OpenW(const struct OpenInfo *OInfo)
 		openMenu.AddItemEx(GetLocMsg(MSG_MENU_VERIFY_SIGNATURE), std::bind(RunVerifySignatures, activePanel));
 		if (isSingleFileSelected && FileCanHaveSignature(selectedFilePath.c_str()))
 		{
-			openMenu.AddItemEx(GetLocMsg(MSG_MENU_SIGNATURE_INFO), std::bind(RunGetSignatureInfo, selectedFilePath));
+			
+			//TODO: enable when implemented
+			//openMenu.AddItemEx(GetLocMsg(MSG_MENU_SIGNATURE_INFO), std::bind(RunGetSignatureInfo, selectedFilePath));
 		}
 
 		openMenu.AddSeparator();

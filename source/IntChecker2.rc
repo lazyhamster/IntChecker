@@ -79,7 +79,7 @@ BEGIN
             VALUE "FileDescription", "Integrity Checker plugin for Far Manager"
             VALUE "FileVersion", stringize(VERSION_FULL_STR)
             VALUE "InternalName", "Integrity Checker"
-            VALUE "LegalCopyright", "Copyright (C) 2014 - 2019, Ariman"
+            VALUE "LegalCopyright", "Copyright (C) 2014 - 2021, Ariman"
             VALUE "OriginalFilename", "IntChecker2.dll"
             VALUE "ProductName", "Integrity Checker"
             VALUE "ProductVersion", stringize(VERSION_FULL_STR)
