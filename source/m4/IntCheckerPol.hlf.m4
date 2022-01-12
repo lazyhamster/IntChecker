@@ -35,4 +35,3 @@ $ #Parametry obliczania sumy kontrolnej#
  
  #Użyj filtra#
  Przetwarzaj pliki zgodnie z ~Filtrami~@:FiltersMenu@.
- 
