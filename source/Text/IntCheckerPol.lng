@@ -78,6 +78,8 @@
 "Plik nie jest podpisany lub podpis nie został rozpoznany"
 "Błąd odczytu pliku"
 "Nieprawidłowy typ panelu"
+"*Clipboard hash:"
+"*File hash:"
 
 "Generuj"
 "Algorytm"

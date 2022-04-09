@@ -1007,9 +1007,35 @@ static void RunCompareWithClipboard(const std::wstring &selectedFile)
 	if (RunGeneration(selectedFile, selectedFile, algo, false, progressCtx, strHashValue, fAborted, fSkipAllErrors))
 	{
 		if (SameHash(strHashValue, clipText))
+		{
 			DisplayMessage(GetLocMsg(MSG_DLG_CALC_COMPLETE), GetLocMsg(MSG_DLG_FILE_CLIP_MATCH), NULL, false, true);
+		}
 		else
-			DisplayMessage(GetLocMsg(MSG_DLG_CALC_COMPLETE), GetLocMsg(MSG_DLG_FILE_CLIP_MISMATCH), NULL, true, true);
+		{
+			wchar_t wszClipHash[256] = { 0 };
+			wchar_t wszFileHash[256] = { 0 };
+
+			MultiByteToWideChar(CP_UTF8, 0, clipText.c_str(), -1, wszClipHash, _countof(wszClipHash));
+			MultiByteToWideChar(CP_UTF8, 0, strHashValue.c_str(), -1, wszFileHash, _countof(wszFileHash));
+
+			PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_RESULTS, MSG_DLG_CALC_COMPLETE, nullptr, nullptr, nullptr, FDLG_WARNING);
+			auto text1 = dlgBuilder.AddText(MSG_DLG_FILE_CLIP_MISMATCH);
+			text1->Flags |= DIF_CENTERTEXT;
+			
+			dlgBuilder.AddSeparator();
+
+			auto l1 = dlgBuilder.AddText(MSG_DLG_CLIP_HASH);
+			auto l2 = dlgBuilder.AddText(MSG_DLG_FILE_HASH);
+			auto t1 = dlgBuilder.AddTextAfter(l1, wszClipHash);
+			auto t2 = dlgBuilder.AddTextAfter(l2, wszFileHash);
+
+			intptr_t maxOffset = max(t1->X1, t2->X1);
+			t1->X1 = t2->X1 = maxOffset;
+			
+			dlgBuilder.AddOKCancel(MSG_BTN_OK, -1);
+
+			dlgBuilder.ShowDialog();
+		}
 	}
 
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);

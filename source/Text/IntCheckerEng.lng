@@ -78,6 +78,8 @@
 "File is not signed or signature is not recognized"
 "File reading error"
 "Invalid panel type"
+"Clipboard hash:"
+"File hash:"
 
 "Generate"
 "Algorithm"
