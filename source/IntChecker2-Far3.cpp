@@ -779,8 +779,8 @@ static void RunGenerateHashes(Far3Panel& panel)
 
 static intptr_t WINAPI CompareParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t Param1, void* Param2)
 {
-	const int nUseFilterBoxIndex = 11;
-	const int nFilterButtonIndex = 14;
+	const int nUseFilterBoxIndex = 5;
+	const int nFilterButtonIndex = 8;
 
 	if (Msg == DN_BTNCLICK)
 	{
@@ -805,8 +805,9 @@ static intptr_t WINAPI CompareParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t 
 static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive, HANDLE &fileFilter)
 {
 	int doRecurse = recursive;
-	int algoIndex = GetAlgoIndex(selectedAlgo);
-	int algoNames[] = { MSG_ALGO_CRC, MSG_ALGO_MD5, MSG_ALGO_SHA1, MSG_ALGO_SHA256, MSG_ALGO_SHA512, MSG_ALGO_SHA3_512, MSG_ALGO_WHIRLPOOL };
+	int algoIndex = 0;
+	rhash_ids algos[] = { RHASH_CRC32, RHASH_SHA1 };
+	const wchar_t* algoNames[] = { L"CRC32", L"SHA1" };
 
 	int useFilter = 0;
 	HANDLE hFilter = INVALID_HANDLE_VALUE;
@@ -814,8 +815,8 @@ static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive, HANDLE
 	
 	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_PARAMS, MSG_DLG_COMPARE, nullptr, CompareParamsDlgProc);
 
-	dlgBuilder.AddText(MSG_GEN_ALGO);
-	dlgBuilder.AddRadioButtons(&algoIndex, ARRAY_SIZE(algoNames), algoNames, false);
+	auto box = dlgBuilder.AddComboBox(&algoIndex, NULL, 10, algoNames, _countof(algoNames), DIF_DROPDOWNLIST);
+	dlgBuilder.AddTextBefore(box, MSG_GEN_ALGO);
 	dlgBuilder.AddSeparator();
 	dlgBuilder.AddCheckbox(MSG_GEN_RECURSE, &doRecurse, 0, false);
 	dlgBuilder.AddCheckbox(MSG_DLG_USE_FILTER, &useFilter);
@@ -823,13 +824,14 @@ static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive, HANDLE
 
 	int btnMsgIDs[] = { MSG_BTN_RUN, MSG_BTN_FILTER, MSG_BTN_CANCEL };
 	auto firstButtonPtr = dlgBuilder.AddButtons(3, btnMsgIDs, 0, 2);
+	firstButtonPtr[0].Flags |= DIF_FOCUS;
 	firstButtonPtr[1].Flags |= DIF_DISABLE;  // Disable filter button by default
 	firstButtonPtr[1].UserData = (intptr_t) hFilter;
 
 	if (dlgBuilder.ShowDialog())
 	{
 		recursive = doRecurse != 0;
-		selectedAlgo = SupportedHashes[algoIndex].AlgoId;
+		selectedAlgo = algos[algoIndex];
 
 		if (useFilter)
 		{

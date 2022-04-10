@@ -1,5 +1,9 @@
 Changes history:
 
+2.8.1
+- Only CRC32 and SHA1 can be used in panel comparision mode now (no need to use all algorithms).
+- Minor changes.
+
 2.8.0
 - Added digital signature verification for PE files.
 - Macro-function 'gethash' now returns string 'userabort' if user aborted operation.
