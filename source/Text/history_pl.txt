@@ -1,5 +1,9 @@
 Historia zmian:
 
+2.8.1
+- W trybie porównywanie paneli można używać tylko CRC32 i SHA1 (nie ma potrzeby używania wszystkich algorytmów).
+- Drobne poprawki.
+
 2.8.0
 - Dodana weryfikacja podpisu cyfrowego dla plików PE.
 - Funkcja makro 'gethash' zwraca teraz tekst 'userabort', jeżeli użytkownik przerwał operację.
