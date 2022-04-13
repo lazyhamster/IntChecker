@@ -10,8 +10,6 @@ Based on [RHash](https://github.com/rhash/RHash) utility code.
 
 Download binary package for your Far Manager version and copy to Plugins folder.
 
-Binaries are available here: http://plugring.farmanager.com/plugin.php?pid=893
-
 ## Building from source ##
 
 [![Build status](https://ci.appveyor.com/api/projects/status/8edsoy9csw4f7qk1?svg=true)](https://ci.appveyor.com/project/lazyhamster/intchecker)

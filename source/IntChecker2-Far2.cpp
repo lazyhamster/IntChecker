@@ -928,28 +928,28 @@ static void RunGenerateHashes()
 
 static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive)
 {
-	FarDialogItem DialogItems []={
-		/*0*/{DI_DOUBLEBOX,		3, 1, 41,14, 0, 0, 0, 0, GetLocMsg(MSG_DLG_COMPARE)},
+	FarListItem algoListItems[2] = { {LIF_SELECTED, L"CRC32", 0}, {0, L"SHA1", 0}};
+	FarList algoDlgList = { 2, &algoListItems[0] };
 
-		/*1*/{DI_TEXT,			5, 2, 0, 0, 0, 0, 0, 0, GetLocMsg(MSG_GEN_ALGO), 0},
-		/*2*/{ DI_RADIOBUTTON, 6, 3, 0, 0, 0, (selectedAlgo == RHASH_CRC32), DIF_GROUP, 0, GetLocMsg(MSG_ALGO_CRC) },
-		/*3*/{ DI_RADIOBUTTON, 6, 4, 0, 0, 0, (selectedAlgo == RHASH_MD5), 0, 0, GetLocMsg(MSG_ALGO_MD5) },
-		/*4*/{ DI_RADIOBUTTON, 6, 5, 0, 0, 0, (selectedAlgo == RHASH_SHA1), 0, 0, GetLocMsg(MSG_ALGO_SHA1) },
-		/*5*/{ DI_RADIOBUTTON, 6, 6, 0, 0, 0, (selectedAlgo == RHASH_SHA256), 0, 0, GetLocMsg(MSG_ALGO_SHA256) },
-		/*6*/{ DI_RADIOBUTTON, 6, 7, 0, 0, 0, (selectedAlgo == RHASH_SHA512), 0, 0, GetLocMsg(MSG_ALGO_SHA512) },
-		/*7*/{ DI_RADIOBUTTON, 6, 8, 0, 0, 0, (selectedAlgo == RHASH_SHA3_512), 0, 0, GetLocMsg(MSG_ALGO_SHA3_512) },
-		/*8*/{ DI_RADIOBUTTON, 6, 9, 0, 0, 0, (selectedAlgo == RHASH_WHIRLPOOL), 0, 0, GetLocMsg(MSG_ALGO_WHIRLPOOL) },
+	const wchar_t* algoLabel = GetLocMsg(MSG_GEN_ALGO);
+	const int labelSize = wcslen(algoLabel);
+	
+	FarDialogItem DialogItems [] = {
+		/*0*/{ DI_DOUBLEBOX,	3, 1,41, 7, 0, 0, 0, 0, GetLocMsg(MSG_DLG_COMPARE) },
 
-		/*9*/{DI_TEXT,			3,10, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L""},
-		/*10*/{DI_CHECKBOX,		5,11, 0, 0, 0, recursive, 0, 0, GetLocMsg(MSG_GEN_RECURSE)},
+		/*1*/{ DI_TEXT,			5, 2, 0, 0, 0, 0, 0, 0, algoLabel, 0 },
+		/*2*/{ DI_COMBOBOX,		labelSize + 6, 2, labelSize + 16, 0, 0, (DWORD_PTR)&algoDlgList, DIF_DROPDOWNLIST, 0, NULL, 0 },
 
-		/*11*/{DI_TEXT,			3,12, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0},
-		/*12*/{DI_BUTTON,		0,13, 0,13, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_RUN), 0},
-		/*13*/{DI_BUTTON,		0,13, 0,13, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0},
+		/*3*/{ DI_TEXT,			3, 3, 0, 0, 0, 0, DIF_BOXCOLOR | DIF_SEPARATOR, 0, L"" },
+		/*4*/{ DI_CHECKBOX,		5, 4, 0, 0, 0, recursive, 0, 0, GetLocMsg(MSG_GEN_RECURSE) },
+
+		/*5*/{ DI_TEXT,			3, 5, 0, 0, 0, 0, DIF_BOXCOLOR|DIF_SEPARATOR, 0, L"", 0 },
+		/*6*/{ DI_BUTTON,		0, 6, 0, 6, 0, 0, DIF_CENTERGROUP, 1, GetLocMsg(MSG_BTN_RUN), 0 },
+		/*7*/{ DI_BUTTON,		0, 6, 0, 6, 0, 0, DIF_CENTERGROUP, 0, GetLocMsg(MSG_BTN_CANCEL), 0 }
 	};
 	size_t numDialogItems = sizeof(DialogItems) / sizeof(DialogItems[0]);
 
-	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 45, 16, L"CompareParams", DialogItems, (unsigned) numDialogItems, 0, 0, FarSInfo.DefDlgProc, 0);
+	HANDLE hDlg = FarSInfo.DialogInit(FarSInfo.ModuleNumber, -1, -1, 45, 9, L"CompareParams", &DialogItems[0], numDialogItems, 0, 0, FarSInfo.DefDlgProc, 0);
 
 	bool retVal = false;
 	if (hDlg != INVALID_HANDLE_VALUE)
@@ -957,14 +957,10 @@ static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive)
 		int ExitCode = FarSInfo.DialogRun(hDlg);
 		if (ExitCode == numDialogItems - 2) // OK was pressed
 		{
-			recursive = DlgHlp_GetSelectionState(hDlg, 10) != 0;
+			recursive = DlgHlp_GetSelectionState(hDlg, 4) != 0;
 
-			for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
-			{
-				// Selection radios start from index = 2
-				if (DlgHlp_GetSelectionState(hDlg, 2 + i))
-					selectedAlgo = SupportedHashes[i].AlgoId;
-			}
+			auto algoIndex = DlgList_GetCurPos(FarSInfo, hDlg, 2);
+			selectedAlgo = (algoIndex == 0) ? RHASH_CRC32 : RHASH_SHA1;
 
 			retVal = true;
 		}
@@ -975,7 +971,7 @@ static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive)
 
 static void RunComparePanels()
 {
-	PanelInfo piActv, piPasv;
+	PanelInfo piActv = { 0 }, piPasv = { 0 };
 	if (!FarSInfo.Control(PANEL_ACTIVE, FCTL_GETPANELINFO, 0, (LONG_PTR) &piActv)
 		|| !FarSInfo.Control(PANEL_PASSIVE, FCTL_GETPANELINFO, 0, (LONG_PTR) &piPasv))
 		return;

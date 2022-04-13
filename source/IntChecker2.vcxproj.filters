@@ -67,6 +67,7 @@
     <None Include="version.m4i">
       <Filter>Source Files\m4</Filter>
     </None>
+    <None Include="..\README.md" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Far3Guids.h">
@@ -171,6 +172,9 @@
       <Filter>Source Files\Text</Filter>
     </Text>
     <Text Include="Text\license.txt">
+      <Filter>Source Files\Text</Filter>
+    </Text>
+    <Text Include="Text\history_pl.txt">
       <Filter>Source Files\Text</Filter>
     </Text>
   </ItemGroup>

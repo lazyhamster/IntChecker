@@ -807,7 +807,7 @@ static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive, HANDLE
 	int doRecurse = recursive;
 	int algoIndex = 0;
 	rhash_ids algos[] = { RHASH_CRC32, RHASH_SHA1 };
-	const wchar_t* algoNames[] = { L"CRC32", L"SHA1" };
+	const wchar_t* const algoNames[] = { L"CRC32", L"SHA1" };
 
 	int useFilter = 0;
 	HANDLE hFilter = INVALID_HANDLE_VALUE;

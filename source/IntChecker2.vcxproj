@@ -429,6 +429,7 @@
     <ClCompile Include="Utils.cpp" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="..\README.md" />
     <None Include="IntChecker2-Far3.def" />
     <None Include="IntChecker2-Far2.def" />
     <CustomBuild Include="Text\IntCheckerEng.lng">
@@ -502,6 +503,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="Text\history_en.txt" />
+    <Text Include="Text\history_pl.txt" />
     <Text Include="Text\history_ru.txt" />
     <Text Include="Text\license.txt" />
   </ItemGroup>
