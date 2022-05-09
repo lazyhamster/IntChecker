@@ -1215,7 +1215,7 @@ static void RunVerifySignatures(Far3Panel &panel)
 				FarScreenSave screen;
 
 				strShortName = ShortenPath(nextItem.PanelPath, 50);
-				strFileNum = FormatString(L"File %ul / %ul", i, filesToVerify.size());
+				strFileNum = FormatString(L"File %ul / %ul", i + 1, filesToVerify.size());
 				
 				static const wchar_t* InfoLines[3];
 				InfoLines[0] = GetLocMsg(MSG_DLG_PROCESSING);
