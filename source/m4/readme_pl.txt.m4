@@ -16,7 +16,7 @@ Obsługiwane są nieograniczone poziomy zagnieżdżenia plików w folderach.
 Zaimplementowane algorytmy:
 CRC32, MD5, SHA1, SHA-256, SHA-512, SHA3-512, Whirlpool
 
-Wtyczka bazuje na kodzie programu RHash (http://rhash.anz.ru/).
+Wtyczka bazuje na kodzie programu RHash (https://github.com/rhash/RHash).
 
 2. Wymagania.
 Minimalna wersja FAR do pracy z wtyczką to 2.0.1807 i 3.0.5400

@@ -15,7 +15,7 @@ URL: https://github.com/lazyhamster/IntChecker
 Поддерживаемые алгоритмы:
 CRC32, MD5, SHA1, SHA-256, SHA-512, SHA3-512, Whirlpool
 
-Плагин базируется на коде программы RHash (http://rhash.anz.ru/).
+Плагин базируется на коде программы RHash (https://github.com/rhash/RHash).
 
 2. Требования.
 Минимальная версия FAR-а для работы плагина 2.0.1807 и 3.0.5400
