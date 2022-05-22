@@ -1319,6 +1319,8 @@ void WINAPI SetStartupInfoW(const struct PluginStartupInfo *Info)
 	FarSInfo.FSF = &FSF;
 
 	LoadSettings();
+
+	rhash_library_init();
 }
 
 void WINAPI GetPluginInfoW(struct PluginInfo *Info)
