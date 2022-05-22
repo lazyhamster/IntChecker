@@ -77,6 +77,40 @@ int GetAlgoIndexByName(const wchar_t* name)
 	return -1;
 }
 
+static const char* GetAlgoBsdName(rhash_ids algo)
+{
+	const char* bsdName;
+	
+	switch (algo) {
+	case RHASH_RIPEMD160:
+		bsdName = "RMD160";
+		break;
+	case RHASH_SHA224:
+		bsdName = "SHA224";
+		break;
+	case RHASH_SHA256:
+		bsdName = "SHA256";
+		break;
+	case RHASH_SHA384:
+		bsdName = "SHA384";
+		break;
+	case RHASH_SHA512:
+		bsdName = "SHA512";
+		break;
+	case RHASH_BLAKE2S:
+		bsdName = "BLAKE2s";
+		break;
+	case RHASH_BLAKE2B:
+		bsdName = "BLAKE2b";
+		break;
+	default:
+		bsdName = rhash_get_name(algo);
+		break;
+	}
+	
+	return bsdName;
+}
+
 //////////////////////////////////////////////////////////////////////////
 
 void HashList::SetFileHash(const std::wstring &fileName, std::string hashVal, rhash_ids hashAlgo)
@@ -316,9 +350,8 @@ bool HashList::TryParseBSD( const char* inputStr, UINT codepage, FileHashInfo &f
 		auto hashName = match[1].str();
 		for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
 		{
-			//TODO: get custom bsd names from rhash code
 			rhash_ids algoId = SupportedHashes[i].AlgoId;
-			if (_stricmp(hashName.c_str(), rhash_get_name(algoId)) == 0)
+			if (_stricmp(hashName.c_str(), GetAlgoBsdName(algoId)) == 0)
 			{
 				fileInfo.Filename = ConvertToUnicode(match[2].str(), codepage);
 				fileInfo.HashStr = match[3].str();
