@@ -1,4 +1,4 @@
-#ifndef __PLUGINSETTINGS_HPP__
+﻿#ifndef __PLUGINSETTINGS_HPP__
 #define __PLUGINSETTINGS_HPP__
 
 #include "plugin.hpp"
@@ -22,7 +22,7 @@ public:
 
 	~PluginSettings()
 	{
-	    SettingsControl(handle,SCTL_FREE,0,0);
+		SettingsControl(handle,SCTL_FREE,0,nullptr);
 	}
 
 	int CreateSubKey(size_t Root, const wchar_t *Name)
@@ -118,6 +118,13 @@ public:
 		item.Data.Size=Size;
 		item.Data.Data=Value;
 		return SettingsControl(handle,SCTL_SET,0,&item)!=FALSE;
+	}
+
+	bool Enum(size_t Root, FarSettingsEnum* fse)
+	{
+		fse->Root=Root;
+		fse->StructSize=sizeof(FarSettingsEnum);
+		return SettingsControl(handle, SCTL_ENUM, 0, fse)!=FALSE;
 	}
 };
 
