@@ -423,7 +423,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 			wstring strFullFilePath = ConvertPathToNative(fileInfo.Filename);
 			std::string hashValueStr;
 
-			if (RunGeneration(strFullFilePath, fileInfo.Filename, fileInfo.GetAlgo(), false, progressCtx, hashValueStr, fAborted, fAutoSkipErrors))
+			if (RunGeneration(strFullFilePath, fileInfo.Filename, fileInfo.HashAlgo, false, progressCtx, hashValueStr, fAborted, fAutoSkipErrors))
 			{
 				if (!SameHash(fileInfo.HashStr, hashValueStr))
 					vMismatches.push_back(fileInfo.Filename);

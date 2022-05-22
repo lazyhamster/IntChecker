@@ -25,9 +25,8 @@ struct FileHashInfo
 {
 	std::wstring Filename;
 	std::string HashStr;
-	int HashAlgoIndex;
+	rhash_ids HashAlgo;
 
-	rhash_ids GetAlgo() const { return (HashAlgoIndex >= 0) ? SupportedHashes[HashAlgoIndex].AlgoId : RHASH_HASH_COUNT; }
 	std::wstring ToString() const;
 	void Serialize(std::stringstream& dest, UINT codepage, bool stripFilePath) const;
 };
@@ -43,11 +42,11 @@ private:
 	bool DumpStringToFile(const std::string& data, const wchar_t* filePath);
 	bool SaveHashesToFile(const std::wstring &filePath, FileHashList &hashList, UINT codepage, bool stripPathInfo);
 	
-	bool DetectFormat(const char* testStr, UINT codepage, const wchar_t* filePath, int &foundAlgoIndex, HashListFormat &listFormat);
+	bool DetectFormat(const char* testStr, UINT codepage, const wchar_t* filePath, rhash_ids &foundAlgo, HashListFormat &listFormat);
 	
 	bool TryParseBSD(const char* inputStr, UINT codepage, FileHashInfo &fileInfo);
-	bool TryParseSimple(const char* inputStr, UINT codepage, int hashAlgoIndex, FileHashInfo &fileInfo);
-	bool TryParseSfv(const char* inputStr, UINT codepage, int hashAlgoIndex, FileHashInfo &fileInfo);
+	bool TryParseSimple(const char* inputStr, UINT codepage, rhash_ids hashAlgo, FileHashInfo &fileInfo);
+	bool TryParseSfv(const char* inputStr, UINT codepage, rhash_ids hashAlgo, FileHashInfo &fileInfo);
 
 public:
 	HashList() {}
