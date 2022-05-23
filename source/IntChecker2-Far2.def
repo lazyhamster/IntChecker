@@ -1,9 +1,0 @@
-LIBRARY	"IntChecker2"
-
-EXPORTS
-	GetMinFarVersionW
-	SetStartupInfoW
-	GetPluginInfoW
-	ConfigureW
-	OpenPluginW
-	ExitFARW

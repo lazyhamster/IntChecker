@@ -41,16 +41,10 @@
     <ClCompile Include="IntChecker2-Far3.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RegistrySettings.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="Utils.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="IntChecker2-Far2.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="trust.cpp">
@@ -59,9 +53,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="IntChecker2-Far3.def">
-      <Filter>Source Files</Filter>
-    </None>
-    <None Include="IntChecker2-Far2.def">
       <Filter>Source Files</Filter>
     </None>
     <None Include="version.m4i">
@@ -80,9 +71,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="Lang.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="RegistrySettings.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="stdafx.h">
@@ -111,9 +99,6 @@
     </ClInclude>
     <ClInclude Include="..\depends\far3\PluginSettings.hpp">
       <Filter>Header Files\depends\far3</Filter>
-    </ClInclude>
-    <ClInclude Include="..\depends\farhelpers\Far2Menu.hpp">
-      <Filter>Header Files\depends\helpers</Filter>
     </ClInclude>
     <ClInclude Include="..\depends\farhelpers\Far3Menu.hpp">
       <Filter>Header Files\depends\helpers</Filter>
