@@ -25,8 +25,6 @@
 
 typedef std::vector<std::wstring> StringList;
 
-using namespace std;
-
 #include <stdint.h>
 
 #define ARRAY_SIZE(x) (sizeof(x) / sizeof(x[0]))

@@ -270,27 +270,25 @@ static void DisplayValidationResults(Far3Panel& panel, std::vector<std::wstring>
 		// Otherwise display proper list of invalid/missing files
 
 		//Prepare list
-		std::vector<wstring> displayStrings;
+		std::vector<std::wstring> displayStrings;
 
 		size_t nListIndex = 0;
 		if (vMismatchList.size() > 0)
 		{
 			displayStrings.push_back(FormatString(GetLocMsg(MSG_DLG_MISMATCHED_FILES), vMismatchList.size()));
 
-			for (size_t i = 0; i < vMismatchList.size(); i++)
+			for (auto it = vMismatchList.begin(); it != vMismatchList.end(); ++it)
 			{
-				wstring &nextFile = vMismatchList[i];
-				displayStrings.push_back(FormatString(L"  %s", nextFile.c_str()));
+				displayStrings.push_back(FormatString(L"  %s", it->c_str()));
 			}
 		}
 		if (vMissingList.size() > 0)
 		{
 			displayStrings.push_back(FormatString(GetLocMsg(MSG_DLG_MISSING_FILES), vMissingList.size()));
 
-			for (size_t i = 0; i < vMissingList.size(); i++)
+			for (auto it = vMissingList.begin(); it != vMissingList.end(); ++it)
 			{
-				wstring &nextFile = vMissingList[i];
-				displayStrings.push_back(FormatString(L"  %s", nextFile.c_str()));
+				displayStrings.push_back(FormatString(L"  %s", it->c_str()));
 			}
 		}
 
@@ -322,8 +320,8 @@ static void DisplayValidationResults(Far3Panel& panel, std::vector<std::wstring>
 		std::vector<std::wstring> vSameFolderFiles;
 		for (size_t i = 0; i < vMismatchList.size(); i++)
 		{
-			wstring &nextFile = vMismatchList[i];
-			if (nextFile.find_first_of(L"\\/") == wstring::npos)
+			std::wstring &nextFile = vMismatchList[i];
+			if (nextFile.find_first_of(L"\\/") == std::wstring::npos)
 				vSameFolderFiles.push_back(nextFile);
 		}
 
@@ -381,7 +379,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 	}
 
 	int nFilesSkipped = 0;
-	std::vector<wstring> vMismatches, vMissing;
+	std::vector<std::wstring> vMismatches, vMissing;
 	std::vector<size_t> existingFiles;
 	int64_t totalFilesSize = 0;
 
@@ -397,7 +395,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 		{
 			const FileHashInfo& fileInfo = hashes.GetFileInfo(i);
 
-			wstring strFullFilePath = ConvertPathToNative(fileInfo.Filename);
+			std::wstring strFullFilePath = ConvertPathToNative(fileInfo.Filename);
 			if (IsFile(strFullFilePath, &fileSize))
 			{
 				existingFiles.push_back(i);
@@ -420,7 +418,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 		{
 			const FileHashInfo& fileInfo = hashes.GetFileInfo(existingFiles[i]);
 
-			wstring strFullFilePath = ConvertPathToNative(fileInfo.Filename);
+			std::wstring strFullFilePath = ConvertPathToNative(fileInfo.Filename);
 			std::string hashValueStr;
 
 			if (RunGeneration(strFullFilePath, fileInfo.Filename, fileInfo.HashAlgo, false, progressCtx, hashValueStr, fAborted, fAutoSkipErrors))
@@ -596,15 +594,13 @@ static bool AskForHashGenerationParams(HashGenerationParams& genParams)
 
 static void DisplayHashListOnScreen(const HashList &list)
 {
-	vector<wstring> listStrDump;
+	std::vector<std::wstring> listStrDump;
 	LPCWSTR *listBoxItems = new LPCWSTR[list.GetCount()];
 
 	for (size_t i = 0; i < list.GetCount(); i++)
 	{
 		listStrDump.push_back(list.GetFileInfo(i).ToString());
-
-		wstring &line = listStrDump[i];
-		listBoxItems[i] = line.c_str();
+		listBoxItems[i] = listStrDump[i].c_str();
 	}
 
 	RectSize listSize(54, 15);
@@ -909,8 +905,8 @@ static void RunComparePanels()
 		{
 			PanelFileInfo pfiNextFile = *cit;
 
-			wstring strActvPath = PathJoin(strActivePanelDir, pfiNextFile.PanelPath);
-			wstring strPasvPath = PathJoin(strPassivePanelDir, pfiNextFile.PanelPath);
+			std::wstring strActvPath = PathJoin(strActivePanelDir, pfiNextFile.PanelPath);
+			std::wstring strPasvPath = PathJoin(strPassivePanelDir, pfiNextFile.PanelPath);
 
 			int64_t nActivePanelFileSize = pfiNextFile.Size;
 			int64_t nPassivePanelFileSize;
@@ -1267,7 +1263,7 @@ static bool CalculateHashByAlgoName(const wchar_t* algoName, const wchar_t* path
 	int algoIndex = GetAlgoIndexByName(algoName);
 	if (algoIndex < 0) return false;
 
-	wstring strFullPath = ConvertPathToNative(path);
+	auto strFullPath = ConvertPathToNative(path);
 
 	int64_t fileSize = GetFileSize_i64(strFullPath.c_str());
 	if (fileSize <= 0) return false;

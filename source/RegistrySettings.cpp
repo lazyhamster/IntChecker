@@ -1,12 +1,12 @@
 #include "stdafx.h"
 #include "RegistrySettings.h"
 
-static wstring ConvertString(const char* Input)
+static std::wstring ConvertString(const char* Input)
 {
 	int nNumWChars = MultiByteToWideChar(CP_ACP, 0, Input, -1, NULL, NULL);
 	wchar_t* buf = new wchar_t[nNumWChars + 1];
 	MultiByteToWideChar(CP_ACP, 0, Input, -1, buf, nNumWChars + 1);
-	wstring strResult(buf);
+	std::wstring strResult(buf);
 	delete [] buf;
 
 	return strResult;

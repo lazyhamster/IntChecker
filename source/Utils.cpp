@@ -165,7 +165,7 @@ static std::wstring GetFullPath(const wchar_t* path)
 
 static int EnumFiles(const std::wstring& baseAbsPath, const std::wstring& pathPrefix, StringList &destList, int64_t &totalSize, bool recursive, FilterCompareProc filterProc, HANDLE filterData)
 {
-	wstring strBasePath = PrependLongPrefix(baseAbsPath);
+	std::wstring strBasePath = PrependLongPrefix(baseAbsPath);
 	IncludeTrailingPathDelim(strBasePath);
 	strBasePath.append(L"*.*");
 
@@ -194,9 +194,9 @@ static int EnumFiles(const std::wstring& baseAbsPath, const std::wstring& pathPr
 		else if (recursive)
 		{
 			// Is a directory
-			wstring strNexBasePath = baseAbsPath + fd.cFileName;
+			std::wstring strNexBasePath = baseAbsPath + fd.cFileName;
 			strNexBasePath += L"\\";
-			wstring strNextPrefix = pathPrefix + fd.cFileName;
+			std::wstring strNextPrefix = pathPrefix + fd.cFileName;
 			strNextPrefix += L"\\";
 
 			numFound += EnumFiles(strNexBasePath, strNextPrefix, destList, totalSize, recursive, filterProc, filterData);
@@ -210,8 +210,8 @@ static int EnumFiles(const std::wstring& baseAbsPath, const std::wstring& pathPr
 
 int PrepareFilesList(const wchar_t* basePath, const wchar_t* basePrefix, StringList &destList, int64_t &totalSize, bool recursive, FilterCompareProc filterProc, HANDLE filterData)
 {
-	wstring strBasePath = GetFullPath(basePath);
-	wstring strStartPrefix(basePrefix);
+	std::wstring strBasePath = GetFullPath(basePath);
+	std::wstring strStartPrefix(basePrefix);
 
 	IncludeTrailingPathDelim(strBasePath);
 	IncludeTrailingPathDelim(strStartPrefix);
@@ -272,7 +272,7 @@ bool GetTextFromClipboard(std::string &data)
 std::wstring ExtractFileName( const std::wstring & fullPath )
 {
 	size_t pos = fullPath.find_last_of(L"/\\");
-	if (pos == wstring::npos)
+	if (pos == std::wstring::npos)
 		return fullPath;
 	else
 		return fullPath.substr(pos + 1);
@@ -282,7 +282,7 @@ std::wstring ExtractFileExt( const std::wstring & path )
 {
 	std::wstring fileName = ExtractFileName(path);
 	size_t pos = fileName.rfind('.');
-	return (pos != wstring::npos) ? fileName.substr(pos) : L"";
+	return (pos != std::wstring::npos) ? fileName.substr(pos) : L"";
 }
 
 std::wstring FormatString(const std::wstring fmt_str, ...)
