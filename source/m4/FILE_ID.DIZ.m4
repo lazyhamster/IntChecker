@@ -1,6 +1,6 @@
 m4_include(`version.m4i')m4_dnl
 Integrity Checker PLUGIN_VERSION
-Plugin for 3.0
+Plugin for Far Manager 3.0
 ---------------------------
 
 This plugin allows creation and

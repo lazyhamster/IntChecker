@@ -15,6 +15,9 @@
 #include "farhelpers/Far3Menu.hpp"
 #include "farhelpers/Far3Panel.hpp"
 
+static std::wstring AnsiPageName = FormatString(L"ANSI (%d)", GetACP());
+static std::wstring OemPageName = FormatString(L"OEM (%d)", GetOEMCP());
+
 // --------------------------------------- Service functions -------------------------------------------------
 
 static intptr_t FarAdvControl(enum ADVANCED_CONTROL_COMMANDS command, intptr_t param1 = 0, void* param2 = NULL)
@@ -335,7 +338,7 @@ static void DisplayValidationResults(Far3Panel& panel, std::vector<std::wstring>
 
 static bool AskValidationFileParams(UINT &codepage, int &ignoreMissingFiles)
 {
-	const wchar_t* codePageNames[] = {L"UTF-8", L"ANSI", L"OEM"};
+	const wchar_t* codePageNames[] = {L"UTF-8", AnsiPageName.c_str(), OemPageName.c_str()};
 	const UINT codePageValues[] = {CP_UTF8, CP_ACP, CP_OEMCP};
 	int selectedCP = 0;
 	for (int i = 0; i < ARRAY_SIZE(codePageValues); i++)
@@ -346,7 +349,7 @@ static bool AskValidationFileParams(UINT &codepage, int &ignoreMissingFiles)
 
 	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_PARAMS, MSG_MENU_VALIDATE, L"ValidateParams");
 
-	auto cpBox = dlgBuilder.AddComboBox(&selectedCP, NULL, 8, codePageNames, ARRAY_SIZE(codePageNames), DIF_DROPDOWNLIST);
+	auto cpBox = dlgBuilder.AddComboBox(&selectedCP, NULL, 10, codePageNames, _countof(codePageNames), DIF_DROPDOWNLIST);
 	dlgBuilder.AddTextBefore(cpBox, MSG_GEN_CODEPAGE);
 	dlgBuilder.AddCheckbox(MSG_DLG_IGNORE_MISSING, &ignoreMissingFiles);
 	dlgBuilder.AddOKCancel(MSG_BTN_RUN, MSG_BTN_CANCEL);
@@ -520,8 +523,8 @@ static bool AskForHashGenerationParams(HashGenerationParams& genParams)
 	wchar_t outputFileBuf[MAX_PATH] = {0};
 	wcscpy_s(outputFileBuf, ARRAY_SIZE(outputFileBuf), genParams.OutputFileName.c_str());
 
-	const wchar_t* codePageNames[] = {L"UTF-8", L"ANSI", L"OEM"};
-	const UINT codePageValues[] = {CP_UTF8, CP_ACP, CP_OEMCP};
+	const wchar_t* codePageNames[] = { L"UTF-8", AnsiPageName.c_str(), OemPageName.c_str() };
+	const UINT codePageValues[] = { CP_UTF8, CP_ACP, CP_OEMCP };
 	int selectedCP = 0;
 	for (int i = 0; i < ARRAY_SIZE(codePageValues); i++)
 	{
@@ -557,7 +560,7 @@ static bool AskForHashGenerationParams(HashGenerationParams& genParams)
 	dlgBuilder.AddCheckbox(MSG_GEN_ABSPATH, &doStoreAbsPath);
 	dlgBuilder.AddCheckbox(MSG_DLG_USE_FILTER, &useFilter);
 
-	auto cpBox = dlgBuilder.AddComboBox(&selectedCP, NULL, 8, codePageNames, ARRAY_SIZE(codePageNames), DIF_DROPDOWNLIST);
+	auto cpBox = dlgBuilder.AddComboBox(&selectedCP, NULL, 10, codePageNames, _countof(codePageNames), DIF_DROPDOWNLIST);
 	dlgBuilder.AddTextBefore(cpBox, MSG_GEN_CODEPAGE);
 
 	dlgBuilder.AddSeparator();
