@@ -1,7 +1,7 @@
 Historia zmian:
 
 2.8.1
-- W trybie porównywanie paneli można używać tylko CRC32 i SHA1 (nie ma potrzeby używania wszystkich algorytmów).
+- W trybie porównywania paneli można używać tylko CRC32 i SHA1 (nie ma potrzeby używania wszystkich algorytmów).
 - Drobne poprawki.
 
 2.8.0
