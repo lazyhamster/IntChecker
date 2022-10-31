@@ -34,4 +34,4 @@ $ #Parametry obliczania sumy kontrolnej#
  [X] - zachowaj pełną ścieżkę
  
  #Użyj filtra#
- Przetwarzaj pliki zgodnie z ~Filtrami~@:FiltersMenu@.
+ Przetwarzaj pliki zgodnie z ~filtrami~@:FiltersMenu@.
