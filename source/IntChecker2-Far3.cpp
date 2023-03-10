@@ -11,9 +11,10 @@
 #include <InitGuid.h>
 #include "Far3Guids.h"
 
-#include "FarCommon.h"
 #include "farhelpers/Far3Menu.hpp"
 #include "farhelpers/Far3Panel.hpp"
+
+#include "FarCommon.h"
 
 static std::wstring AnsiPageName = FormatString(L"ANSI (%d)", GetACP());
 static std::wstring OemPageName = FormatString(L"OEM (%d)", GetOEMCP());
@@ -336,7 +337,7 @@ static void DisplayValidationResults(Far3Panel& panel, std::vector<std::wstring>
 	}
 }
 
-static bool AskValidationFileParams(UINT &codepage, int &ignoreMissingFiles)
+static bool AskValidationFileParams(UINT &codepage, bool &ignoreMissingFiles, bool &stopOnFirstFail)
 {
 	const wchar_t* codePageNames[] = {L"UTF-8", AnsiPageName.c_str(), OemPageName.c_str()};
 	const UINT codePageValues[] = {CP_UTF8, CP_ACP, CP_OEMCP};
@@ -352,6 +353,7 @@ static bool AskValidationFileParams(UINT &codepage, int &ignoreMissingFiles)
 	auto cpBox = dlgBuilder.AddComboBox(&selectedCP, NULL, 10, codePageNames, _countof(codePageNames), DIF_DROPDOWNLIST);
 	dlgBuilder.AddTextBefore(cpBox, MSG_GEN_CODEPAGE);
 	dlgBuilder.AddCheckbox(MSG_DLG_IGNORE_MISSING, &ignoreMissingFiles);
+	dlgBuilder.AddCheckbox(MSG_DLG_STOP_ON_FIRST_MISMATCH, &stopOnFirstFail);
 	dlgBuilder.AddOKCancel(MSG_BTN_RUN, MSG_BTN_CANCEL);
 
 	if (dlgBuilder.ShowDialog())
@@ -368,9 +370,10 @@ static bool AskValidationFileParams(UINT &codepage, int &ignoreMissingFiles)
 static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool showParamsDialog)
 {
 	UINT fileCodepage = optListDefaultCodepage;
-	int ignoreMissingFiles = optIgnoreMissingFiles;
+	bool ignoreMissingFiles = false;
+	bool stopOnFirstFail = false;
 
-	if (!silent && showParamsDialog && !AskValidationFileParams(fileCodepage, ignoreMissingFiles))
+	if (!silent && showParamsDialog && !AskValidationFileParams(fileCodepage, ignoreMissingFiles, stopOnFirstFail))
 		return false;
 	
 	HashList hashes;
@@ -427,7 +430,11 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 			if (RunGeneration(strFullFilePath, fileInfo.Filename, fileInfo.HashAlgo, false, progressCtx, hashValueStr, fAborted, fAutoSkipErrors))
 			{
 				if (!SameHash(fileInfo.HashStr, hashValueStr))
+				{
 					vMismatches.push_back(fileInfo.Filename);
+					if (stopOnFirstFail)
+						break;
+				}
 			}
 			else if (fAborted)
 			{

@@ -26,7 +26,6 @@ static int optUsePrefix = TRUE;
 static int optHashUppercase = FALSE;
 static int optListDefaultCodepage = CP_UTF8;
 static int optRememberLastUsedAlgo = FALSE;
-static int optIgnoreMissingFiles = FALSE;
 static wchar_t optPrefix[32] = L"check";
 
 #define EDR_SKIP 0

@@ -70,6 +70,7 @@
 "Plików:"
 "Bajtów:"
 "&Ignoruj brakujące pliki"
+"*&Stop on first mismatch"
 "Wybrano nieprawidłowy parametr"
 "Wybierz parametry"
 "Testuję %s"
