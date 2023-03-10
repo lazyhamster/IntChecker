@@ -717,7 +717,7 @@ static void RunGenerateHashes(Far3Panel& panel)
 			std::string hashValueStr;
 			bool fShouldAbort = false;
 
-			if (RunGeneration(pfiNextFile.FullPath, pfiNextFile.PanelPath, genParams.Algorithm, optHashUppercase != FALSE, progressCtx, hashValueStr, fShouldAbort, fAutoSkipErrors))
+			if (RunGeneration(pfiNextFile.FullPath, pfiNextFile.PanelPath, genParams.Algorithm, optHashUppercase, progressCtx, hashValueStr, fShouldAbort, fAutoSkipErrors))
 			{
 				hashes.SetFileHash(genParams.StoreAbsPaths ? pfiNextFile.FullPath : pfiNextFile.PanelPath, hashValueStr, genParams.Algorithm);
 			}
@@ -1284,7 +1284,7 @@ static bool CalculateHashByAlgoName(const wchar_t* algoName, const wchar_t* path
 
 	ProgressContext progressCtx(1, fileSize);
 
-	bool genResult = RunGeneration(strFullPath, path, algo, optHashUppercase != FALSE, progressCtx, strHashValue, fAborted, fSkipAllErrors);
+	bool genResult = RunGeneration(strFullPath, path, algo, optHashUppercase, progressCtx, strHashValue, fAborted, fSkipAllErrors);
 	if (genResult)
 	{
 		memset(hashBuf, 0, hashBufSize * sizeof(wchar_t));
@@ -1387,22 +1387,22 @@ intptr_t WINAPI ConfigureW(const ConfigureInfo* Info)
 
 	dlgBuilder.AddText(MSG_CONFIG_DEFAULT_ALGO);
 	dlgBuilder.AddComboBox(&selectedAlgo, NULL, 15, vAlgList.data(), vAlgList.size(), DIF_DROPDOWNLIST);
-	dlgBuilder.AddCheckbox(MSG_CONFIG_REMEMBER_LAST_ALGO, (BOOL*) &optRememberLastUsedAlgo);
+	dlgBuilder.AddCheckbox(MSG_CONFIG_REMEMBER_LAST_ALGO, &optRememberLastUsedAlgo);
 
 	dlgBuilder.AddSeparator();
 	dlgBuilder.AddText(MSG_CONFIG_DEFAULT_OUTPUT);
 	dlgBuilder.AddComboBox(&selectedOutput, NULL, 28, outputTargetNames, ARRAY_SIZE(outputTargetNames), DIF_DROPDOWNLIST);
 
 	dlgBuilder.AddSeparator();
-	dlgBuilder.AddCheckbox(MSG_CONFIG_PREFIX, (BOOL*) &optUsePrefix);
+	dlgBuilder.AddCheckbox(MSG_CONFIG_PREFIX, &optUsePrefix);
 	
 	FarDialogItem* editItem = dlgBuilder.AddEditField(optPrefix, ARRAY_SIZE(optPrefix), 16);
 	editItem->X1 += 3;
 	
-	dlgBuilder.AddCheckbox(MSG_CONFIG_CONFIRM_ABORT, (BOOL*) &optConfirmAbort);
-	dlgBuilder.AddCheckbox(MSG_CONFIG_CLEAR_SELECTION, (BOOL*) &optClearSelectionOnComplete);
-	dlgBuilder.AddCheckbox(MSG_CONFIG_AUTOEXT, (BOOL*) &optAutoExtension);
-	dlgBuilder.AddCheckbox(MSG_CONFIG_UPPERCASE, (BOOL*) &optHashUppercase);
+	dlgBuilder.AddCheckbox(MSG_CONFIG_CONFIRM_ABORT, &optConfirmAbort);
+	dlgBuilder.AddCheckbox(MSG_CONFIG_CLEAR_SELECTION, &optClearSelectionOnComplete);
+	dlgBuilder.AddCheckbox(MSG_CONFIG_AUTOEXT, &optAutoExtension);
+	dlgBuilder.AddCheckbox(MSG_CONFIG_UPPERCASE, &optHashUppercase);
 	auto cpBox = dlgBuilder.AddComboBox(&selectedCP, NULL, 8, codePageNames, ARRAY_SIZE(codePageNames), DIF_DROPDOWNLIST);
 	dlgBuilder.AddTextBefore(cpBox, MSG_CONFIG_DEFAULT_CP);
 

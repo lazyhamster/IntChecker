@@ -16,16 +16,16 @@ enum HashOutputTargets
 };
 
 // Plugin settings
-static int optDetectHashFiles = TRUE;
-static int optClearSelectionOnComplete = TRUE;
-static int optConfirmAbort = TRUE;
-static int optAutoExtension = TRUE;
+static bool optDetectHashFiles = true;
+static bool optClearSelectionOnComplete = true;
+static bool optConfirmAbort = true;
+static bool optAutoExtension = true;
 static int optDefaultAlgo = RHASH_MD5;
 static int optDefaultOutputTarget = OT_SINGLEFILE;
-static int optUsePrefix = TRUE;
-static int optHashUppercase = FALSE;
+static bool optUsePrefix = true;
+static bool optHashUppercase = false;
 static int optListDefaultCodepage = CP_UTF8;
-static int optRememberLastUsedAlgo = FALSE;
+static bool optRememberLastUsedAlgo = false;
 static wchar_t optPrefix[32] = L"check";
 
 #define EDR_SKIP 0
