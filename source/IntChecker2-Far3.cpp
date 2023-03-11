@@ -16,8 +16,46 @@
 
 #include "FarCommon.h"
 
+// Plugin settings
+static bool optDetectHashFiles = true;
+static bool optClearSelectionOnComplete = true;
+static bool optConfirmAbort = true;
+static bool optAutoExtension = true;
+static int optDefaultAlgo = RHASH_MD5;
+static int optDefaultOutputTarget = OT_SINGLEFILE;
+static bool optUsePrefix = true;
+static bool optHashUppercase = false;
+static int optListDefaultCodepage = CP_UTF8;
+static bool optRememberLastUsedAlgo = false;
+static bool optPreventSleepOnCalc = false;
+static wchar_t optPrefix[32] = L"check";
+
 static std::wstring AnsiPageName = FormatString(L"ANSI (%d)", GetACP());
 static std::wstring OemPageName = FormatString(L"OEM (%d)", GetOEMCP());
+
+struct HashGenerationParams
+{
+	rhash_ids Algorithm;
+	bool Recursive;
+	HashOutputTargets OutputTarget;
+	bool StoreAbsPaths;
+	HANDLE FileFilter;
+
+	std::wstring OutputFileName;
+	UINT OutputFileCodepage;
+
+	HashGenerationParams()
+	{
+		Algorithm = (rhash_ids)optDefaultAlgo;
+		Recursive = true;
+		OutputTarget = (HashOutputTargets)optDefaultOutputTarget;
+		StoreAbsPaths = false;
+		FileFilter = INVALID_HANDLE_VALUE;
+
+		OutputFileName = L"hashlist";
+		OutputFileCodepage = optListDefaultCodepage;
+	}
+};
 
 // --------------------------------------- Service functions -------------------------------------------------
 
@@ -97,6 +135,18 @@ static bool GetMacroBoolValue(OpenMacroInfo *macroInfo, size_t index, bool defau
 	return defaultValue;
 }
 
+static void StopSleep()
+{
+	if (optPreventSleepOnCalc)
+		SetThreadExecutionState(ES_CONTINUOUS | ES_SYSTEM_REQUIRED);
+}
+
+static void RestoreSleep()
+{
+	if (optPreventSleepOnCalc)
+		SetThreadExecutionState(ES_CONTINUOUS);
+}
+
 // --------------------------------------- Local functions ---------------------------------------------------
 
 static void LoadSettings()
@@ -113,6 +163,7 @@ static void LoadSettings()
 	optRememberLastUsedAlgo		= ps.Get(0, L"RememberLastAlgorithm", optRememberLastUsedAlgo);
 	optListDefaultCodepage		= ps.Get(0, L"DefaultListCodepage", optListDefaultCodepage);
 	optDefaultOutputTarget		= ps.Get(0, L"DefaultOutput", optDefaultOutputTarget);
+	optPreventSleepOnCalc		= ps.Get(0, L"PreventSleepOnCalc", optPreventSleepOnCalc);
 
 	const wchar_t* prefixVal = ps.Get(0, L"Prefix", optPrefix);
 	if (prefixVal != optPrefix)
@@ -136,6 +187,7 @@ static void SaveSettings()
 	ps.Set(0, L"RememberLastAlgorithm", optRememberLastUsedAlgo);
 	ps.Set(0, L"DefaultListCodepage", optListDefaultCodepage);
 	ps.Set(0, L"DefaultOutput", optDefaultOutputTarget);
+	ps.Set(0, L"PreventSleepOnCalc", optPreventSleepOnCalc);
 }
 
 static std::wstring FileSizeToString(int64_t fileSize, bool keepBytes)
@@ -390,6 +442,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 	int64_t totalFilesSize = 0;
 
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_INDETERMINATE, NULL);
+	StopSleep();
 
 	// Prepare files list
 	{
@@ -457,6 +510,7 @@ static bool RunValidateFiles(const wchar_t* hashListPath, bool silent, bool show
 		DisplayMessage(GetLocMsg(MSG_DLG_NOFILES_TITLE), GetLocMsg(MSG_DLG_NOFILES_TEXT), NULL, true, true);
 	}
 
+	RestoreSleep();
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);
 	FarAdvControl(ACTL_PROGRESSNOTIFY, 0, NULL);
 
@@ -691,8 +745,8 @@ static void RunGenerateHashes(Far3Panel& panel)
 	HashList hashes;
 	std::wstring strPanelDir = panel.GetPanelDirectory();
 
-	// Win7 only feature
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_INDETERMINATE, NULL);
+	StopSleep();
 
 	// Prepare files list
 	{
@@ -728,6 +782,7 @@ static void RunGenerateHashes(Far3Panel& panel)
 			}
 		}
 
+		RestoreSleep();
 		FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);
 		FarAdvControl(ACTL_PROGRESSNOTIFY, 0, NULL);
 
@@ -885,6 +940,7 @@ static void RunComparePanels()
 	std::vector<PanelFileInfo> vSelectedFiles;
 	
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_INDETERMINATE, NULL);
+	StopSleep();
 
 	// Prepare files list
 	{
@@ -957,6 +1013,7 @@ static void RunComparePanels()
 			}
 		}
 
+		RestoreSleep();
 		FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);
 		FarAdvControl(ACTL_PROGRESSNOTIFY, 0, NULL);
 	}
@@ -1403,6 +1460,7 @@ intptr_t WINAPI ConfigureW(const ConfigureInfo* Info)
 	dlgBuilder.AddCheckbox(MSG_CONFIG_CLEAR_SELECTION, &optClearSelectionOnComplete);
 	dlgBuilder.AddCheckbox(MSG_CONFIG_AUTOEXT, &optAutoExtension);
 	dlgBuilder.AddCheckbox(MSG_CONFIG_UPPERCASE, &optHashUppercase);
+	dlgBuilder.AddCheckbox(MSG_CONFIG_PREVENT_SLEEP, &optPreventSleepOnCalc);
 	auto cpBox = dlgBuilder.AddComboBox(&selectedCP, NULL, 8, codePageNames, ARRAY_SIZE(codePageNames), DIF_DROPDOWNLIST);
 	dlgBuilder.AddTextBefore(cpBox, MSG_CONFIG_DEFAULT_CP);
 

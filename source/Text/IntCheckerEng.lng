@@ -26,6 +26,7 @@
 "Separate hash files"
 "Display"
 "Directory hash files"
+"Prevent sleep when calculating"
 
 "OK"
 "Cancel"

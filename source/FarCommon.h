@@ -15,19 +15,6 @@ enum HashOutputTargets
 	OT_SEPARATEDIRS = 3		// One hash file per one directory
 };
 
-// Plugin settings
-static bool optDetectHashFiles = true;
-static bool optClearSelectionOnComplete = true;
-static bool optConfirmAbort = true;
-static bool optAutoExtension = true;
-static int optDefaultAlgo = RHASH_MD5;
-static int optDefaultOutputTarget = OT_SINGLEFILE;
-static bool optUsePrefix = true;
-static bool optHashUppercase = false;
-static int optListDefaultCodepage = CP_UTF8;
-static bool optRememberLastUsedAlgo = false;
-static wchar_t optPrefix[32] = L"check";
-
 #define EDR_SKIP 0
 #define EDR_SKIPALL 1
 #define EDR_RETRY 2
@@ -172,30 +159,6 @@ struct RectSize
 	{
 		Width = sr.Right - sr.Left + 1;
 		Height = sr.Bottom - sr.Top + 1;
-	}
-};
-
-struct HashGenerationParams
-{
-	rhash_ids Algorithm;
-	bool Recursive;
-	HashOutputTargets OutputTarget;
-	bool StoreAbsPaths;
-	HANDLE FileFilter;
-
-	std::wstring OutputFileName;
-	UINT OutputFileCodepage;
-	
-	HashGenerationParams()
-	{
-		Algorithm = (rhash_ids) optDefaultAlgo;
-		Recursive = true;
-		OutputTarget = (HashOutputTargets) optDefaultOutputTarget;
-		StoreAbsPaths = false;
-		FileFilter = INVALID_HANDLE_VALUE;
-		
-		OutputFileName = L"hashlist";
-		OutputFileCodepage = optListDefaultCodepage;
 	}
 };
 

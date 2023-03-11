@@ -3,6 +3,7 @@ Changes history:
 2.8.2
 - Fixed loading of hash lists in BSD format for several algorithms.
 - Added ability to stop on first mismatch when checking hashes.
+- Added ability to prevent computer going to sleep mode when calculating hashes.
 
 2.8.1
 - Only CRC32 and SHA1 can be used in panel comparision mode now (no need to use all algorithms).
