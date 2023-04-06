@@ -695,11 +695,10 @@ static void RunGenerateHashes(Far3Panel& panel)
 	// Generation params
 	HashGenerationParams genParams;
 	std::wstring strOutputFilePath;
+	auto strPanelDir = panel.GetPanelDirectory();
 
 	HashAlgoInfo *selectedHashInfo = GetAlgoInfo(genParams.Algorithm);
 	if (!selectedHashInfo) return;
-
-	if (optAutoExtension) genParams.OutputFileName += selectedHashInfo->DefaultExt;
 
 	// If only one file is selected then offer it's name as base for hash file name
 	if (panel.GetSelectedItemsNumber() == 1)
@@ -707,9 +706,20 @@ static void RunGenerateHashes(Far3Panel& panel)
 		auto strSelectedFile = panel.GetSelectedItemPath();
 		if (!strSelectedFile.empty() && (strSelectedFile != L".."))
 		{
-			genParams.OutputFileName = ExtractFileName(strSelectedFile) + selectedHashInfo->DefaultExt;
+			genParams.OutputFileName = ExtractFileName(strSelectedFile);
 		}
 	}
+	else
+	{
+		// Or try to use current directory name as a base for hash file name
+		auto dirName = ExtractFileName(strPanelDir);
+		if (!dirName.empty())
+		{
+			genParams.OutputFileName = dirName;
+		}
+	}
+
+	if (optAutoExtension) genParams.OutputFileName += selectedHashInfo->DefaultExt;
 
 	while(true)
 	{
@@ -743,8 +753,7 @@ static void RunGenerateHashes(Far3Panel& panel)
 	std::vector<PanelFileInfo> filesToProcess;
 	int64_t totalFilesSize = 0;
 	HashList hashes;
-	std::wstring strPanelDir = panel.GetPanelDirectory();
-
+	
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_INDETERMINATE, NULL);
 	StopSleep();
 
