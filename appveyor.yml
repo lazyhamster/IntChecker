@@ -53,7 +53,7 @@ deploy:
     release: $(PVER)
     description: 'Stable Release'
     auth_token:
-      secure: mqUbsSxmLeDlHNqCSyclXPAqnx3PhkRw1aUPnHjPQF3z2x/d2KBBzx5KaWe5rBoS
+      secure: 8yIMSvujlGt6MF6RMRvIYhNG9JTzQa8eqnx+BBBb4kbsZ/IKovnbJD1WnInPEt4/
     artifact: distr
     draft: true
     prerelease: false
