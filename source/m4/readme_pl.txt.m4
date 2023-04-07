@@ -1,4 +1,4 @@
-m4_include(`version.m4i')m4_dnl
+﻿m4_include(`version.m4i')m4_dnl
 Wtyczka: Integrity Checker
 Wersja: PLUGIN_VERSION
 Autor: Ariman

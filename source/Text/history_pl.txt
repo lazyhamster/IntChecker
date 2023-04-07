@@ -1,4 +1,11 @@
-Historia zmian:
+﻿Historia zmian:
+
+2.8.2
+- Poprawiono ładowanie list sum kontrolnych w formacie BSD dla kilku algorytmów.
+- Dodanoo możliwość zatrzymania po pieerwszym niedopasowaniu podczas sprawdzenia sum.
+- Dodano możliwość zapobiegania przejścia komputera w stań uśpienia podczas obliczania sum.
+- Bieżąca nazwa folderu jest używana jako nazwa pliku sum kontrolnych (dla głównego folderu nazwa pliku bez zmian).
+- Zaktualizowano bibliotekę RHash do wersji 1.4.2.
 
 2.8.1
 - W trybie porównywania paneli można używać tylko CRC32 i SHA1 (nie ma potrzeby używania wszystkich algorytmów).
