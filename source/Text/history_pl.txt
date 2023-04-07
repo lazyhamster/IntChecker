@@ -7,11 +7,6 @@
 - Bieżąca nazwa folderu jest używana jako nazwa pliku sum kontrolnych (dla głównego folderu nazwa pliku bez zmian).
 - Zaktualizowano bibliotekę RHash do wersji 1.4.2.
 
-- Poprawiono ładowanie list hashowych w formacie BSD dla kilku algorytmów.
-- Dodano możliwość zatrzymania się przy pierwszym niedopasowaniu podczas sprawdzania haszy.
-- Dodano możliwość zapobiegania przechodzeniu komputera w tryb uśpienia podczas obliczania haszy.
-- Bieżąca nazwa katalogu jest używana jako podstawa dla nazwy pliku hash (nadal hashlista dla korzeni dysku).
-
 2.8.1
 - W trybie porównywania paneli można używać tylko CRC32 i SHA1 (nie ma potrzeby używania wszystkich algorytmów).
 - Drobne poprawki.
