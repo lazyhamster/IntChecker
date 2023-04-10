@@ -400,7 +400,7 @@ static bool AskValidationFileParams(UINT &codepage, bool &ignoreMissingFiles, bo
 			selectedCP = i;
 	}
 
-	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_PARAMS, MSG_MENU_VALIDATE, L"ValidateParams");
+	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_PARAMS, MSG_DLG_VALIDATE_OPTIONS, L"ValidateParams");
 
 	auto cpBox = dlgBuilder.AddComboBox(&selectedCP, NULL, 10, codePageNames, _countof(codePageNames), DIF_DROPDOWNLIST);
 	dlgBuilder.AddTextBefore(cpBox, MSG_GEN_CODEPAGE);
