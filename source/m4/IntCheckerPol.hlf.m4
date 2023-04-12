@@ -13,12 +13,14 @@ $ #Parametry obliczania sumy kontrolnej#
  Wybór ten wpływa na format pliku wynikowego.
  Algorytmy różnią się rozmiarem i szybkością obliczania.
  
- #Wyjście#
- Jeden z możliwych wariantów pokazania wyników.
+ #Wyjście do#
+ Jeden z możliwych wariantów przedstawienia wyników.
    
-     #Pojedynczy plik#
+     #Jeden plik#
      W katalogu aktywnego panelu zostanie utworzony jeden wspólny plik ze wszystkimi danymi. Poniżej możesz podać nazwę tego pliku. Podczas zmiany wybranego algorytmu odpowiednie rozszerzenie pliku jest automatycznie zmieniane.
    
+     #Folder plików kontrolnych#
+
      #Osobne pliki#
      Dla każdego pliku zostanie utworzony osobny plik z jego sumą kontrolną. Nazwa pliku skrótu jest tworzona automatycznie na podstawie nazwy pliku źródłowego i wybranego algorytmu.
    
