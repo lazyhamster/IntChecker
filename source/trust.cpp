@@ -7,7 +7,7 @@
 
 bool FileCanHaveSignature(const wchar_t* path)
 {
-	static const wchar_t* SignatureExtensions[] = { L".exe", L".dll", L".msi", L".msu", L".cab"};
+	static const wchar_t* SignatureExtensions[] = { L".exe", L".dll", L".efi", L".msi", L".msu", L".msp", L".cab"};
 	
 	const wchar_t* ext = PathFindExtension(path);
 	for (int i = 0; i < _countof(SignatureExtensions); ++i)
