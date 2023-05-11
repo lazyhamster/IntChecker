@@ -1254,8 +1254,7 @@ static void RunVerifySignatures(Far3Panel &panel)
 	}
 
 	std::vector<PanelFileInfo> filesToVerify;
-	bool allOk = true;
-	
+		
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_INDETERMINATE, NULL);
 
 	// Prepare files list
@@ -1267,16 +1266,13 @@ static void RunVerifySignatures(Far3Panel &panel)
 
 		auto rm_it = std::remove_if(filesToVerify.begin(), filesToVerify.end(), [](PanelFileInfo &item) { return !FileCanHaveSignature(item.PanelPath.c_str()); });
 		filesToVerify.erase(rm_it, filesToVerify.end());
-		if (filesToVerify.size() == 0)
-		{
-			DisplayMessage(MSG_DLG_ERROR, MSG_DLG_NO_FILES_SELECTED, NULL, true, true);
-			return;
-		}
 	}
 
+	if (filesToVerify.size() > 0)
 	{
 		std::wstring strShortName;
 		std::wstring strFileNum;
+		bool allOk = true;
 
 		for (size_t i = 0; i < filesToVerify.size(); ++i)
 		{
@@ -1317,11 +1313,15 @@ static void RunVerifySignatures(Far3Panel &panel)
 				}
 			}
 		}
-	}
 
-	if (allOk)
-		DisplayMessage(MSG_DLG_VALIDATION_COMPLETE, MSG_DLG_OPERATION_COMPLETE, nullptr, false, true);
-	
+		if (allOk)
+			DisplayMessage(MSG_DLG_VALIDATION_COMPLETE, MSG_DLG_OPERATION_COMPLETE, nullptr, false, true);
+	}
+	else
+	{
+		DisplayMessage(MSG_DLG_ERROR, MSG_DLG_NO_FILES_SELECTED, NULL, true, true);
+	}
+		
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_NOPROGRESS, NULL);
 	FarAdvControl(ACTL_PROGRESSNOTIFY, 0, NULL);
 }
