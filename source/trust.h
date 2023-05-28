@@ -25,7 +25,6 @@ struct SignedFileInformation
 	std::vector<DigitalSignatureInfo> Signatures;
 };
 
-bool FileCanHaveSignature(const wchar_t* path);
 long VerifyPeSignature(const wchar_t* path);
 bool GetDigitalSignatureInfo(const wchar_t* path, SignedFileInformation &info);
 

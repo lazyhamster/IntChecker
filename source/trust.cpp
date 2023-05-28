@@ -5,19 +5,6 @@
 #include <wincrypt.h>
 #include <SoftPub.h>
 
-bool FileCanHaveSignature(const wchar_t* path)
-{
-	static const wchar_t* SignatureExtensions[] = { L".exe", L".dll", L".efi", L".msi", L".msu", L".msp", L".cab"};
-	
-	const wchar_t* ext = PathFindExtension(path);
-	for (int i = 0; i < _countof(SignatureExtensions); ++i)
-	{
-		if (_wcsicmp(ext, SignatureExtensions[i]) == 0)
-			return true;
-	}
-	return false;
-}
-
 static std::wstring GetAlgorithmName(const CRYPT_ALGORITHM_IDENTIFIER &algoId)
 {
 	if (algoId.pszObjId)

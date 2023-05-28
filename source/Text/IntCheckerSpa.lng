@@ -83,6 +83,7 @@
 "*Clipboard hash:"
 "*File hash:"
 "*Validate Options"
+"*File signature is valid"
 
 "Generar"
 "Algoritmo"
