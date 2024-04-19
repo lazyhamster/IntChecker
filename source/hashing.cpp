@@ -550,10 +550,8 @@ bool SameHash(const std::string& hash1, const std::string& hash2)
 	return _stricmp(hash1.c_str(), hash2.c_str()) == 0;
 }
 
-static int8_t* CreateRandomBuffer(size_t bufferSize)
+static void InitRandomBuffer(int8_t* buffer, size_t bufferSize)
 {
-	int8_t* buffer = (int8_t*)malloc(bufferSize);
-
 	std::random_device rd;
 	std::mt19937 gen(rd());
 	std::uniform_int_distribution<> dist(0, 255);
@@ -562,33 +560,34 @@ static int8_t* CreateRandomBuffer(size_t bufferSize)
 	{
 		buffer[i] = dist(gen);
 	}
-
-	return buffer;
 }
 
-int64_t BenchmarkAlgorithm(rhash_ids algo, size_t dataSize, size_t bufferSize)
+int64_t BenchmarkAlgorithm(rhash_ids algo, size_t dataSize)
 {
 	typedef std::chrono::system_clock clock_type;
+
+	const size_t bufferSize = 8 * 1024;
+	int8_t buffer[bufferSize];
 	
-	int8_t* dataBuffer = CreateRandomBuffer(bufferSize);
+	InitRandomBuffer(buffer, bufferSize);
+	size_t numRounds = dataSize / bufferSize;
+
+	int oldPrio = GetThreadPriority(GetCurrentThread());
+	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
+	
 	auto start_time = clock_type::now();
 
 	rhash hashCtx = rhash_init(algo);
-	int64_t dataLeft = (int64_t) dataSize;
-	while (dataLeft > 0)
+	for (size_t i = 0; i < numRounds; ++i)
 	{
-		rhash_update(hashCtx, dataBuffer, bufferSize);
-		dataLeft -= bufferSize;
-
-		if (CheckEsc())
-			return -1;
+		rhash_update(hashCtx, buffer, bufferSize);
 	}
 	rhash_final(hashCtx, nullptr);
 
 	auto end_time = clock_type::now();
 	auto calc_time = end_time - start_time;
 
-	free(dataBuffer);
+	SetThreadPriority(GetCurrentThread(), oldPrio);
 
 	return std::chrono::duration_cast<std::chrono::milliseconds>(calc_time).count();
 }

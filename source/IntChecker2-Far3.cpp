@@ -1134,23 +1134,21 @@ static bool SelectBenchmarkParams(int &numBuffers, int *algoList)
 
 static void RunBenchmark()
 {
-	const size_t nBenchBufferSize = 1 * 1024 * 1024; // 1Mb
-
-	int nNumBuffers = 1024;
+	int nNumMb = 1024;  // Bench data size in megabytes
 	int vAlgoList[NUMBER_OF_SUPPORTED_HASHES] = {0};
 
 	std::fill_n(vAlgoList, NUMBER_OF_SUPPORTED_HASHES, 1);
-	if (!SelectBenchmarkParams(nNumBuffers, vAlgoList))
+	if (!SelectBenchmarkParams(nNumMb, vAlgoList))
 		return;
 
-	if ((nNumBuffers <= 0) || std::accumulate(std::begin(vAlgoList), std::end(vAlgoList), 0) <= 0)
+	if ((nNumMb <= 0) || std::accumulate(std::begin(vAlgoList), std::end(vAlgoList), 0) <= 0)
 	{
 		DisplayMessage(MSG_DLG_ERROR, MSG_DLG_INVALID_PARAMS, nullptr, true, true);
 		return;
 	}
 
 	std::vector<std::wstring> vBenchResults;
-	size_t nBenchDataSize = nNumBuffers * nBenchBufferSize;
+	size_t nBenchDataSize = nNumMb * 1024 * 1024;
 
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_INDETERMINATE, NULL);
 
@@ -1166,8 +1164,8 @@ static void RunBenchmark()
 		FarScreenSave screen;
 		DisplayMessage(GetLocMsg(MSG_DLG_PROCESSING), strBenchingAlgo.c_str(), NULL, false, false);
 
-		int64_t benchMs = BenchmarkAlgorithm(algoInfo.AlgoId, nBenchDataSize, nBenchBufferSize);
-		if (benchMs < 0)
+		int64_t benchMs = BenchmarkAlgorithm(algoInfo.AlgoId, nBenchDataSize);
+		if (CheckEsc())
 		{
 			fAborted = true;
 			break;
