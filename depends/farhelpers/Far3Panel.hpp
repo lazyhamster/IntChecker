@@ -131,12 +131,12 @@ public:
 		std::wstring strPath;
 		if (m_fIsValid)
 		{
-			size_t itemBufSize = PanelControl(FCTL_GETCURRENTPANELITEM, 0, NULL);
+			size_t itemBufSize = PanelControl(FCTL_GETSELECTEDPANELITEM, 0, NULL);
 			PluginPanelItem *PPI = (PluginPanelItem*)malloc(itemBufSize);
 			if (PPI)
 			{
 				FarGetPluginPanelItem FGPPI = { sizeof(FarGetPluginPanelItem), itemBufSize, PPI };
-				PanelControl(FCTL_GETCURRENTPANELITEM, 0, &FGPPI);
+				PanelControl(FCTL_GETSELECTEDPANELITEM, 0, &FGPPI);
 				strPath = PathJoin(GetPanelDirectory(), PPI->FileName);
 				free(PPI);
 			}
