@@ -1,5 +1,9 @@
 Changes history:
 
+2.8.3
+- Removed extension filter for file digital signature verification.
+- Minor fixes.
+
 2.8.2
 - Fixed loading of hash lists in BSD format for several algorithms.
 - Added ability to stop on first mismatch when checking hashes.
