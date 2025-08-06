@@ -1273,9 +1273,9 @@ static void RunVerifySignatures(Far3Panel &panel)
 	{
 		std::wstring strShortName;
 		std::wstring strFileNum;
-		bool allOk = true;
 		bool fOpCancelled = false;
 		bool fMultiFiles = filesToVerify.size() > 1;
+		std::vector<PanelFileInfo> vFailedFiles;
 
 		for (size_t i = 0; i < filesToVerify.size(); ++i)
 		{
@@ -1303,7 +1303,7 @@ static void RunVerifySignatures(Far3Panel &panel)
 			{
 				if (errCode != ERROR_SUCCESS)
 				{
-					allOk = false;
+					vFailedFiles.push_back(nextItem);
 					
 					static const wchar_t* DlgLines[5];
 					DlgLines[0] = GetLocMsg(MSG_DLG_ERROR);
@@ -1328,7 +1328,7 @@ static void RunVerifySignatures(Far3Panel &panel)
 
 		if (fMultiFiles)
 		{
-			if (allOk)
+			if (vFailedFiles.size() == 0)
 			{
 				DisplayMessage(MSG_DLG_VALIDATION_COMPLETE, MSG_DLG_SIGNATURE_ALL_OK, nullptr, false, true);
 				panel.ClearSelection();
@@ -1336,6 +1336,15 @@ static void RunVerifySignatures(Far3Panel &panel)
 			else if (!fOpCancelled)
 			{
 				DisplayMessage(MSG_DLG_VALIDATION_COMPLETE, MSG_DLG_OPERATION_COMPLETE, nullptr, false, true);
+				panel.SetItemsSelection([&vFailedFiles](const wchar_t* aItemName)
+				{
+						for each (const PanelFileInfo &item in vFailedFiles)
+						{
+							if (item.PanelPath.compare(aItemName) == 0)
+								return 0;
+						}
+						return -1;
+				});
 			}
 		}
 	}
