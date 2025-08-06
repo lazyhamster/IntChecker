@@ -1274,6 +1274,7 @@ static void RunVerifySignatures(Far3Panel &panel)
 		std::wstring strShortName;
 		std::wstring strFileNum;
 		bool allOk = true;
+		bool fOpCancelled = false;
 		bool fMultiFiles = filesToVerify.size() > 1;
 
 		for (size_t i = 0; i < filesToVerify.size(); ++i)
@@ -1302,17 +1303,19 @@ static void RunVerifySignatures(Far3Panel &panel)
 			{
 				if (errCode != ERROR_SUCCESS)
 				{
+					allOk = false;
+					
 					static const wchar_t* DlgLines[5];
 					DlgLines[0] = GetLocMsg(MSG_DLG_ERROR);
 					DlgLines[1] = errText;
 					DlgLines[2] = nextItem.PanelPath.c_str();
-					DlgLines[3] = GetLocMsg(MSG_BTN_OK);
+					DlgLines[3] = GetLocMsg(MSG_BTN_CONTINUE);
 					DlgLines[4] = GetLocMsg(MSG_BTN_CANCEL);
 
 					intptr_t btnNum = FarSInfo.Message(&GUID_PLUGIN_MAIN, &GUID_MESSAGE_BOX, FMSG_WARNING, NULL, DlgLines, ARRAY_SIZE(DlgLines), 2);
 					if (btnNum == 1)
 					{
-						allOk = false;
+						fOpCancelled = true;
 						break;
 					}
 				}
@@ -1323,8 +1326,18 @@ static void RunVerifySignatures(Far3Panel &panel)
 			}
 		}
 
-		if (allOk && fMultiFiles)
-			DisplayMessage(MSG_DLG_VALIDATION_COMPLETE, MSG_DLG_OPERATION_COMPLETE, nullptr, false, true);
+		if (fMultiFiles)
+		{
+			if (allOk)
+			{
+				DisplayMessage(MSG_DLG_VALIDATION_COMPLETE, MSG_DLG_SIGNATURE_ALL_OK, nullptr, false, true);
+				panel.ClearSelection();
+			}
+			else if (!fOpCancelled)
+			{
+				DisplayMessage(MSG_DLG_VALIDATION_COMPLETE, MSG_DLG_OPERATION_COMPLETE, nullptr, false, true);
+			}
+		}
 	}
 	else
 	{

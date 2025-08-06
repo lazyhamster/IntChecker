@@ -37,6 +37,7 @@
 "Saltar"
 "Saltar Todo"
 "Filtro"
+"*Coninue"
 
 "Error"
 "Confirmar"
@@ -84,6 +85,7 @@
 "*File hash:"
 "*Validate Options"
 "*File signature is valid"
+"*All files signatures are valid"
 
 "Generar"
 "Algoritmo"

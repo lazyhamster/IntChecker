@@ -37,6 +37,7 @@
 "Pomiń"
 "Pomiń wszystkie"
 "&Filtr"
+"*Coninue"
 
 "Błąd"
 "Potwierdź"
@@ -84,6 +85,7 @@
 "Suma kontrolna pliku:"
 "*Validate Options"
 "*File signature is valid"
+"*All files signatures are valid"
 
 "Generuj"
 "Al&gorytm"

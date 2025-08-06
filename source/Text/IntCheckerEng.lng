@@ -37,6 +37,7 @@
 "Skip"
 "Skip All"
 "Filter"
+"&Coninue"
 
 "Error"
 "Confirm"
@@ -84,6 +85,7 @@
 "File hash:"
 "Validate Options"
 "File signature is valid"
+"All files signatures are valid"
 
 "Generate"
 "Algorithm"
