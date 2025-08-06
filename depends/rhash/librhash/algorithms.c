@@ -14,17 +14,16 @@
  * PERFORMANCE OF THIS SOFTWARE.
  */
 
-#include <stdio.h>
-#include <assert.h>
-
+#include "algorithms.h"
 #include "byte_order.h"
 #include "rhash.h"
-#include "algorithms.h"
+#include "util.h"
 
-/* header files of all supported hash sums */
+/* header files of all supported hash functions */
 #include "aich.h"
 #include "blake2b.h"
 #include "blake2s.h"
+#include "blake3.h"
 #include "crc32.h"
 #include "ed2k.h"
 #include "edonr.h"
@@ -35,6 +34,7 @@
 #include "md5.h"
 #include "ripemd-160.h"
 #include "snefru.h"
+#include "sha_ni.h"
 #include "sha1.h"
 #include "sha256.h"
 #include "sha512.h"
@@ -45,21 +45,11 @@
 #include "whirlpool.h"
 
 #ifdef USE_OPENSSL
-/* note: BTIH and AICH depends on the used SHA1 algorithm */
-# define NEED_OPENSSL_INIT (RHASH_MD4 | RHASH_MD5 | \
-	RHASH_SHA1 | RHASH_SHA224 | RHASH_SHA256 | RHASH_SHA384 | RHASH_SHA512 | \
-	RHASH_BTIH | RHASH_AICH | RHASH_RIPEMD160 | RHASH_WHIRLPOOL)
-#else
-# define NEED_OPENSSL_INIT 0
+# include "plug_openssl.h"
 #endif /* USE_OPENSSL */
-#ifdef GENERATE_GOST94_LOOKUP_TABLE
-# define NEED_GOST94_INIT (RHASH_GOST94 | RHASH_GOST94_CRYPTOPRO)
-#else
-# define NEED_GOST94_INIT 0
-#endif /* GENERATE_GOST94_LOOKUP_TABLE */
+#include <assert.h>
 
-#define RHASH_NEED_INIT_ALG (NEED_GOST94_INIT | NEED_OPENSSL_INIT)
-unsigned rhash_uninitialized_algorithms = RHASH_NEED_INIT_ALG;
+static unsigned algorithms_initialized_flag = 0;
 
 rhash_hash_info* rhash_info_table = rhash_hash_info_default;
 int rhash_info_size = RHASH_HASH_COUNT;
@@ -71,37 +61,38 @@ static void rhash_crc32c_init(uint32_t* crc32);
 static void rhash_crc32c_update(uint32_t* crc32, const unsigned char* msg, size_t size);
 static void rhash_crc32c_final(uint32_t* crc32, unsigned char* result);
 
-rhash_info info_crc32  = { RHASH_CRC32,  F_BE32, 4, "CRC32", "crc32" };
-rhash_info info_crc32c = { RHASH_CRC32C, F_BE32, 4, "CRC32C", "crc32c" };
-rhash_info info_md4 = { RHASH_MD4, F_LE32, 16, "MD4", "md4" };
-rhash_info info_md5 = { RHASH_MD5, F_LE32, 16, "MD5", "md5" };
-rhash_info info_sha1 = { RHASH_SHA1,      F_BE32, 20, "SHA1", "sha1" };
-rhash_info info_tiger = { RHASH_TIGER,    F_LE64, 24, "TIGER", "tiger" };
-rhash_info info_tth  = { RHASH_TTH,       F_BS32, 24, "TTH", "tree:tiger" };
-rhash_info info_btih = { RHASH_BTIH,      0, 20, "BTIH", "btih" };
-rhash_info info_ed2k = { RHASH_ED2K,      F_LE32, 16, "ED2K", "ed2k" };
-rhash_info info_aich = { RHASH_AICH,      F_BS32, 20, "AICH", "aich" };
-rhash_info info_whirlpool = { RHASH_WHIRLPOOL, F_BE64, 64, "WHIRLPOOL", "whirlpool" };
-rhash_info info_rmd160 = { RHASH_RIPEMD160,  F_LE32, 20, "RIPEMD-160", "ripemd160" };
-rhash_info info_gost12_256 = { RHASH_GOST12_256, F_LE64, 32, "GOST12-256", "gost12-256" };
-rhash_info info_gost12_512 = { RHASH_GOST12_512, F_LE64, 64, "GOST12-512", "gost12-512" };
-rhash_info info_gost94 = { RHASH_GOST94,       F_LE32, 32, "GOST94", "gost94" };
-rhash_info info_gost94pro = { RHASH_GOST94_CRYPTOPRO, F_LE32, 32, "GOST94-CRYPTOPRO", "gost94-cryptopro" };
-rhash_info info_has160 = { RHASH_HAS160,     F_LE32, 20, "HAS-160", "has160" };
-rhash_info info_snf128 = { RHASH_SNEFRU128,  F_BE32, 16, "SNEFRU-128", "snefru128" };
-rhash_info info_snf256 = { RHASH_SNEFRU256,  F_BE32, 32, "SNEFRU-256", "snefru256" };
-rhash_info info_sha224 = { RHASH_SHA224,     F_BE32, 28, "SHA-224", "sha224" };
-rhash_info info_sha256 = { RHASH_SHA256,     F_BE32, 32, "SHA-256", "sha256" };
-rhash_info info_sha384 = { RHASH_SHA384,     F_BE64, 48, "SHA-384", "sha384" };
-rhash_info info_sha512 = { RHASH_SHA512,     F_BE64, 64, "SHA-512", "sha512" };
-rhash_info info_edr256 = { RHASH_EDONR256,   F_LE32, 32, "EDON-R256", "edon-r256" };
-rhash_info info_edr512 = { RHASH_EDONR512,   F_LE64, 64, "EDON-R512", "edon-r512" };
-rhash_info info_blake2s = { RHASH_BLAKE2S,   F_LE32, 32, "BLAKE2S", "blake2s" };
-rhash_info info_blake2b = { RHASH_BLAKE2B,   F_LE64, 64, "BLAKE2B", "blake2b" };
-rhash_info info_sha3_224 = { RHASH_SHA3_224, F_LE64, 28, "SHA3-224", "sha3-224" };
-rhash_info info_sha3_256 = { RHASH_SHA3_256, F_LE64, 32, "SHA3-256", "sha3-256" };
-rhash_info info_sha3_384 = { RHASH_SHA3_384, F_LE64, 48, "SHA3-384", "sha3-384" };
-rhash_info info_sha3_512 = { RHASH_SHA3_512, F_LE64, 64, "SHA3-512", "sha3-512" };
+rhash_info info_crc32      = { EXTENDED_HASH_ID(0),  F_BE32, 4, "CRC32", "crc32" };
+rhash_info info_crc32c     = { EXTENDED_HASH_ID(26), F_BE32, 4, "CRC32C", "crc32c" };
+rhash_info info_md4        = { EXTENDED_HASH_ID(1),  F_LE32, 16, "MD4", "md4" };
+rhash_info info_md5        = { EXTENDED_HASH_ID(2),  F_LE32, 16, "MD5", "md5" };
+rhash_info info_sha1       = { EXTENDED_HASH_ID(3),  F_BE32, 20, "SHA1", "sha1" };
+rhash_info info_tiger      = { EXTENDED_HASH_ID(4),  F_LE64, 24, "TIGER", "tiger" };
+rhash_info info_tth        = { EXTENDED_HASH_ID(5),  F_BS32 | F_SPCEXP, 24, "TTH", "tree:tiger" };
+rhash_info info_btih       = { EXTENDED_HASH_ID(6),  F_SPCEXP, 20, "BTIH", "btih" };
+rhash_info info_ed2k       = { EXTENDED_HASH_ID(7),  F_LE32, 16, "ED2K", "ed2k" };
+rhash_info info_aich       = { EXTENDED_HASH_ID(8),  F_BS32 | F_SPCEXP, 20, "AICH", "aich" };
+rhash_info info_whirlpool  = { EXTENDED_HASH_ID(9),  F_BE64, 64, "WHIRLPOOL", "whirlpool" };
+rhash_info info_rmd160     = { EXTENDED_HASH_ID(10), F_LE32, 20, "RIPEMD-160", "ripemd160" };
+rhash_info info_gost94     = { EXTENDED_HASH_ID(11), F_LE32, 32, "GOST94", "gost94" };
+rhash_info info_gost94pro  = { EXTENDED_HASH_ID(12), F_LE32, 32, "GOST94-CRYPTOPRO", "gost94-cryptopro" };
+rhash_info info_has160     = { EXTENDED_HASH_ID(13), F_LE32, 20, "HAS-160", "has160" };
+rhash_info info_gost12_256 = { EXTENDED_HASH_ID(14), F_LE64, 32, "GOST12-256", "gost12-256" };
+rhash_info info_gost12_512 = { EXTENDED_HASH_ID(15), F_LE64, 64, "GOST12-512", "gost12-512" };
+rhash_info info_sha224     = { EXTENDED_HASH_ID(16), F_BE32, 28, "SHA-224", "sha224" };
+rhash_info info_sha256     = { EXTENDED_HASH_ID(17), F_BE32, 32, "SHA-256", "sha256" };
+rhash_info info_sha384     = { EXTENDED_HASH_ID(18), F_BE64, 48, "SHA-384", "sha384" };
+rhash_info info_sha512     = { EXTENDED_HASH_ID(19), F_BE64, 64, "SHA-512", "sha512" };
+rhash_info info_edr256     = { EXTENDED_HASH_ID(20), F_LE32, 32, "EDON-R256", "edon-r256" };
+rhash_info info_edr512     = { EXTENDED_HASH_ID(21), F_LE64, 64, "EDON-R512", "edon-r512" };
+rhash_info info_sha3_224   = { EXTENDED_HASH_ID(22), F_LE64, 28, "SHA3-224", "sha3-224" };
+rhash_info info_sha3_256   = { EXTENDED_HASH_ID(23), F_LE64, 32, "SHA3-256", "sha3-256" };
+rhash_info info_sha3_384   = { EXTENDED_HASH_ID(24), F_LE64, 48, "SHA3-384", "sha3-384" };
+rhash_info info_sha3_512   = { EXTENDED_HASH_ID(25), F_LE64, 64, "SHA3-512", "sha3-512" };
+rhash_info info_snf128     = { EXTENDED_HASH_ID(27), F_BE32, 16, "SNEFRU-128", "snefru128" };
+rhash_info info_snf256     = { EXTENDED_HASH_ID(28), F_BE32, 32, "SNEFRU-256", "snefru256" };
+rhash_info info_blake2s    = { EXTENDED_HASH_ID(29), F_LE32, 32, "BLAKE2S", "blake2s" };
+rhash_info info_blake2b    = { EXTENDED_HASH_ID(30), F_LE64, 64, "BLAKE2B", "blake2b" };
+rhash_info info_blake3     = { EXTENDED_HASH_ID(31), F_LE32 | F_SPCEXP, 32, "BLAKE3", "blake3" };
 
 /* some helper macros */
 #define dgshft(name) ((uintptr_t)((char*)&((name##_ctx*)0)->hash))
@@ -113,7 +104,7 @@ rhash_info info_sha3_512 = { RHASH_SHA3_512, F_LE64, 64, "SHA3-512", "sha3-512" 
 #define iuf2(name1, name2) ini(name1), upd(name2), fin(name2)
 
 /* information about all supported hash functions */
-rhash_hash_info rhash_hash_info_default[RHASH_HASH_COUNT] =
+rhash_hash_info rhash_hash_info_default[] =
 {
 	{ &info_crc32, sizeof(uint32_t), 0, iuf(rhash_crc32), 0 }, /* 32 bit */
 	{ &info_md4, sizeof(md4_ctx), dgshft(md4), iuf(rhash_md4), 0 }, /* 128 bit */
@@ -146,24 +137,45 @@ rhash_hash_info rhash_hash_info_default[RHASH_HASH_COUNT] =
 	{ &info_snf256, sizeof(snefru_ctx), dgshft(snefru), iuf2(rhash_snefru256, rhash_snefru), 0 }, /* 256 bit */
 	{ &info_blake2s, sizeof(blake2s_ctx),  dgshft(blake2s), iuf(rhash_blake2s), 0 },  /* 256 bit */
 	{ &info_blake2b, sizeof(blake2b_ctx),  dgshft(blake2b), iuf(rhash_blake2b), 0 },  /* 512 bit */
+	{ &info_blake3, sizeof(blake3_ctx),  dgshft2(blake3, root.hash), iuf(rhash_blake3), 0 }       /* 256 bit */
 };
+
+#if defined(RHASH_SSE4_SHANI) && !defined(RHASH_DISABLE_SHANI)
+static void table_init_sha_ext(void)
+{
+	if (has_cpu_feature(CPU_FEATURE_SHANI))
+	{
+		assert(rhash_hash_info_default[3].init == (pinit_t)rhash_sha1_init);
+		rhash_hash_info_default[3].update = (pupdate_t)rhash_sha1_ni_update;
+		rhash_hash_info_default[3].final = (pfinal_t)rhash_sha1_ni_final;
+		assert(rhash_hash_info_default[16].init == (pinit_t)rhash_sha224_init);
+		rhash_hash_info_default[16].update = (pupdate_t)rhash_sha256_ni_update;
+		rhash_hash_info_default[16].final = (pfinal_t)rhash_sha256_ni_final;
+		assert(rhash_hash_info_default[17].init == (pinit_t)rhash_sha256_init);
+		rhash_hash_info_default[17].update = (pupdate_t)rhash_sha256_ni_update;
+		rhash_hash_info_default[17].final = (pfinal_t)rhash_sha256_ni_final;
+	}
+}
+#else
+# define table_init_sha_ext() {}
+#endif
 
 /**
  * Initialize requested algorithms.
- *
- * @param mask ids of hash sums to initialize
  */
-void rhash_init_algorithms(unsigned mask)
+void rhash_init_algorithms(void)
 {
-	(void)mask; /* unused now */
-
-	/* verify that RHASH_HASH_COUNT is the index of the major bit of RHASH_ALL_HASHES */
-	assert(1 == (RHASH_ALL_HASHES >> (RHASH_HASH_COUNT - 1)));
+	if (algorithms_initialized_flag)
+		return;
+	/* check RHASH_HASH_COUNT */
+	RHASH_ASSERT((RHASH_LOW_HASHES_MASK >> RHASH_HASH_COUNT) == 0);
+	RHASH_ASSERT(RHASH_COUNTOF(rhash_hash_info_default) == RHASH_HASH_COUNT);
 
 #ifdef GENERATE_GOST94_LOOKUP_TABLE
 	rhash_gost94_init_table();
 #endif
-	rhash_uninitialized_algorithms = 0;
+	table_init_sha_ext();
+	atomic_compare_and_swap(&algorithms_initialized_flag, 0, 1);
 }
 
 /**
@@ -172,12 +184,54 @@ void rhash_init_algorithms(unsigned mask)
  * @param hash_id the id of hash algorithm
  * @return pointer to the rhash_info structure containing the information
  */
-const rhash_info* rhash_info_by_id(unsigned hash_id)
+const rhash_hash_info* rhash_hash_info_by_id(unsigned hash_id)
 {
-	hash_id &= RHASH_ALL_HASHES;
-	/* check that one and only one bit is set */
-	if (!hash_id || (hash_id & (hash_id - 1)) != 0) return NULL;
-	return rhash_info_table[rhash_ctz(hash_id)].info;
+	unsigned index;
+	if (IS_EXTENDED_HASH_ID(hash_id)) {
+		index = hash_id & ~RHASH_EXTENDED_BIT;
+		if (index >= RHASH_HASH_COUNT)
+			return NULL;
+	} else {
+		hash_id &= RHASH_LOW_HASHES_MASK;
+		/* check that one and only one bit is set */
+		if (!hash_id || (hash_id & (hash_id - 1)) != 0)
+			return NULL;
+		index = rhash_ctz(hash_id);
+	}
+	return &rhash_info_table[index];
+}
+
+/**
+ * Return array of hash identifiers of supported hash functions.
+ * If the all_id is different from RHASH_ALL_HASHES,
+ * then return hash identifiers of legacy hash functions
+ * to support old library clients.
+ *
+ * @param all_id constant used to get all hash identifiers
+ * @param count pointer to store the number of returned ids to
+ * @return array of hash identifiers
+ */
+const unsigned* rhash_get_all_hash_ids(unsigned all_id, size_t* count)
+{
+	static const unsigned all_ids[] = {
+		EXTENDED_HASH_ID(0), EXTENDED_HASH_ID(1), EXTENDED_HASH_ID(2), EXTENDED_HASH_ID(3),
+		EXTENDED_HASH_ID(4), EXTENDED_HASH_ID(5), EXTENDED_HASH_ID(6), EXTENDED_HASH_ID(7),
+		EXTENDED_HASH_ID(8), EXTENDED_HASH_ID(9), EXTENDED_HASH_ID(10), EXTENDED_HASH_ID(11),
+		EXTENDED_HASH_ID(12), EXTENDED_HASH_ID(13), EXTENDED_HASH_ID(14), EXTENDED_HASH_ID(15),
+		EXTENDED_HASH_ID(16), EXTENDED_HASH_ID(17), EXTENDED_HASH_ID(18), EXTENDED_HASH_ID(19),
+		EXTENDED_HASH_ID(20), EXTENDED_HASH_ID(21), EXTENDED_HASH_ID(22), EXTENDED_HASH_ID(23),
+		EXTENDED_HASH_ID(24), EXTENDED_HASH_ID(25), EXTENDED_HASH_ID(26), EXTENDED_HASH_ID(27),
+		EXTENDED_HASH_ID(28), EXTENDED_HASH_ID(29), EXTENDED_HASH_ID(30), EXTENDED_HASH_ID(31)
+	};
+#if defined(rhash_popcount)
+	static const unsigned count_low = rhash_popcount(RHASH_LOW_HASHES_MASK);
+#else
+	RHASH_ASSERT(RHASH_LOW_HASHES_MASK == 0x7fffffff);
+	static const unsigned count_low = 31; /* popcount(RHASH_LOW_HASHES_MASK) */
+#endif
+	RHASH_ASSERT(RHASH_COUNTOF(all_ids) == RHASH_HASH_COUNT);
+	*count = (all_id == RHASH_ALL_HASHES ? RHASH_HASH_COUNT : count_low);
+	return all_ids;
 }
 
 /* CRC32 helper functions */
@@ -263,3 +317,93 @@ static void rhash_crc32c_final(uint32_t* crc32c, unsigned char* result)
 	result[2] = (unsigned char)(*crc32c >> 8), result[3] = (unsigned char)(*crc32c);
 #endif
 }
+
+#if !defined(NO_IMPORT_EXPORT)
+#define EXTENDED_TTH EXTENDED_HASH_ID(5)
+#define EXTENDED_AICH EXTENDED_HASH_ID(8)
+
+/**
+ * Export a hash function context to a memory region,
+ * or calculate the size required for context export.
+ *
+ * @param hash_id identifier of the hash function
+ * @param ctx the algorithm context containing current hashing state
+ * @param out pointer to the memory region or NULL
+ * @param size size of memory region
+ * @return the size of the exported data on success, 0 on fail.
+ */
+size_t rhash_export_alg(unsigned hash_id, const void* ctx, void* out, size_t size)
+{
+	switch (hash_id)
+	{
+		case RHASH_TTH:
+		case EXTENDED_TTH:
+			return rhash_tth_export((const tth_ctx*)ctx, out, size);
+		case RHASH_BTIH:
+		case EXTENDED_BTIH:
+			return bt_export((const torrent_ctx*)ctx, out, size);
+		case RHASH_AICH:
+		case EXTENDED_AICH:
+			return rhash_aich_export((const aich_ctx*)ctx, out, size);
+		case RHASH_BLAKE3:
+			return rhash_blake3_export((const blake3_ctx*)ctx, out, size);
+	}
+	return 0;
+}
+
+/**
+ * Import a hash function context from a memory region.
+ *
+ * @param hash_id identifier of the hash function
+ * @param ctx pointer to the algorithm context
+ * @param in pointer to the data to import
+ * @param size size of data to import
+ * @return the size of the imported data on success, 0 on fail.
+ */
+size_t rhash_import_alg(unsigned hash_id, void* ctx, const void* in, size_t size)
+{
+	switch (hash_id)
+	{
+		case RHASH_TTH:
+		case EXTENDED_TTH:
+			return rhash_tth_import((tth_ctx*)ctx, in, size);
+		case RHASH_BTIH:
+		case EXTENDED_BTIH:
+			return bt_import((torrent_ctx*)ctx, in, size);
+		case RHASH_AICH:
+		case EXTENDED_AICH:
+			return rhash_aich_import((aich_ctx*)ctx, in, size);
+		case RHASH_BLAKE3:
+			return rhash_blake3_import((blake3_ctx*)ctx, in, size);
+	}
+	return 0;
+}
+#endif /* !defined(NO_IMPORT_EXPORT) */
+
+#ifdef USE_OPENSSL
+void rhash_load_sha1_methods(rhash_hashing_methods* methods, int methods_type)
+{
+	int use_openssl;
+	switch (methods_type) {
+		case METHODS_OPENSSL:
+			use_openssl = 1;
+			break;
+		case METHODS_SELECTED:
+			assert(rhash_info_table[3].info->hash_id == EXTENDED_SHA1);
+			use_openssl = ARE_OPENSSL_METHODS(rhash_info_table[3]);
+			break;
+		default:
+			use_openssl = 0;
+			break;
+	}
+	if (use_openssl) {
+		methods->init = rhash_ossl_sha1_init();
+		methods->update = rhash_ossl_sha1_update();
+		methods->final = rhash_ossl_sha1_final();
+	} else {
+		methods->init = (pinit_t)&rhash_sha1_init;
+		methods->update = (pupdate_t)&rhash_sha1_update;
+		methods->final = (pfinal_t)&rhash_sha1_final;
+	}
+}
+#endif

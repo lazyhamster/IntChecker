@@ -102,6 +102,12 @@
     <ClCompile Include="librhash\blake2s.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="librhash\blake3.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="librhash\sha_ni.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="librhash\aich.h">
@@ -189,6 +195,12 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="librhash\blake2s.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="librhash\blake3.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="librhash\sha_ni.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

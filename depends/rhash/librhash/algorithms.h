@@ -30,7 +30,7 @@ typedef struct rhash_info
 	 */
 	unsigned hash_id;
 	/**
-	 * Flags bit-mask, including RHASH_INFO_BASE32 bit.
+	 * Flags bitmask, including RHASH_INFO_BASE32 bit.
 	 */
 	unsigned flags;
 	/**
@@ -47,10 +47,10 @@ typedef struct rhash_info
 	const char* magnet_name;
 } rhash_info;
 
-typedef void (*pinit_t)(void*);
+typedef void (*pinit_t)(void* ctx);
 typedef void (*pupdate_t)(void* ctx, const void* msg, size_t size);
-typedef void (*pfinal_t)(void*, unsigned char*);
-typedef void (*pcleanup_t)(void*);
+typedef void (*pfinal_t)(void* ctx, unsigned char* result);
+typedef void (*pcleanup_t)(void* ctx);
 
 /**
  * Information about a hash function
@@ -71,7 +71,7 @@ typedef struct rhash_hash_info
  */
 typedef struct rhash_vector_item
 {
-	struct rhash_hash_info* hash_info;
+	const struct rhash_hash_info* hash_info;
 	void* context;
 } rhash_vector_item;
 
@@ -93,7 +93,6 @@ typedef struct rhash_context_ext
 extern rhash_hash_info rhash_hash_info_default[RHASH_HASH_COUNT];
 extern rhash_hash_info* rhash_info_table;
 extern int rhash_info_size;
-extern unsigned rhash_uninitialized_algorithms;
 
 extern rhash_info info_crc32;
 extern rhash_info info_crc32c;
@@ -123,10 +122,18 @@ extern rhash_info info_sha3_512;
 extern rhash_info info_edr256;
 extern rhash_info info_edr512;
 
+#define IS_EXTENDED_HASH_ID(hash_id) ((hash_id) & RHASH_EXTENDED_BIT)
+#define GET_EXTENDED_HASH_ID_INDEX(hash_id) ((unsigned)((hash_id) & ~RHASH_EXTENDED_BIT))
+#define EXTENDED_HASH_ID(index) ((unsigned)(RHASH_EXTENDED_BIT | (index)))
+#define EXTENDED_SHA1 EXTENDED_HASH_ID(3)
+#define EXTENDED_BTIH EXTENDED_HASH_ID(6)
+#define EXTENDED_WHIRLPOOL EXTENDED_HASH_ID(9)
+
 /* rhash_info flags */
 #define F_BS32 1   /* default output in base32 */
-#define F_SWAP32 2 /* Big endian flag */
+#define F_SWAP32 2 /* big endian flag */
 #define F_SWAP64 4
+#define F_SPCEXP 8 /* needs special import/export logic */
 
 /* define endianness flags */
 #if IS_LITTLE_ENDIAN
@@ -141,11 +148,37 @@ extern rhash_info info_edr512;
 #define F_BE64 0
 #endif
 
-void rhash_init_algorithms(unsigned mask);
-const rhash_info* rhash_info_by_id(unsigned hash_id); /* get hash sum info by hash id */
+void rhash_init_algorithms(void);
+const rhash_hash_info* rhash_hash_info_by_id(unsigned hash_id); /* get hash sum info by hash id */
+const unsigned* rhash_get_all_hash_ids(unsigned all_id, size_t* count);
+
+#if !defined(NO_IMPORT_EXPORT)
+size_t rhash_export_alg(unsigned hash_id, const void* ctx, void* out, size_t size);
+size_t rhash_import_alg(unsigned hash_id, void* ctx, const void* in, size_t size);
+#endif /* !defined(NO_IMPORT_EXPORT) */
 
 #if defined(OPENSSL_RUNTIME) && !defined(USE_OPENSSL)
 # define USE_OPENSSL
+#endif
+
+#ifdef USE_OPENSSL
+typedef struct rhash_hashing_methods
+{
+	pinit_t    init;
+	pupdate_t  update;
+	pfinal_t   final;
+} rhash_hashing_methods;
+
+enum rhash_methods_type
+{
+	METHODS_RHASH,
+	METHODS_OPENSSL,
+	METHODS_SELECTED,
+};
+
+void rhash_load_sha1_methods(rhash_hashing_methods* methods, int methods_type);
+
+#define ARE_OPENSSL_METHODS(methods) ((methods).init != (void (*)(void*))&rhash_sha1_init)
 #endif
 
 #ifdef __cplusplus

@@ -20,13 +20,12 @@
  * The algorithm is named after the Whirlpool Galaxy in Canes Venatici.
  */
 
-#include <assert.h>
 #include <string.h>
 #include "byte_order.h"
 #include "whirlpool.h"
 
 /**
- * Initialize context before calculaing hash.
+ * Initialize context before calculating hash.
  *
  * @param ctx context to initialize
  */

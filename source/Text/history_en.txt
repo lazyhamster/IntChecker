@@ -1,6 +1,7 @@
 Changes history:
 
 2.8.4
+- Updated RHash library to 1.4.6.
 - Minor fixes.
 
 2.8.3

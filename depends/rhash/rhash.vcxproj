@@ -89,7 +89,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>.\win32\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;RHASH_SSE4_SHANI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>
@@ -107,7 +107,7 @@
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>.\win32\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_LIB;RHASH_SSE4_SHANI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <PrecompiledHeader>
@@ -123,7 +123,7 @@
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>.\win32\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;RHASH_SSE4_SHANI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
@@ -142,7 +142,7 @@
       <Optimization>MaxSpeed</Optimization>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>.\win32\;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_LIB;RHASH_SSE4_SHANI;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <PrecompiledHeader>
@@ -158,6 +158,7 @@
     <ClCompile Include="librhash\algorithms.c" />
     <ClCompile Include="librhash\blake2b.c" />
     <ClCompile Include="librhash\blake2s.c" />
+    <ClCompile Include="librhash\blake3.c" />
     <ClCompile Include="librhash\byte_order.c" />
     <ClCompile Include="librhash\crc32.c" />
     <ClCompile Include="librhash\ed2k.c" />
@@ -176,6 +177,7 @@
     <ClCompile Include="librhash\sha256.c" />
     <ClCompile Include="librhash\sha3.c" />
     <ClCompile Include="librhash\sha512.c" />
+    <ClCompile Include="librhash\sha_ni.c" />
     <ClCompile Include="librhash\snefru.c" />
     <ClCompile Include="librhash\tiger.c" />
     <ClCompile Include="librhash\tiger_sbox.c" />
@@ -189,6 +191,7 @@
     <ClInclude Include="librhash\algorithms.h" />
     <ClInclude Include="librhash\blake2b.h" />
     <ClInclude Include="librhash\blake2s.h" />
+    <ClInclude Include="librhash\blake3.h" />
     <ClInclude Include="librhash\byte_order.h" />
     <ClInclude Include="librhash\crc32.h" />
     <ClInclude Include="librhash\ed2k.h" />
@@ -207,6 +210,7 @@
     <ClInclude Include="librhash\sha256.h" />
     <ClInclude Include="librhash\sha3.h" />
     <ClInclude Include="librhash\sha512.h" />
+    <ClInclude Include="librhash\sha_ni.h" />
     <ClInclude Include="librhash\snefru.h" />
     <ClInclude Include="librhash\tiger.h" />
     <ClInclude Include="librhash\torrent.h" />
