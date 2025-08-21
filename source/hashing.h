@@ -18,8 +18,7 @@ struct HashAlgoInfo
 	std::wstring DefaultExt;
 };
 
-#define NUMBER_OF_SUPPORTED_HASHES 7
-extern HashAlgoInfo SupportedHashes[NUMBER_OF_SUPPORTED_HASHES];
+extern std::vector<HashAlgoInfo> SupportedHashes;
 
 struct FileHashInfo
 {

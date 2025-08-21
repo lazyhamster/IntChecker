@@ -1,4 +1,4 @@
-# Integrity Checker Plugin for Far Manager 2.0/3.0
+# Integrity Checker Plugin for Far Manager 3.0
 
 Hash sums calculation/verification plugin.
 
@@ -14,7 +14,7 @@ Download binary package for your Far Manager version and copy to Plugins folder.
 
 [![Build status](https://ci.appveyor.com/api/projects/status/8edsoy9csw4f7qk1?svg=true)](https://ci.appveyor.com/project/lazyhamster/intchecker)
 
-Project is developed under MS Visual Studio 2017.
+Project is developed under MS Visual Studio 2019.
 
 Additional requirements (not included in source distribution):
 

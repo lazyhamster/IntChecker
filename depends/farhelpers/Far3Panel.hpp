@@ -95,8 +95,8 @@ public:
 	bool IsValid() { return m_fIsValid; }
 	HANDLE GetHandle() { return m_hPanel; }
 	
-	bool HasSelectedItems() { return m_panelInfo.SelectedItemsNumber > 0; }
-	size_t GetSelectedItemsNumber() { return m_panelInfo.SelectedItemsNumber; }
+	bool HasSelectedItems() const { return m_panelInfo.SelectedItemsNumber > 0; }
+	size_t GetSelectedItemsNumber() const { return m_panelInfo.SelectedItemsNumber; }
 	
 	bool IsReadablePanel()
 	{

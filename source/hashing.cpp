@@ -6,7 +6,7 @@
 #include <cctype>
 #include <map>
 
-HashAlgoInfo SupportedHashes[] = {
+std::vector<HashAlgoInfo> SupportedHashes = {
 	{ RHASH_CRC32,     L"CRC32",     L".sfv" },
 	{ RHASH_MD5,       L"MD5",       L".md5" },
 	{ RHASH_SHA1,      L"SHA1",      L".sha1" },
@@ -43,12 +43,8 @@ static bool IsComment(char* line)
 
 static std::wstring GetAlgoFileExt(rhash_ids algo)
 {
-	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
-	{
-		if (SupportedHashes[i].AlgoId == algo)
-			return SupportedHashes[i].DefaultExt;
-	}
-	return L"";
+	int i = GetAlgoIndex(algo);
+	return i >= 0 ? SupportedHashes[i].DefaultExt : L"";
 }
 
 HashAlgoInfo* GetAlgoInfo(rhash_ids algoId)
@@ -59,7 +55,7 @@ HashAlgoInfo* GetAlgoInfo(rhash_ids algoId)
 
 int GetAlgoIndex(rhash_ids algoId)
 {
-	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
+	for (size_t i = 0; i < SupportedHashes.size(); i++)
 	{
 		if (SupportedHashes[i].AlgoId == algoId)
 			return i;
@@ -69,7 +65,7 @@ int GetAlgoIndex(rhash_ids algoId)
 
 int GetAlgoIndexByName(const wchar_t* name)
 {
-	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
+	for (size_t i = 0; i < SupportedHashes.size(); i++)
 	{
 		if (SameText(SupportedHashes[i].AlgoName.c_str(), name))
 			return i;
@@ -318,13 +314,13 @@ bool HashList::DetectFormat( const char* testStr, UINT codepage, const wchar_t* 
 	auto ext = ExtractFileExt(filePath);
 	bool found = false;
 
-	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
+	for (auto &algoInfo : SupportedHashes)
 	{
-		rhash_ids nextAlgo = SupportedHashes[i].AlgoId;
+		rhash_ids nextAlgo = algoInfo.AlgoId;
 		if ((IsSfvAlgo(nextAlgo) && TryParseSfv(testStr, codepage, nextAlgo, fileInfo))
 			|| (!IsSfvAlgo(nextAlgo) && TryParseSimple(testStr, codepage, nextAlgo, fileInfo)))
 		{
-			bool sameExt = (_wcsicmp(ext.c_str(), SupportedHashes[i].DefaultExt.c_str()) == 0);
+			bool sameExt = (_wcsicmp(ext.c_str(), algoInfo.DefaultExt.c_str()) == 0);
 			if (!found || sameExt)
 			{
 				foundAlgo = nextAlgo;
@@ -347,9 +343,9 @@ bool HashList::TryParseBSD( const char* inputStr, UINT codepage, FileHashInfo &f
 	if (std::regex_match(inputStr, match, rx))
 	{
 		auto hashName = match[1].str();
-		for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
+		for (auto& algoInfo : SupportedHashes)
 		{
-			rhash_ids algoId = SupportedHashes[i].AlgoId;
+			rhash_ids algoId = algoInfo.AlgoId;
 			if (_stricmp(hashName.c_str(), GetAlgoBsdName(algoId)) == 0)
 			{
 				fileInfo.Filename = ConvertToUnicode(match[2].str(), codepage);
@@ -535,7 +531,7 @@ std::vector<int> DetectHashAlgo(const std::string &testStr)
 	if (canBeHash)
 	{
 		// Go through all hashes and check string size
-		for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
+		for (int i = 0; i < SupportedHashes.size(); i++)
 		{
 			if (rhash_get_hash_length(SupportedHashes[i].AlgoId) == testStr.length())
 				algoIndicies.push_back(i);

@@ -525,7 +525,7 @@ static intptr_t WINAPI HashParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t Par
 
 	if (Msg == DN_BTNCLICK)
 	{
-		if (optAutoExtension && Param2 && (Param1 >= 2) && (Param1 <= 2 + NUMBER_OF_SUPPORTED_HASHES))
+		if (optAutoExtension && Param2 && (Param1 >= 2) && (Param1 <= 2 + (int) SupportedHashes.size()))
 		{
 			int selectedHashIndex = (int) Param1 - 2;
 			wchar_t wszHashFileName[MAX_PATH];
@@ -538,7 +538,7 @@ static intptr_t WINAPI HashParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t Par
 			wchar_t* extPtr = wcsrchr(wszHashFileName, '.');
 			if (extPtr && *extPtr)
 			{
-				for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; i++)
+				for (size_t i = 0; i < SupportedHashes.size(); i++)
 				{
 					if ((i != selectedHashIndex) && (SupportedHashes[i].DefaultExt == extPtr))
 					{
@@ -1116,10 +1116,10 @@ static void RunCompareWithClipboard(const std::wstring &selectedFile)
 	FarAdvControl(ACTL_PROGRESSNOTIFY, 0, NULL);
 }
 
-static bool SelectBenchmarkParams(int &numBuffers, int *algoList)
+static bool SelectBenchmarkParams(int &numBuffers, std::vector<int> &algoList)
 {
 	PluginDialogBuilder dlgBuilder(FarSInfo, GUID_PLUGIN_MAIN, GUID_DIALOG_PARAMS, MSG_DLG_SELECT_PARAMS, nullptr);
-	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; ++i)
+	for (size_t i = 0; i < SupportedHashes.size(); ++i)
 	{
 		dlgBuilder.AddCheckbox(SupportedHashes[i].AlgoName.c_str(), &algoList[i]);
 	}
@@ -1135,9 +1135,8 @@ static bool SelectBenchmarkParams(int &numBuffers, int *algoList)
 static void RunBenchmark()
 {
 	int nNumMb = 1024;  // Bench data size in megabytes
-	int vAlgoList[NUMBER_OF_SUPPORTED_HASHES] = {0};
+	std::vector<int> vAlgoList(SupportedHashes.size(), 1);
 
-	std::fill_n(vAlgoList, NUMBER_OF_SUPPORTED_HASHES, 1);
 	if (!SelectBenchmarkParams(nNumMb, vAlgoList))
 		return;
 
@@ -1153,7 +1152,7 @@ static void RunBenchmark()
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_INDETERMINATE, NULL);
 
 	bool fAborted = false;
-	for (int i = 0; i < NUMBER_OF_SUPPORTED_HASHES; ++i)
+	for (size_t i = 0; i < vAlgoList.size(); ++i)
 	{
 		if (!vAlgoList[i]) continue;
 
@@ -1455,7 +1454,7 @@ intptr_t WINAPI ConfigureW(const ConfigureInfo* Info)
 {
 	std::vector<const wchar_t*> vAlgList;
 	int selectedAlgo = 0;
-	for (int i = 0; i < _countof(SupportedHashes); i++)
+	for (size_t i = 0; i < SupportedHashes.size(); i++)
 	{
 		vAlgList.push_back(SupportedHashes[i].AlgoName.c_str());
 		if (SupportedHashes[i].AlgoId == optDefaultAlgo)
