@@ -22,6 +22,7 @@ static bool optClearSelectionOnComplete = true;
 static bool optConfirmAbort = true;
 static bool optAutoExtension = true;
 static unsigned int optDefaultAlgo = RHASH_MD5;
+static unsigned int optDefaultCompareAlgo = RHASH_CRC32;
 static int optDefaultOutputTarget = OT_SINGLEFILE;
 static bool optUsePrefix = true;
 static bool optHashUppercase = false;
@@ -157,6 +158,7 @@ static void LoadSettings()
 	optClearSelectionOnComplete = ps.Get(0, L"ClearSelection", optClearSelectionOnComplete);
 	optConfirmAbort				= ps.Get(0, L"ConfirmAbort", optConfirmAbort);
 	optDefaultAlgo				= ps.Get(0, L"DefaultHash", optDefaultAlgo);
+	optDefaultCompareAlgo		= ps.Get(0, L"DefaultCompareHash", optDefaultAlgo);
 	optUsePrefix				= ps.Get(0, L"UsePrefix", optUsePrefix);
 	optAutoExtension			= ps.Get(0, L"AutoExtension", optAutoExtension);
 	optHashUppercase			= ps.Get(0, L"HashInUppercase", optHashUppercase);
@@ -180,6 +182,7 @@ static void SaveSettings()
 	ps.Set(0, L"ClearSelection", optClearSelectionOnComplete);
 	ps.Set(0, L"ConfirmAbort", optConfirmAbort);
 	ps.Set(0, L"DefaultHash", optDefaultAlgo);
+	ps.Set(0, L"DefaultCompareHash", optDefaultCompareAlgo);
 	ps.Set(0, L"Prefix", optPrefix);
 	ps.Set(0, L"UsePrefix", optUsePrefix);
 	ps.Set(0, L"AutoExtension", optAutoExtension);
@@ -875,9 +878,15 @@ static intptr_t WINAPI CompareParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t 
 static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive, HANDLE &fileFilter)
 {
 	int doRecurse = recursive;
-	int algoIndex = 0;
 	rhash_ids algos[] = { RHASH_CRC32, RHASH_SHA1 };
 	const wchar_t* const algoNames[] = { L"CRC32", L"SHA1" };
+
+	int algoIndex = 0;
+	for (size_t i = 0; i < _countof(algos); ++i)
+	{
+		if (algos[i] == selectedAlgo)
+			algoIndex = (int)i;
+	}
 
 	int useFilter = 0;
 	HANDLE hFilter = INVALID_HANDLE_VALUE;
@@ -939,7 +948,7 @@ static void RunComparePanels()
 		return;
 	}
 
-	rhash_ids cmpAlgo = (rhash_ids) optDefaultAlgo;
+	rhash_ids cmpAlgo = (rhash_ids) optDefaultCompareAlgo;
 	bool recursive = true;
 	HANDLE fileFilter = INVALID_HANDLE_VALUE;
 
@@ -1030,6 +1039,12 @@ static void RunComparePanels()
 	if (!fAborted)
 	{
 		DisplayValidationResults(activePanel, vMismatches, vMissing, nFilesSkipped);
+	}
+
+	if (optRememberLastUsedAlgo)
+	{
+		optDefaultCompareAlgo = cmpAlgo;
+		SaveSettings();
 	}
 }
 
