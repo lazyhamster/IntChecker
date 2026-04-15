@@ -21,7 +21,7 @@ static bool optDetectHashFiles = true;
 static bool optClearSelectionOnComplete = true;
 static bool optConfirmAbort = true;
 static bool optAutoExtension = true;
-static int optDefaultAlgo = RHASH_MD5;
+static unsigned int optDefaultAlgo = RHASH_MD5;
 static int optDefaultOutputTarget = OT_SINGLEFILE;
 static bool optUsePrefix = true;
 static bool optHashUppercase = false;
@@ -1030,12 +1030,6 @@ static void RunComparePanels()
 	if (!fAborted)
 	{
 		DisplayValidationResults(activePanel, vMismatches, vMissing, nFilesSkipped);
-	}
-
-	if (optRememberLastUsedAlgo)
-	{
-		optDefaultAlgo = cmpAlgo;
-		SaveSettings();
 	}
 }
 
