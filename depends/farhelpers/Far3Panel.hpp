@@ -171,7 +171,7 @@ public:
 					}
 					else if (recursive)
 					{
-						for (auto& p : std::filesystem::recursive_directory_iterator(itemPath, fs::directory_options::skip_permission_denied))
+						for (auto& p : std::filesystem::recursive_directory_iterator(L"\\\\?\\" + itemPath, fs::directory_options::skip_permission_denied))
 							if (!p.is_directory())
 							{
 								auto strEntryPath = p.path().native();
