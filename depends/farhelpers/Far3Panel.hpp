@@ -171,15 +171,15 @@ public:
 					}
 					else if (recursive)
 					{
+						// If directory name ends with dot that iterator will crash if path is without UNC prefix
 						for (auto& p : std::filesystem::recursive_directory_iterator(L"\\\\?\\" + itemPath, fs::directory_options::skip_permission_denied))
 							if (!p.is_directory())
 							{
 								auto strEntryPath = p.path().native();
-								std::wstring strRelativePath = strEntryPath.substr(strPanelPath.size());
-								if (strRelativePath[0] == '\\') strRelativePath.erase(0, 1);
-								
 								if (PathMatchFileFilter(strEntryPath, fileFilter))
 								{
+									auto strRelativePath = std::filesystem::relative(p.path(), strPanelPath);
+									
 									PanelFileInfo info;
 									info.FullPath = strEntryPath;
 									info.PanelPath = strRelativePath;
