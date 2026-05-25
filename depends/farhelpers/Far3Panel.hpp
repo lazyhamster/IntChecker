@@ -172,7 +172,9 @@ public:
 					else if (recursive)
 					{
 						// If directory name ends with dot that iterator will crash if path is without UNC prefix
-						for (auto& p : std::filesystem::recursive_directory_iterator(L"\\\\?\\" + itemPath, fs::directory_options::skip_permission_denied))
+						// Do not add prefix if we have network path
+						auto strIteratorPath = itemPath._Starts_with(L"\\\\") ? itemPath : L"\\\\?\\" + itemPath;
+						for (auto& p : std::filesystem::recursive_directory_iterator(strIteratorPath, fs::directory_options::skip_permission_denied))
 							if (!p.is_directory())
 							{
 								auto strEntryPath = p.path().native();
