@@ -531,7 +531,7 @@ std::vector<int> DetectHashAlgo(const std::string &testStr)
 	if (canBeHash)
 	{
 		// Go through all hashes and check string size
-		for (int i = 0; i < SupportedHashes.size(); i++)
+		for (size_t i = 0; i < SupportedHashes.size(); i++)
 		{
 			if (rhash_get_hash_length(SupportedHashes[i].AlgoId) == testStr.length())
 				algoIndicies.push_back(i);
@@ -558,7 +558,7 @@ static void InitRandomBuffer(int8_t* buffer, size_t bufferSize)
 	}
 }
 
-int64_t BenchmarkAlgorithm(rhash_ids algo, size_t dataSize)
+int64_t BenchmarkAlgorithm(rhash_ids algo, int64_t dataSize)
 {
 	typedef std::chrono::system_clock clock_type;
 
@@ -566,7 +566,7 @@ int64_t BenchmarkAlgorithm(rhash_ids algo, size_t dataSize)
 	int8_t buffer[bufferSize];
 	
 	InitRandomBuffer(buffer, bufferSize);
-	size_t numRounds = dataSize / bufferSize;
+	int64_t numRounds = dataSize / bufferSize;
 
 	int oldPrio = GetThreadPriority(GetCurrentThread());
 	SetThreadPriority(GetCurrentThread(), THREAD_PRIORITY_HIGHEST);
@@ -574,7 +574,7 @@ int64_t BenchmarkAlgorithm(rhash_ids algo, size_t dataSize)
 	auto start_time = clock_type::now();
 
 	rhash hashCtx = rhash_init(algo);
-	for (size_t i = 0; i < numRounds; ++i)
+	for (int64_t i = 0; i < numRounds; ++i)
 	{
 		rhash_update(hashCtx, buffer, bufferSize);
 	}

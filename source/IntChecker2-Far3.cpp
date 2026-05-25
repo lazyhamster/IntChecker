@@ -1156,7 +1156,7 @@ static void RunBenchmark()
 	}
 
 	std::vector<std::wstring> vBenchResults;
-	size_t nBenchDataSize = nNumMb * 1024 * 1024;
+	int64_t nBenchDataSize = static_cast<int64_t>(nNumMb) * 1024 * 1024;
 
 	FarAdvControl(ACTL_SETPROGRESSSTATE, TBPS_INDETERMINATE, NULL);
 
@@ -1179,7 +1179,9 @@ static void RunBenchmark()
 			break;
 		}
 
-		std::wstring strBenchSpeed = FileSizeToString((int64_t)nBenchDataSize * 1000 / benchMs, false) + L"b/s";
+		int64_t nBenchSpeed = (benchMs != 0) ? (nBenchDataSize * 1000 / benchMs) : 0;
+
+		std::wstring strBenchSpeed = FileSizeToString(nBenchSpeed, false) + L"b/s";
 		std::wstring strBenchData = FormatString(L"%9s : %llu ms, %s", algoInfo.AlgoName.c_str(), benchMs, strBenchSpeed.c_str());
 		vBenchResults.push_back(strBenchData);
 	}

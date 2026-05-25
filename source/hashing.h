@@ -85,6 +85,6 @@ std::vector<int> DetectHashAlgo(const std::string &testStr);
 
 bool SameHash(const std::string& hash1, const std::string& hash2);
 
-int64_t BenchmarkAlgorithm(rhash_ids algo, size_t dataSize);
+int64_t BenchmarkAlgorithm(rhash_ids algo, int64_t dataSize);
 
 #endif // hashing_h__

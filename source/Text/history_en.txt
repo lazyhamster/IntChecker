@@ -1,5 +1,8 @@
 Changes history:
 
+2.8.5
+- Fixed crash if benchmark data size is set to 4096 Mb.
+
 2.8.4
 - Updated RHash library to 1.4.6 (hardware support for SHA1).
 - Fixed crash if directory name ends with a dot.
