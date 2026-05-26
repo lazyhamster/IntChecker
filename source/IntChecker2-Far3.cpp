@@ -22,7 +22,7 @@ static bool optClearSelectionOnComplete = true;
 static bool optConfirmAbort = true;
 static bool optAutoExtension = true;
 static unsigned int optDefaultAlgo = RHASH_MD5;
-static unsigned int optDefaultCompareAlgo = RHASH_CRC32;
+static unsigned int optDefaultCompareAlgo = RHASH_SHA1;
 static int optDefaultOutputTarget = OT_SINGLEFILE;
 static bool optUsePrefix = true;
 static bool optHashUppercase = false;
@@ -878,8 +878,8 @@ static intptr_t WINAPI CompareParamsDlgProc(HANDLE hDlg, intptr_t Msg, intptr_t 
 static bool AskForCompareParams(rhash_ids &selectedAlgo, bool &recursive, HANDLE &fileFilter)
 {
 	int doRecurse = recursive;
-	rhash_ids algos[] = { RHASH_CRC32, RHASH_SHA1 };
-	const wchar_t* const algoNames[] = { L"CRC32", L"SHA1" };
+	rhash_ids algos[] = { RHASH_CRC32, RHASH_SHA1, RHASH_SHA256 };
+	const wchar_t* const algoNames[] = { L"CRC32", L"SHA1", L"SHA-256"};
 
 	int algoIndex = 0;
 	for (size_t i = 0; i < _countof(algos); ++i)
