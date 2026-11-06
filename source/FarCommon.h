@@ -175,16 +175,16 @@ static bool FindBestListBoxSize(std::vector<std::wstring> listItems, FARSIZECALL
 	for (auto cit = listItems.cbegin(); cit != listItems.cend(); cit++)
 	{
 		const std::wstring &str = *cit;
-		maxLineWidth = max(maxLineWidth, (int) str.length());
+		maxLineWidth = (std::max)(maxLineWidth, (int) str.length());
 	}
 
 	maxLineWidth += 2; // spaces on both sides of the text
 	if (maxLineWidth > listBoxSize.Width)
-		listBoxSize.Width = min(maxLineWidth, farSize.Width - 20);
+		listBoxSize.Width = (std::min)(maxLineWidth, farSize.Width - 20);
 
 	int numLines = (int) listItems.size();
 	if (numLines > listBoxSize.Height)
-		listBoxSize.Height = min(numLines, farSize.Height - 12);
+		listBoxSize.Height = (std::min)(numLines, farSize.Height - 12);
 
 	return true;
 }
