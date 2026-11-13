@@ -1,8 +1,21 @@
-﻿Historia zmian:
+Historia zmian:
+
+2.8.5
+- Naprawiono błąd awarii w przypadku ustawienia danych benchmarku na 4096 MB.
+- Naprawiono obsługę ścieżek sieciowych (regresja)).
+
+2.8.4
+- Aktualizacja biblioteki RHash do wersji 1.4.6 (sprzętowe wsparcie SHA1).
+- Naprawiono błąd awarii w przypadku nazwy folderu zakończonego kropką.
+- Drobne poprawki.
+
+2.8.3
+- Usunięto filtr rozszerzeń dla weryfikacji podpisu cyfrowego plików.
+- Drobne poprawki.
 
 2.8.2
 - Poprawiono ładowanie list sum kontrolnych w formacie BSD dla kilku algorytmów.
-- Dodanoo możliwość zatrzymania po pieerwszym niedopasowaniu podczas sprawdzenia sum.
+- Dodano możliwość zatrzymania po pierwszym niedopasowaniu podczas sprawdzenia sum.
 - Dodano możliwość zapobiegania przejścia komputera w stań uśpienia podczas obliczania sum.
 - Bieżąca nazwa folderu jest używana jako nazwa pliku sum kontrolnych (dla głównego folderu nazwa pliku bez zmian).
 - Zaktualizowano bibliotekę RHash do wersji 1.4.2.
@@ -15,7 +28,7 @@
 - Dodana weryfikacja podpisu cyfrowego dla plików PE.
 - Funkcja makro 'gethash' zwraca teraz tekst 'userabort', jeżeli użytkownik przerwał operację.
 - Poprawione błędy obliczania sum dla linków symbolicznych za pomocą poleceń makro.
-- Poprawione błędy graficzne przy generowaniu okien dialogwych w nowszych wersjach Far (podziękiękowanie dla ctapmex).
+- Poprawione błędy graficzne przy generowaniu okien dialogowych w nowszych wersjach Far (podziękowanie dla ctapmex).
 
 2.7.3
 - Dodano możliwość zapisania obliczonych sum do jednego pliku dla każdego folderu.
@@ -25,19 +38,19 @@
 
 2.7.2
 - Dodane polskie tłumaczenie (autor Andrzej Rudnik).
-- Added whitespace trimming around file name supplied through prefix (previously spaces were treated as part of the file name).
+- Dodane czyszczenie białych znaków dookoła nazwy pliku przekazanej przez przedrostek (poprzednio spacje były traktowane jako część nazwy pliku).
 
 2.7.1
-- Fixed invalid elapsed time display in hash progress dialog when it is more then an hour.
-- Fixed problem with validating files from Directory Junctions.
+- Naprawiono błędne wyświetlanie czasu, który upłynął, w oknie postępu obliczania skrótu (hasha) w sytuacji, gdy przekracza on godzinę.
+- Naprawiono problem z weryfikacją plików znajdujących się w punktach połączenia katalogów (Directory Junctions).
 - Uaktualniono bibliotekę RHash do wersji 1.3.8 (powinna przyspieszać przy niektórych algorytmach).
 
 2.7.0
 - Dodano możliwość użycia wtyczki w skryptach lua (np. IntChecker.GetFileHash.lua).
 - Dodany prosty benchmark do testowania prędkości obliczania sum.
-- Added validation option to ignore missing files.
-- Fixed loading of the hashlists that have paths stored in UNC format.
-- Allowed SFV files to have variable amount of spaces between file path and checksum.
+- Dodano opcję walidacji pozwalającą ignorować brakujące pliki.
+- Naprawiono wczytywanie list skrótów (hashlist), które zawierają ścieżki zapisane w formacie UNC.
+- Pozwolono plikom SFV na zmienną ilość spacji pomiędzy ścieżką a sumą kontrolną.
 - Uaktualnione hiszpańskie tłumaczenie (dziękuję Mauro72).
 
 2.6.2
@@ -105,32 +118,32 @@
 - Naprawiona awaria przy porównywaniu paneli z SHA-512 i Whirlpool.
 
 2.2.0
-- Poprawiony błąd dla plików ze ścieżką powyżej 256 znaków.
+- Naprawiony błąd dla plików ze ścieżką powyżej 256 znaków.
 - Zwiększona maksymalna wielkość pliku kontrolnego do 10MB.
 - Dodano sprawdzanie rozszerzenia pliku listy skrótów dla skrótów o tej samej długości.
-- Poprawiony zły algorytm wykrywania w niektórych przypadkach.
+- Naprawiony zły algorytm wykrywania w niektórych przypadkach.
 - Dodana obsługa plików kontrolnych w formacie BSD.
 
 2.1.0
-- Poprawione odczytywanie plików kontrolnych ze znakami nie-łacińskimi.
-- Drobne poprawki..
+- Naprawione odczytywanie plików kontrolnych ze znakami nie-łacińskimi.
+- Drobne poprawki.
 
 2.0.4
-- Poprawiony panel porównywania w Far3.
-- Poprawione błędy w oknie dialogowym wyników w panelu porównywania.
+- Naprawiony panel porównywania w Far3.
+- Naprawione błędy w oknie dialogowym wyników w panelu porównywania.
 
 2.0.3
 - Uaktualniona biblioteka RHash do wersji 1.3.2.
 To uaktualnienie rozwiązuje kilka rzadkich błędów podczas używania SHA512.
 
 2.0.2
-- Poprawiona obsługa plików kontrolnych ze ścieżkami względnymi.
+- Naprawiona obsługa plików kontrolnych ze ścieżkami względnymi.
 
 2.0.1
-- Poprawiony przedrostek w Far3.
+- Naprawiony przedrostek w Far3.
 - Teraz wtyczka nie działa w innym panelu wtyczki.
 - Dodana opcja zapisania pełnej ścieżki w plikach kontrolnych.
-- Poprawione zaznaczanie brakujących plików po walidacji w Far3.
+- Naprawione zaznaczanie brakujących plików po walidacji w Far3.
 - Drobne zmiany.
 
 2.0
