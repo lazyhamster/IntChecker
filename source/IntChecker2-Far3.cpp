@@ -1112,7 +1112,7 @@ static void RunCompareWithClipboard(const std::wstring &selectedFile)
 			auto t1 = dlgBuilder.AddTextAfter(l1, wszClipHash);
 			auto t2 = dlgBuilder.AddTextAfter(l2, wszFileHash);
 
-			intptr_t maxOffset = max(t1->X1, t2->X1);
+			intptr_t maxOffset = (std::max)(t1->X1, t2->X1);
 			t1->X1 = t2->X1 = maxOffset;
 			
 			dlgBuilder.AddOKCancel(MSG_BTN_OK, -1);
@@ -1348,7 +1348,7 @@ static void RunVerifySignatures(Far3Panel &panel)
 				DisplayMessage(MSG_DLG_VALIDATION_COMPLETE, MSG_DLG_OPERATION_COMPLETE, nullptr, false, true);
 				panel.SetItemsSelection([&vFailedFiles](const wchar_t* aItemName)
 				{
-						for each (const PanelFileInfo &item in vFailedFiles)
+						for (const PanelFileInfo &item : vFailedFiles)
 						{
 							if (item.PanelPath.compare(aItemName) == 0)
 								return 0;

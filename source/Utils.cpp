@@ -219,7 +219,7 @@ int PrepareFilesList(const wchar_t* basePath, const wchar_t* basePrefix, StringL
 	return EnumFiles(strBasePath, strStartPrefix, destList, totalSize, recursive, filterProc, filterData);
 }
 
-bool CopyTextToClipboard( std::wstring &data )
+bool CopyTextToClipboard( const std::wstring &data )
 {
 	if (!OpenClipboard(GetConsoleWindow())) return false;
 	EmptyClipboard();

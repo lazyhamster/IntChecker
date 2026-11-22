@@ -25,7 +25,7 @@ bool SameText(const wchar_t* str1, const wchar_t* str2);
 typedef bool (CALLBACK *FilterCompareProc)(const WIN32_FIND_DATA*, HANDLE);
 int PrepareFilesList(const wchar_t* basePath, const wchar_t* basePrefix, StringList &destList, int64_t &totalSize, bool recursive, FilterCompareProc filterProc, HANDLE filterData);
 
-bool CopyTextToClipboard(std::wstring &data);
+bool CopyTextToClipboard(const std::wstring &data);
 bool CopyTextToClipboard(std::vector<std::wstring> &data);
 bool GetTextFromClipboard(std::string &data);
 
